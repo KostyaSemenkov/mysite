@@ -14,6 +14,11 @@ DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
 
 ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',') if h]
 
+CSRF_TRUSTED_ORIGINS = [
+    o for o in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS',
+                              'https://lemurqa.ru,https://www.lemurqa.ru').split(',') if o
+]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

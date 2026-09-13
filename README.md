@@ -30,30 +30,29 @@ python manage.py runserver
 3. «Проекты» — портфолио.
 4. Заявки и подписчики видны в админке по мере поступления.
 
-## Деплой: Timeweb Cloud Apps (Россия, ~200–350 ₽/мес)
+## Деплой: Cloud.ru (VM + Docker, ~1000–1500 ₽/мес)
 
-Проект уже подготовлен: Dockerfile (порт из `PORT`, миграции при старте),
-requirements.txt, WhiteNoise и настройки через переменные окружения
-(см. `.env.example`).
+Стек для сервера: `docker-compose.yml` (web + PostgreSQL + Caddy с авто-HTTPS),
+`Caddyfile`, настройки через `.env` (шаблон — `.env.production.example`).
 
-1. **База**: в панели [apps.timeweb.cloud](https://apps.timeweb.cloud) →
-   «Базы данных» → Создать → PostgreSQL → скопировать строку подключения
-2. **Приложение**: «Приложения» → Создать → из Git-репозитория
-   (`github.com/KostyaSemenkov/mysite`) — образ соберётся из Dockerfile
-3. **Переменные окружения** в настройках приложения:
-   - `DJANGO_SECRET_KEY` — длинная случайная строка
-   - `DJANGO_DEBUG=0`
-   - `DATABASE_URL=postgresql://user:pass@host:port/dbname`
-   - `DJANGO_ALLOWED_HOSTS=выдаенный-домен.twc1.net`
-4. Миграции выполняются автоматически при старте контейнера;
-   суперпользователь — через SSH-консоль приложения:
-   `python manage.py createsuperuser`
-5. **Домен**: купить в разделе «Домены» → привязать к приложению,
-   SSL выпустится автоматически
+1. **VM у Cloud.ru**: Ubuntu 24.04, 1–2 vCPU / 2 ГБ RAM, открытые порты 80 и 443
+2. **DNS**: A-запись `lemurqa.ru` → IP виртуальной машины (и `www`)
+3. **На сервере**:
+   ```bash
+   ssh root@IP_МАШИНЫ
+   apt update && apt install -y docker.io docker-compose-v2 git
+   git clone https://github.com/KostyaSemenkov/mysite && cd mysite
+   cp .env.production.example .env && nano .env   # заполнить секреты и пароль БД
+   docker compose up -d --build
+   ```
+4. **Суперпользователь** (после первого запуска):
+   ```bash
+   docker compose exec web python manage.py createsuperuser
+   ```
+5. Обновление сайта после правок: `git pull && docker compose up -d --build`
 
-Медиа-файлы (фото, обложки): диск контейнера пересоздаётся при каждом деплое,
-поэтому при росте объёма перенесите загрузки на S3-хранилище
-(Timeweb Object Storage / Cloudflare R2) через `django-storages`.
+Caddy сам выпустит и продлевает сертификаты Let's Encrypt для lemurqa.ru.
+База и медиа живут в Docker-томах и переживают пересоздание контейнеров.
 
 ## Перед продакшеном обязательно
 
