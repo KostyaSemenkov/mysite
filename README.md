@@ -30,29 +30,30 @@ python manage.py runserver
 3. «Проекты» — портфолио.
 4. Заявки и подписчики видны в админке по мере поступления.
 
-## Деплой (рекомендуемый стек, ~0–5 $/мес)
+## Деплой: Timeweb Cloud Apps (Россия, ~200–350 ₽/мес)
 
-Проект уже подготовлен: Dockerfile, fly.toml, requirements.txt, WhiteNoise
-и настройки через переменные окружения (см. `.env.example`).
+Проект уже подготовлен: Dockerfile (порт из `PORT`, миграции при старте),
+requirements.txt, WhiteNoise и настройки через переменные окружения
+(см. `.env.example`).
 
-1. **Код на GitHub**: `git init && git add . && git commit -m "initial"` → запушить
-2. **База**: бесплатный PostgreSQL на https://neon.tech → строка `DATABASE_URL`
-3. **Хостинг** (Fly.io):
-   ```bash
-   fly auth signup
-   fly launch --no-deploy          # создаст приложение (fly.toml уже есть)
-   fly secrets set DJANGO_SECRET_KEY="<случайная строка>" \
-                   DJANGO_DEBUG=0 \
-                   DJANGO_ALLOWED_HOSTS="ваш-домен.ru" \
-                   DATABASE_URL="postgresql://...из Neon..."
-   fly deploy
-   fly ssh console -C "python manage.py migrate && python manage.py createsuperuser"
-   ```
-4. **Домен**: купить у регистратора, DNS через Cloudflare, затем `fly certs add ваш-домен.ru`
+1. **База**: в панели [apps.timeweb.cloud](https://apps.timeweb.cloud) →
+   «Базы данных» → Создать → PostgreSQL → скопировать строку подключения
+2. **Приложение**: «Приложения» → Создать → из Git-репозитория
+   (`github.com/KostyaSemenkov/mysite`) — образ соберётся из Dockerfile
+3. **Переменные окружения** в настройках приложения:
+   - `DJANGO_SECRET_KEY` — длинная случайная строка
+   - `DJANGO_DEBUG=0`
+   - `DATABASE_URL=postgresql://user:pass@host:port/dbname`
+   - `DJANGO_ALLOWED_HOSTS=выдаенный-домен.twc1.net`
+4. Миграции выполняются автоматически при старте контейнера;
+   суперпользователь — через SSH-консоль приложения:
+   `python manage.py createsuperuser`
+5. **Домен**: купить в разделе «Домены» → привязать к приложению,
+   SSL выпустится автоматически
 
-Медиа-файлы (фото, обложки) на Fly хранить нельзя (диск несменяемый) —
-при первом объёме можно грузить в репозиторий в `media/`, позже перевести
-на Cloudflare R2 через `django-storages`.
+Медиа-файлы (фото, обложки): диск контейнера пересоздаётся при каждом деплое,
+поэтому при росте объёма перенесите загрузки на S3-хранилище
+(Timeweb Object Storage / Cloudflare R2) через `django-storages`.
 
 ## Перед продакшеном обязательно
 
