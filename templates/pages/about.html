@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Обо мне — {{ profile.name|default:'' }}{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-white">Обо мне</h1>
+<div class="mt-8 space-y-4 leading-relaxed text-slate-300">
+  {% if profile %}
+    {{ profile.about|linebreaksbr }}
+  {% else %}
+    <p>Заполните профиль в админке, чтобы этот блок заполнился автоматически.</p>
+  {% endif %}
+</div>
+{% endblock %}

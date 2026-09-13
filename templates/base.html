@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ profile.name|default:'Личный сайт' }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ profile.tagline|default:'' }}{% endblock %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-200 antialiased">
+  <header class="border-b border-slate-800">
+    <div class="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
+      <a href="{% url 'home' %}" class="text-lg font-semibold text-white">
+        {{ profile.name|default:'Мой сайт' }}
+      </a>
+      <nav class="flex gap-6 text-sm">
+        <a href="{% url 'home' %}" class="hover:text-white">Главная</a>
+        <a href="{% url 'blog:post_list' %}" class="hover:text-white">Блог</a>
+        <a href="{% url 'projects:project_list' %}" class="hover:text-white">Проекты</a>
+        <a href="{% url 'about' %}" class="hover:text-white">Обо мне</a>
+        <a href="{% url 'contacts:contact' %}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500">Связаться</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-6 py-12">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-6 rounded-lg border border-emerald-700 bg-emerald-900/40 px-4 py-3 text-emerald-200">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="border-t border-slate-800">
+    <div class="mx-auto max-w-5xl px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
+      <div>
+        {% if profile %}
+          <div class="flex gap-4">
+            {% if profile.github %}<a href="{{ profile.github }}" class="hover:text-white">GitHub</a>{% endif %}
+            {% if profile.linkedin %}<a href="{{ profile.linkedin }}" class="hover:text-white">LinkedIn</a>{% endif %}
+            {% if profile.telegram %}<a href="{{ profile.telegram }}" class="hover:text-white">Telegram</a>{% endif %}
+            {% if profile.email %}<a href="mailto:{{ profile.email }}" class="hover:text-white">{{ profile.email }}</a>{% endif %}
+          </div>
+        {% endif %}
+      </div>
+      <div>&copy; {% now 'Y' %} {{ profile.name|default:'' }}</div>
+    </div>
+  </footer>
+</body>
+</html>

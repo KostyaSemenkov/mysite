@@ -1,0 +1,17 @@
+# Fly.io configuration. See: https://fly.io/docs/reference/configuration/
+app = "lemurzilya-site"
+primary_region = "waw"
+
+[build]
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    path = "/admin/login/"

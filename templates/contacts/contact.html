@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Связаться — {{ profile.name|default:'' }}{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold text-white">Связаться со мной</h1>
+<p class="mt-2 text-slate-400">Расскажите о задаче — отвечу в течение пары дней.</p>
+<form action="{% url 'contacts:contact_submit' %}" method="post"
+      class="mt-8 max-w-lg space-y-4 rounded-xl border border-slate-800 bg-slate-900 p-6">
+  {% csrf_token %}
+  <input type="text" name="name" required placeholder="Ваше имя"
+         class="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2.5 focus:border-indigo-500 focus:outline-none">
+  <input type="email" name="email" required placeholder="Email"
+         class="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2.5 focus:border-indigo-500 focus:outline-none">
+  <textarea name="message" required rows="5" placeholder="Сообщение"
+            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2.5 focus:border-indigo-500 focus:outline-none"></textarea>
+  <button class="rounded-lg bg-indigo-600 px-5 py-2.5 text-white hover:bg-indigo-500">Отправить</button>
+</form>
+{% endblock %}
