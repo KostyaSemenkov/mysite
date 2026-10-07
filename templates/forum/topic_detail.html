@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}{{ topic.title }} — Форум{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-white">{% if topic.is_pinned %}📌 {% endif %}{{ topic.title }}</h1>
+<p class="mt-1 text-xs text-slate-500">
+  {{ topic.created_at|date:'d.m.Y H:i' }}{% if topic.created_by %} · {{ topic.created_by.username }}{% endif %}
+</p>
+
+{% if topic.body %}
+  <div class="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-5 leading-relaxed text-slate-300">
+    {{ topic.body|linebreaksbr }}
+  </div>
+{% endif %}
+
+<h2 class="mt-8 text-lg font-semibold text-white">Комментарии ({{ comments|length }})</h2>
+<div class="mt-4 space-y-4">
+  {% for comment in comments %}
+    <div class="rounded-xl border border-slate-800 bg-slate-900 p-4">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium {% if comment.author %}text-indigo-300{% else %}text-slate-300{% endif %}">
+          {{ comment.display_name }}
+        </span>
+        <span class="text-xs text-slate-500">{{ comment.created_at|date:'d.m.Y H:i' }}</span>
+      </div>
+      <p class="mt-2 text-slate-300">{{ comment.body|linebreaksbr }}</p>
+    </div>
+  {% empty %}
+    <p class="text-slate-500">Комментариев пока нет.</p>
+  {% endfor %}
+</div>
+
+{% if form %}
+  <form action="{% url 'forum:add_comment' topic.slug %}" method="post"
+        class="mt-8 max-w-2xl space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-5">
+    {% csrf_token %}
+    <h3 class="font-semibold text-white">Оставить комментарий</h3>
+    {% if user.is_authenticated %}
+      <p class="text-xs text-slate-500">Вы вошли как {{ user.username }} — комментарий появится сразу.</p>
+    {% else %}
+      <p class="text-xs text-slate-500">Как гость: комментарий появится после проверки модератором.
+        Или <a href="{% url 'login' %}" class="text-indigo-400 hover:text-indigo-300">войдите</a> /
+        <a href="{% url 'register' %}" class="text-indigo-400 hover:text-indigo-300">зарегистрируйтесь</a>.</p>
+    {% endif %}
+    {{ form.as_p }}
+    <button class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Отправить</button>
+  </form>
+{% else %}
+  <p class="mt-8 text-sm text-slate-500">Тема закрыта для комментариев.</p>
+{% endif %}
+{% endblock %}

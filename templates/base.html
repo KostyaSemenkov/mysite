@@ -6,6 +6,17 @@
   <title>{% block title %}{{ profile.name|default:'Личный сайт' }}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{{ profile.tagline|default:'' }}{% endblock %}">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    input, textarea, select {
+      width: 100%; background: #020617; color: #e2e8f0;
+      border: 1px solid #334155; border-radius: 0.5rem;
+      padding: 0.625rem 1rem; margin-top: 0.25rem;
+    }
+    input:focus, textarea:focus { outline: none; border-color: #6366f1; }
+    label { display: block; font-size: 0.875rem; color: #94a3b8; }
+    .errorlist { color: #f87171; font-size: 0.875rem; list-style: none; padding: 0; }
+    .helptext { color: #64748b; font-size: 0.75rem; }
+  </style>
 </head>
 <body class="bg-slate-950 text-slate-200 antialiased">
   <header class="border-b border-slate-800">
@@ -13,11 +24,21 @@
       <a href="{% url 'home' %}" class="text-lg font-semibold text-white">
         {{ profile.name|default:'Мой сайт' }}
       </a>
-      <nav class="flex gap-6 text-sm">
+      <nav class="flex items-center gap-6 text-sm">
         <a href="{% url 'home' %}" class="hover:text-white">Главная</a>
         <a href="{% url 'blog:post_list' %}" class="hover:text-white">Блог</a>
         <a href="{% url 'projects:project_list' %}" class="hover:text-white">Проекты</a>
+        <a href="{% url 'talks:talk_list' %}" class="hover:text-white">Выступления</a>
+        <a href="{% url 'forum:topic_list' %}" class="hover:text-white">Форум</a>
         <a href="{% url 'about' %}" class="hover:text-white">Обо мне</a>
+        {% if user.is_authenticated %}
+          <form action="{% url 'logout' %}" method="post" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="text-slate-400 hover:text-white">{{ user.username }} · выйти</button>
+          </form>
+        {% else %}
+          <a href="{% url 'login' %}" class="text-slate-400 hover:text-white">Войти</a>
+        {% endif %}
         <a href="{% url 'contacts:contact' %}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500">Связаться</a>
       </nav>
     </div>

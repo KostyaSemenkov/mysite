@@ -6,3 +6,8 @@ staticfiles/
 .env
 *.log
 .DS_Store
+
+# посторонние проекты рабочей папки
+Sol-Pi/
+shvejk-presentation/
+.zcodeignore

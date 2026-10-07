@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}{{ talk.title }}{% endblock %}
+{% block meta_description %}{{ talk.description|truncatechars:200 }}{% endblock %}
+
+{% block content %}
+<article>
+  {% if talk.spoke_at %}<time class="text-sm text-slate-500">{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
+  <h1 class="mt-2 text-3xl font-bold text-white">{{ talk.title }}</h1>
+  {% if talk.event %}<p class="mt-2 text-sm text-indigo-400">{{ talk.event }}</p>{% endif %}
+
+  <div class="mt-6 overflow-hidden rounded-xl border border-slate-800 bg-black">
+    {% if talk.video %}
+      <video controls preload="metadata" class="w-full"
+             {% if talk.thumbnail %}poster="{{ talk.thumbnail.url }}"{% endif %}>
+        <source src="{{ talk.video.url }}">
+        Ваш браузер не поддерживает встроенное видео.
+      </video>
+    {% elif talk.video_url %}
+      <div class="p-6 text-center">
+        <a href="{{ talk.video_url }}" target="_blank" rel="noopener"
+           class="rounded-lg bg-indigo-600 px-5 py-2.5 text-white hover:bg-indigo-500">Смотреть по ссылке →</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="mt-8 leading-relaxed text-slate-300">{{ talk.description|linebreaksbr }}</div>
+</article>
+<a href="{% url 'talks:talk_list' %}" class="mt-8 inline-block text-sm text-indigo-400 hover:text-indigo-300">← Все выступления</a>
+{% endblock %}
