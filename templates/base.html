@@ -61,6 +61,7 @@
         <a href="{% url 'blog:post_list' %}" class="hover:text-white">Блог</a>
         <a href="{% url 'projects:project_list' %}" class="hover:text-white">Проекты</a>
         <a href="{% url 'talks:talk_list' %}" class="hover:text-white">Выступления</a>
+        <a href="/boardapp/sso/" class="hover:text-white">Доски</a>
         <a href="{% url 'forum:topic_list' %}" class="hover:text-white">Форум</a>
         <a href="{% url 'about' %}" class="hover:text-white">Обо мне</a>
         {% if user.is_authenticated %}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Варианты дизайна</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    display:flex; flex-direction:column;
+    color: var(--text);
+    background-color: var(--bg);
+    background-image: var(--bg-img, none);
+    background-attachment: fixed;
+    position: relative;
+  }
+  body.photo::before {
+    content:''; position:fixed; inset:0; z-index:-1;
+    background: url('bg.jpg') center/cover no-repeat;
+    filter: var(--photo-filter, blur(36px) brightness(0.55));
+    opacity: var(--photo-opacity, 0.5);
+  }
+  .wrap { max-width:1100px; margin:0 auto; padding:0 24px; width:100%; }
+  header { border-bottom:1px solid var(--border); }
+  header .wrap { display:flex; justify-content:space-between; align-items:center; padding:18px 24px; }
+  .logo { font-weight:700; font-size:18px; color:var(--title); }
+  nav { display:flex; gap:22px; font-size:14px; }
+  nav a { color:var(--muted); text-decoration:none; }
+  nav .cta { background:var(--accent); color:var(--accent-text); padding:7px 14px; border-radius:9px; }
+  main { flex:1; }
+  .hero { text-align:center; padding:72px 0 56px; }
+  .hero h1 { font-size:44px; color:var(--title); letter-spacing:-0.5px; }
+  .hero p { margin-top:14px; font-size:20px; color:var(--accent-light); }
+  .hero .btns { margin-top:30px; display:flex; gap:14px; justify-content:center; }
+  .btn { padding:11px 22px; border-radius:10px; font-size:15px; text-decoration:none; }
+  .btn.primary { background:var(--accent); color:var(--accent-text); }
+  .btn.ghost { border:1px solid var(--border2); color:var(--text); }
+  h2.sec { font-size:22px; color:var(--title); margin:34px 0 18px; }
+  .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .card {
+    border-radius:14px; padding:22px; border:var(--card-border);
+    background:var(--panel); box-shadow:var(--card-shadow, none);
+    backdrop-filter:var(--card-blur, none);
+  }
+  .card h3 { font-size:16px; color:var(--title); margin-top:4px; }
+  .card p { font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5; }
+  .card .tag { font-size:11px; color:var(--accent-light); margin-top:10px; }
+  .subscribe { display:flex; gap:10px; max-width:460px; margin:48px auto; padding:20px; border-radius:14px; border:var(--card-border); background:var(--panel); }
+  .subscribe input { flex:1; padding:10px 14px; border-radius:9px; border:1px solid var(--border2); background:var(--input-bg); color:var(--text); }
+  .subscribe button { padding:10px 18px; border:none; border-radius:9px; background:var(--accent); color:var(--accent-text); }
+  footer { border-top:1px solid var(--border); padding:26px 0; font-size:13px; color:var(--muted); text-align:center; }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <span class="logo">Лемурзильня тестировщика</span>
+  <nav>
+    <a href="#">Главная</a><a href="#">Блог</a><a href="#">Проекты</a>
+    <a href="#">Выступления</a><a href="#">Форум</a><a href="#" class="cta">Связаться</a>
+  </nav>
+</div></header>
+<main class="wrap">
+  <div class="hero">
+    <h1>Лемурзильня тестировщика</h1>
+    <p>уголок в меру упитанного тестировщика</p>
+    <div class="btns"><a class="btn primary" href="#">Написать мне</a><a class="btn ghost" href="#">Мои проекты</a></div>
+  </div>
+  <h2 class="sec">Избранные проекты</h2>
+  <div class="grid">
+    <div class="card"><h3>Пет-проект №1</h3><p>Заготовка проекта — отредактируйте в админке.</p><div class="tag">Python · Django · PostgreSQL</div></div>
+    <div class="card"><h3>Фреймворк автотестов</h3><p>UI-тесты на Playwright с отчётами Allure.</p><div class="tag">Python · Playwright</div></div>
+    <div class="card"><h3>Мониторинг стендов</h3><p>Дашборд состояния тестовых окружений.</p><div class="tag">Grafana · API</div></div>
+  </div>
+  <h2 class="sec">Последние статьи</h2>
+  <div class="grid">
+    <div class="card"><h3>Первый пост: привет, мир</h3><p>Заготовка поста — отредактируйте или удалите в админке.</p></div>
+    <div class="card"><h3>Как мы завели автотесты</h3><p>История внедрения регресса за три месяца.</p></div>
+    <div class="card"><h3>Чек-лист релиза</h3><p>Что проверить перед отправкой в прод.</p></div>
+  </div>
+  <div class="subscribe"><input placeholder="Email для подписки на блог"><button>Подписаться</button></div>
+</main>
+<footer><div class="wrap">© 2026 Лемурзильня тестировщика</div></footer>
+
+<script>
+const VARIANTS = {
+  1: { name:'Карамель (текущий)', vars:{'--bg':'#140d07','--bg-img':'radial-gradient(ellipse 90% 55% at 50% -5%, rgba(223,178,101,.22), transparent 70%)','--panel':'#241809','--border':'#3d2b12','--border2':'#5c4119','--card-border':'1px solid #3d2b12','--text':'#cfae7c','--muted':'#b08a55','--title':'#ffffff','--accent':'#b9853c','--accent-light':'#ecc57f','--accent-text':'#1a1108','--input-bg':'#1a1108'}, photo:{on:true, blur:'blur(36px) saturate(1.1) brightness(0.55)', op:0.5} },
+  2: { name:'Кофе с молоком', vars:{'--bg':'#2b2018','--bg-img':'linear-gradient(160deg,#3a2c1f,#2b2018 55%,#231a13)','--panel':'#382a1d','--border':'#4d3a27','--border2':'#6b5236','--card-border':'1px solid #4d3a27','--card-shadow':'0 8px 24px rgba(0,0,0,.25)','--text':'#d9c4a5','--muted':'#bda583','--title':'#f7efe2','--accent':'#c89b62','--accent-light':'#e3c391','--accent-text':'#241708','--input-bg':'#2f2317'}, photo:{on:false} },
+  3: { name:'Глубокий шоколад + золото', vars:{'--bg':'#100a05','--bg-img':'radial-gradient(ellipse 70% 45% at 50% 0%, rgba(212,175,55,.14), transparent 65%)','--panel':'#1c1108','--border':'#33200d','--border2':'#59401f','--card-border':'1px solid #33200d','--text':'#c9a86d','--muted':'#a1824f','--title':'#f5e6c4','--accent':'#d4af37','--accent-light':'#e8cf7a','--accent-text':'#1c1204','--input-bg':'#170e06'}, photo:{on:false} },
+  4: { name:'Мёд', vars:{'--bg':'#241703','--bg-img':'linear-gradient(180deg,#473208,#241703 60%)','--panel':'#33220a','--border':'#4e360f','--border2':'#7a581f','--card-border':'1px solid #4e360f','--text':'#e2c185','--muted':'#c4a161','--title':'#fff3d6','--accent':'#eda820','--accent-light':'#f7c95c','--accent-text':'#2a1a02','--input-bg':'#2a1c07'}, photo:{on:false} },
+  5: { name:'Медь / терракота', vars:{'--bg':'#170d08','--bg-img':'radial-gradient(ellipse 80% 50% at 30% 0%, rgba(196,109,58,.20), transparent 70%)','--panel':'#26140c','--border':'#3f2417','--border2':'#63392a','--card-border':'1px solid #3f2417','--text':'#d9ae8c','--muted':'#b98a67','--title':'#fff0e4','--accent':'#c46d3a','--accent-light':'#e59a63','--accent-text':'#1f0e05','--input-bg':'#1c0f08'}, photo:{on:false} },
+  6: { name:'Осенняя охра + олива', vars:{'--bg':'#1c1608','--bg-img':'linear-gradient(200deg,#2f250e 0%,#1c1608 50%,#171506 100%)','--panel':'#28200d','--border':'#40341a','--border2':'#635425','--card-border':'1px solid #40341a','--text':'#d6c48d','--muted':'#b3a06b','--title':'#faf3dd','--accent':'#a8912e','--accent-light':'#cbb75f','--accent-text':'#171202','--input-bg':'#211a0a'}, photo:{on:false} },
+  7: { name:'Бургундия + янтарь', vars:{'--bg':'#170710','--bg-img':'radial-gradient(ellipse 75% 48% at 50% -3%, rgba(223,178,101,.16), transparent 68%)','--panel':'#250c19','--border':'#3d1a29','--border2':'#5e3345','--card-border':'1px solid #3d1a29','--text':'#d8aebd','--muted':'#b58a9b','--title':'#fbeef4','--accent':'#d9995c','--accent-light':'#eebd8a','--accent-text':'#1c0a02','--input-bg':'#1d0914'}, photo:{on:false} },
+  8: { name:'Пустыня (светлый)', vars:{'--bg':'#efe3cf','--bg-img':'linear-gradient(180deg,#f6ecda,#efe3cf 60%,#e6d5b8)','--panel':'#faf3e6','--border':'#d9c4a0','--border2':'#c0a87e','--card-border':'1px solid #d9c4a0','--card-shadow':'0 6px 18px rgba(107,82,54,.10)','--text':'#5f4b32','--muted':'#7d6a50','--title':'#2f2314','--accent':'#a5713c','--accent-light':'#8a5a2c','--accent-text':'#fff8ec','--input-bg':'#fffdf8'}, photo:{on:false} },
+  9: { name:'Ночной костёр', vars:{'--bg':'#0e0906','--bg-img':'radial-gradient(ellipse 85% 55% at 50% 108%, rgba(222,140,52,.28), rgba(158,84,26,.10) 45%, transparent 72%)','--panel':'#191009','--border':'#2e1d0e','--border2':'#54371a','--card-border':'1px solid #2e1d0e','--text':'#cf9f6a','--muted':'#ab7f4e','--title':'#ffe9c9','--accent':'#de8c34','--accent-light':'#f2b264','--accent-text':'#1c0e02','--input-bg':'#140c06'}, photo:{on:false} },
+  10: { name:'Стеклянный янтарь', vars:{'--bg':'#1d1207','--bg-img':'linear-gradient(135deg,#3a230d 0%,#1d1207 45%,#120b05 100%)','--panel':'rgba(255, 214, 150, 0.07)','--border':'rgba(255,214,150,.16)','--border2':'rgba(255,214,150,.30)','--card-border':'1px solid rgba(255,214,150,.16)','--card-blur':'blur(8px)','--card-shadow':'inset 0 1px 0 rgba(255,230,180,.10)','--text':'#e6c795','--muted':'#c3a271','--title':'#fff6e6','--accent':'#e8b45c','--accent-light':'#f4d291','--accent-text':'#241503','--input-bg':'rgba(0,0,0,.25)'},
+       photo:{on:true, blur:'blur(52px) saturate(1.25) brightness(0.5)', op:0.6} },
+};
+const v = VARIANTS[new URLSearchParams(location.search).get('v') || '1'] || VARIANTS[1];
+for (const [k, val] of Object.entries(v.vars)) document.body.style.setProperty(k, val);
+if (v.photo && v.photo.on) {
+  document.body.classList.add('photo');
+  document.body.style.setProperty('--photo-filter', v.photo.blur);
+  document.body.style.setProperty('--photo-opacity', v.photo.op);
+}
+document.title = 'Вариант ' + (new URLSearchParams(location.search).get('v') || '1') + ' — ' + v.name;
+document.querySelector('.hero h1').insertAdjacentHTML('afterend',
+  '<p style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:26px">' + v.name + '</p>');
+</script>
+</body>
+</html>

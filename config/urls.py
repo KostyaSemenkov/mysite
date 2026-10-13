@@ -7,6 +7,7 @@ from django.urls import include, path
 from contacts import views as contact_views
 from forum import views as forum_views
 from pages import views as page_views
+from pages.sso import boards_sso
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -17,6 +18,7 @@ urlpatterns = [
     path('contacts/', include('contacts.urls')),
     path('talks/', include('talks.urls')),
     path('forum/', include('forum.urls')),
+    path('boardapp/sso/', boards_sso, name='boards_sso'),
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/register/', forum_views.register, name='register'),

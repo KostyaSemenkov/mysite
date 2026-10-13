@@ -11,3 +11,9 @@ staticfiles/
 Sol-Pi/
 shvejk-presentation/
 .zcodeignore
+
+# boardapp артефакты сборки
+boardapp/frontend/node_modules/
+boardapp/frontend/dist/
+boardapp/backend/.env
+board-app/
