@@ -3,6 +3,11 @@
 
 {% block content %}
 <h1 class="text-3xl font-bold text-white">Блог</h1>
+{% if user.is_authenticated %}
+  <a href="{% url 'blog:guest_post' %}" class="mt-2 inline-block text-sm text-indigo-400 hover:text-indigo-300">
+    ✍️ Предложить гостевой пост →
+  </a>
+{% endif %}
 <div id="posts-list" class="mt-8 space-y-6" data-next="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}">
   {% include 'blog/includes/posts_page.html' %}
 </div>

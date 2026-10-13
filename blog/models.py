@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
@@ -46,3 +47,31 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class GuestPostSubmission(models.Model):
+    """Гостевой пост от зарегистрированного пользователя — на премодерации."""
+
+    STATUS_CHOICES = [
+        ('pending', 'На проверке'),
+        ('approved', 'Опубликован'),
+        ('rejected', 'Отклонён'),
+    ]
+
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='Автор',
+                               on_delete=models.CASCADE, related_name='guest_posts')
+    title = models.CharField('Заголовок', max_length=200)
+    excerpt = models.CharField('Краткое описание', max_length=300, blank=True)
+    content = models.TextField('Текст')
+    tags = models.CharField('Теги', max_length=200, blank=True)
+    status = models.CharField('Статус', max_length=10,
+                              choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField('Отправлен', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Гостевой пост'
+        verbose_name_plural = 'Гостевые посты'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.author.username}: {self.title}'

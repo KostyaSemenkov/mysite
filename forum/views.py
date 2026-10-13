@@ -5,6 +5,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from pages.notify import tg_notify
+
 from .forms import CommentForm, TopicForm
 from .models import Topic
 
@@ -45,6 +47,10 @@ def add_comment(request, slug):
         else:
             comment.is_approved = False
             comment.save()
+            tg_notify(f'⏳ Комментарий на премодерации от «{comment.guest_name or "Гость"}»\n'
+                      f'Тема: {topic.title}\n'
+                      f'{comment.body[:500]}\n'
+                      f'https://lemurqa.ru/admin/forum/comment/')
             messages.success(request, 'Комментарий отправлен и появится после проверки модератором.')
     else:
         messages.error(request, 'Проверьте имя и текст комментария.')
