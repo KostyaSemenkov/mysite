@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Мой профиль — {{ profile.name|default:'' }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between">
+  <h1 class="text-3xl font-bold text-white">Мой профиль</h1>
+  <a href="/boardapp/sso/" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Открыть Доски</a>
+</div>
+<p class="mt-2 text-slate-400">{{ user.username }} · {{ fav_count }} в избранном</p>
+
+<div class="mt-8 grid gap-8 lg:grid-cols-2">
+  <section>
+    <h2 class="text-lg font-semibold text-white">Мои темы на форуме</h2>
+    <div class="mt-3 space-y-2">
+      {% for topic in my_topics %}
+        <a href="{{ topic.get_absolute_url }}" class="block rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm hover:border-indigo-600">
+          {{ topic.title }}
+          <span class="ml-2 text-xs text-slate-500">{{ topic.created_at|date:'d.m.Y' }}</span>
+        </a>
+      {% empty %}
+        <p class="text-sm text-slate-500">Вы ещё не создавали тем.
+          <a href="{% url 'forum:new_topic' %}" class="text-indigo-400">Создать первую →</a></p>
+      {% endfor %}
+    </div>
+
+    <h2 class="mt-8 text-lg font-semibold text-white">Мои комментарии</h2>
+    <div class="mt-3 space-y-2">
+      {% for c in my_comments %}
+        <a href="{{ c.topic.get_absolute_url }}" class="block rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm hover:border-indigo-600">
+          <span class="text-xs text-slate-500">в «{{ c.topic.title }}» · {{ c.created_at|date:'d.m.Y' }}</span>
+          <p class="mt-1 text-slate-300">{{ c.body|truncatechars:140 }}</p>
+        </a>
+      {% empty %}
+        <p class="text-sm text-slate-500">Пока нет комментариев.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2 class="text-lg font-semibold text-white">Избранное</h2>
+    <div class="mt-3 space-y-2">
+      {% for f in favorites %}
+        <a href="{{ f.url }}" class="block rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm hover:border-indigo-600">
+          <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">{{ f.label }}</span>
+          <span class="ml-2 text-slate-200">{{ f.title }}</span>
+        </a>
+      {% empty %}
+        <p class="text-sm text-slate-500">Отмечайте звёздочкой посты, проекты и выступления — они соберутся здесь.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

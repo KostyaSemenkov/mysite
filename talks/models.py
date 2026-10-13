@@ -7,6 +7,12 @@ class TalkQuerySet(models.QuerySet):
     def published(self):
         return self.filter(is_published=True)
 
+    def upcoming(self):
+        return self.published().filter(status='upcoming')
+
+    def past(self):
+        return self.published().filter(status='past')
+
 
 class Talk(models.Model):
     title = models.CharField('Название', max_length=200)
@@ -21,6 +27,11 @@ class Talk(models.Model):
                                 help_text='YouTube/VK/ Rutube — если видео хостится снаружи')
     thumbnail = models.ImageField('Превью', upload_to='talks/thumbs/', blank=True, null=True)
     spoke_at = models.DateField('Дата выступления', null=True, blank=True)
+    status = models.CharField('Статус', max_length=10,
+                              choices=[('upcoming', 'Анонс'), ('past', 'Состоялось')],
+                              default='past')
+    registration_url = models.URLField('Ссылка регистрации', blank=True,
+                                       help_text='Для анонсов: куда регистрироваться')
     is_published = models.BooleanField('Опубликован', default=True)
     created_at = models.DateTimeField('Создан', auto_now_add=True)
 
@@ -29,7 +40,7 @@ class Talk(models.Model):
     class Meta:
         verbose_name = 'Выступление'
         verbose_name_plural = 'Выступления'
-        ordering = ['-spoke_at', '-created_at']
+        ordering = ['-status', '-spoke_at', '-created_at']
 
     def save(self, *args, **kwargs):
         if not self.slug:

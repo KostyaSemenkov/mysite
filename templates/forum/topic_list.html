@@ -12,6 +12,21 @@
 <p class="mt-2 text-slate-400">Обсуждения открытые: комментировать могут зарегистрированные пользователи
   сразу, гости — после проверки модератором.</p>
 
+{% if not user.is_authenticated %}
+  <div class="mt-5 rounded-xl border border-indigo-800/60 bg-slate-900 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+    <div class="flex-1">
+      <h3 class="font-semibold text-white">Создайте аккаунт — это открывает всё</h3>
+      <ul class="mt-2 grid gap-1 text-sm text-slate-400 sm:grid-cols-2">
+        <li>✓ комментарии без модерации</li>
+        <li>✓ свои темы на форуме</li>
+        <li>✓ избранное и личный кабинет</li>
+        <li>✓ совместные доски</li>
+      </ul>
+    </div>
+    <a href="{% url 'register' %}" class="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500 text-center">Зарегистрироваться</a>
+  </div>
+{% endif %}
+
 <div class="mt-8 space-y-3">
   {% for topic in topics %}
     <a href="{{ topic.get_absolute_url }}"

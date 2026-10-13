@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
+{% load site_extras %}
 
 {% block content %}
-<section class="text-center py-16">
+{# ── Hero ─────────────────────────────────────────── #}
+<section class="text-center py-14">
   {% if profile and profile.photo %}
     <img src="{{ profile.photo.url }}" alt="{{ profile.name }}"
-         class="mx-auto h-32 w-32 rounded-full object-cover ring-2 ring-indigo-500">
+         class="mx-auto h-32 w-32 rounded-full object-cover ring-2 ring-indigo-600">
   {% endif %}
   <h1 class="mt-6 text-4xl font-bold text-white sm:text-5xl">{{ profile.name|default:'Ваше имя' }}</h1>
   <p class="mt-4 text-xl text-indigo-300">{{ profile.tagline|default:'IT-специалист' }}</p>
@@ -14,8 +16,97 @@
   </div>
 </section>
 
+{# ── Цифры ────────────────────────────────────────── #}
+<section class="grid grid-cols-2 gap-3 sm:grid-cols-5 py-4 text-center">
+  <div class="rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <div class="text-2xl font-bold text-indigo-300">{{ stats.posts }}</div>
+    <div class="text-xs text-slate-500">статей в блоге</div>
+  </div>
+  <div class="rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <div class="text-2xl font-bold text-indigo-300">{{ stats.talks }}</div>
+    <div class="text-xs text-slate-500">выступлений</div>
+  </div>
+  <div class="rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <div class="text-2xl font-bold text-indigo-300">{{ stats.projects }}</div>
+    <div class="text-xs text-slate-500">проектов</div>
+  </div>
+  <div class="rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <div class="text-2xl font-bold text-indigo-300">{{ stats.topics }}</div>
+    <div class="text-xs text-slate-500">тем на форуме</div>
+  </div>
+  <div class="rounded-xl border border-slate-800 bg-slate-900 p-4 col-span-2 sm:col-span-1">
+    <div class="text-2xl font-bold text-indigo-300">{{ stats.members }}</div>
+    <div class="text-xs text-slate-500">участников</div>
+  </div>
+</section>
+
+{# ── Два ядра ─────────────────────────────────────── #}
+<section class="grid gap-6 sm:grid-cols-2 py-8">
+  <div class="rounded-xl border border-slate-800 bg-slate-900 p-6">
+    <h3 class="font-semibold text-white">📚 База знаний</h3>
+    <p class="mt-2 text-sm text-slate-400">Статьи о тестировании, разборы инструментов
+      и записи выступлений — всё, что я узнаю, укладывается сюда.</p>
+    <div class="mt-4 flex gap-3 text-sm">
+      <a href="{% url 'blog:post_list' %}" class="text-indigo-400 hover:text-indigo-300">Читать блог →</a>
+      <a href="{% url 'talks:talk_list' %}" class="text-indigo-400 hover:text-indigo-300">Выступления →</a>
+    </div>
+  </div>
+  <div class="rounded-xl border border-slate-800 bg-slate-900 p-6">
+    <h3 class="font-semibold text-white">💬 Комьюнити</h3>
+    <p class="mt-2 text-sm text-slate-400">Форум с обсуждениями и совместные доски
+      для планирования — можно прийти вопросом, уйти ответом.</p>
+    <div class="mt-4 flex gap-3 text-sm">
+      <a href="{% url 'forum:topic_list' %}" class="text-indigo-400 hover:text-indigo-300">На форум →</a>
+      <a href="/boardapp/sso/" class="text-indigo-400 hover:text-indigo-300">Доски →</a>
+    </div>
+  </div>
+</section>
+
+{# ── Кому полезно ─────────────────────────────────── #}
+<section class="py-8">
+  <h2 class="text-2xl font-semibold text-white">Кому здесь полезно</h2>
+  <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm">
+      <div class="text-indigo-300 font-medium">Джунам в QA</div>
+      <p class="mt-2 text-slate-400">Разбираем основы, готовимся к собеседованиям, находим первые задачи.</p>
+    </div>
+    <div class="rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm">
+      <div class="text-indigo-300 font-medium">Опытным тестировщикам</div>
+      <p class="mt-2 text-slate-400">Автотесты, инфраструктура, обмен кейсами — без воды.</p>
+    </div>
+    <div class="rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm">
+      <div class="text-indigo-300 font-medium">Лидам и продактам</div>
+      <p class="mt-2 text-slate-400">Как выстроить процессы тестирования и не утонуть в регрессе.</p>
+    </div>
+    <div class="rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm">
+      <div class="text-indigo-300 font-medium">Разработчикам</div>
+      <p class="mt-2 text-slate-400">Что тестировать самому, чтобы тестировщик занимался сложным.</p>
+    </div>
+  </div>
+</section>
+
+{# ── Анонсы выступлений ───────────────────────────── #}
+{% if upcoming_talks %}
+  <section class="py-8">
+    <h2 class="text-2xl font-semibold text-white">Скоро выступлю</h2>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2">
+      {% for talk in upcoming_talks %}
+        <div class="rounded-xl border border-indigo-800/60 bg-slate-900 p-5">
+          {% if talk.spoke_at %}<time class="text-xs text-indigo-400">{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
+          <h3 class="mt-1 font-semibold text-white">{{ talk.title }}</h3>
+          {% if talk.event %}<p class="mt-1 text-xs text-slate-500">{{ talk.event }}</p>{% endif %}
+          {% if talk.registration_url %}
+            <a href="{{ talk.registration_url }}" target="_blank" rel="noopener"
+               class="mt-3 inline-block rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white hover:bg-indigo-500">Зарегистрироваться</a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
 {% if featured_projects %}
-  <section class="py-10">
+  <section class="py-8">
     <h2 class="text-2xl font-semibold text-white mb-6">Избранные проекты</h2>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {% for project in featured_projects %}
@@ -24,16 +115,24 @@
           <h3 class="font-semibold text-white">{{ project.title }}</h3>
           <p class="mt-2 text-sm text-slate-400">{{ project.description|truncatechars:120 }}</p>
           {% if project.tech_stack %}
-            <p class="mt-3 text-xs text-indigo-400">{{ project.tech_stack }}</p>
+            <div class="mt-3 flex flex-wrap gap-1.5">
+              {% for tech in project.tech_stack|split:',' %}
+                <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">{{ tech|trim }}</span>
+              {% endfor %}
+            </div>
           {% endif %}
         </a>
       {% endfor %}
+    </div>
+    <div class="mt-6 flex gap-3">
+      <a href="{% url 'projects:project_list' %}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Смотреть все проекты</a>
+      <a href="{% url 'contacts:contact' %}" class="rounded-lg border border-slate-700 px-4 py-2 text-sm hover:border-slate-500">Предложить совместный</a>
     </div>
   </section>
 {% endif %}
 
 {% if latest_posts %}
-  <section class="py-10">
+  <section class="py-8">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-2xl font-semibold text-white">Последние статьи</h2>
       <a href="{% url 'blog:post_list' %}" class="text-sm text-indigo-400 hover:text-indigo-300">Все статьи →</a>
@@ -42,19 +141,96 @@
       {% for post in latest_posts %}
         <a href="{{ post.get_absolute_url }}"
            class="block rounded-xl border border-slate-800 bg-slate-900 p-6 hover:border-indigo-600 transition">
-          <time class="text-xs text-slate-500">{{ post.created_at|date:'d.m.Y' }}</time>
+          <div class="flex items-center gap-2 text-xs text-slate-500">
+            <time>{{ post.created_at|date:'d.m.Y' }}</time>
+            <span>·</span>
+            <span>{{ post.reading_minutes }} мин</span>
+          </div>
           <h3 class="mt-2 font-semibold text-white">{{ post.title }}</h3>
           {% if post.excerpt %}<p class="mt-2 text-sm text-slate-400">{{ post.excerpt }}</p>{% endif %}
         </a>
       {% endfor %}
     </div>
+    <div class="mt-6 flex gap-3">
+      <a href="{% url 'blog:post_list' %}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Читать блог</a>
+      <a href="{% url 'waiting_list' %}" class="rounded-lg border border-slate-700 px-4 py-2 text-sm hover:border-slate-500">Скоро: курс по автотестам</a>
+    </div>
   </section>
 {% endif %}
 
+{# ── Об авторе ────────────────────────────────────── #}
+{% if profile %}
+  <section class="py-8">
+    <div class="flex flex-col items-center gap-6 rounded-xl border border-slate-800 bg-slate-900 p-8 sm:flex-row sm:items-start">
+      {% if profile.photo %}
+        <img src="{{ profile.photo.url }}" alt="{{ profile.name }}" class="h-24 w-24 rounded-full object-cover ring-1 ring-slate-700">
+      {% endif %}
+      <div class="text-center sm:text-left">
+        <h2 class="text-xl font-semibold text-white">Об авторе</h2>
+        <p class="mt-2 text-sm leading-relaxed text-slate-400">{{ profile.about|truncatechars:260 }}</p>
+        <a href="{% url 'about' %}" class="mt-3 inline-block text-sm text-indigo-400 hover:text-indigo-300">Подробнее обо мне →</a>
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+{# ── Отзывы ───────────────────────────────────────── #}
+{% if testimonials %}
+  <section class="py-8">
+    <h2 class="text-2xl font-semibold text-white">Отзывы</h2>
+    <div id="testimonials-wall" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {% for t in testimonials %}
+        {% with forloop.counter0 as idx %}
+        <div class="testimonial rounded-xl border border-slate-800 bg-slate-900 p-5 text-sm{% if idx >= 6 %} hidden{% endif %}">
+          <p class="text-slate-300">«{{ t.quote }}»</p>
+          <div class="mt-3 text-xs">
+            <span class="font-medium text-indigo-300">{{ t.author }}</span>
+            {% if t.role %}<span class="text-slate-500"> · {{ t.role }}</span>{% endif %}
+          </div>
+          {% if t.full_text %}
+            <button onclick="document.getElementById('story-{{ idx }}').showModal()"
+                    class="mt-3 text-xs text-indigo-400 hover:text-indigo-300 underline">Читать полностью</button>
+            <dialog id="story-{{ idx }}" class="backdrop:bg-black/60 rounded-xl border border-slate-700 bg-slate-900 p-6 text-slate-300 max-w-lg">
+              <div class="text-sm font-medium text-indigo-300">{{ t.author }}{% if t.role %} · {{ t.role }}{% endif %}</div>
+              <p class="mt-3 whitespace-pre-line">{{ t.full_text }}</p>
+              <button onclick="this.closest('dialog').close()" class="mt-4 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white">Закрыть</button>
+            </dialog>
+          {% endif %}
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+    {% if testimonials|length > 6 %}
+      <button onclick="document.querySelectorAll('.testimonial.hidden').forEach(e => e.classList.remove('hidden')); this.remove()"
+              class="mt-4 rounded-lg border border-slate-700 px-4 py-2 text-sm hover:border-slate-500">Показать все ({{ testimonials|length }})</button>
+    {% endif %}
+  </section>
+{% endif %}
+
+{# ── FAQ ──────────────────────────────────────────── #}
+{% if faq_items %}
+  <section class="py-8">
+    <h2 class="text-2xl font-semibold text-white">Частые вопросы</h2>
+    <div class="mt-5 space-y-2">
+      {% for item in faq_items %}
+        <details class="group rounded-xl border border-slate-800 bg-slate-900">
+          <summary class="cursor-pointer list-none px-5 py-4 text-sm font-medium text-slate-200
+                          flex justify-between items-center hover:text-white">
+            {{ item.question }}
+            <span class="text-slate-500 group-open:rotate-45 transition-transform">＋</span>
+          </summary>
+          <div class="px-5 pb-4 text-sm text-slate-400">{{ item.answer|linebreaksbr }}</div>
+        </details>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+{# ── Подписка ─────────────────────────────────────── #}
 <section class="py-10">
-  <form action="{% url 'subscribe' %}" method="post"
-        class="mx-auto flex max-w-md gap-3 rounded-xl border border-slate-800 bg-slate-900 p-6">
+  <form action="/" method="post" class="mx-auto flex max-w-md gap-3 rounded-xl border border-slate-800 bg-slate-900 p-6">
     {% csrf_token %}
+    <input type="hidden" name="next" value="/">
     <input type="email" name="email" required placeholder="Email для подписки на блог"
            class="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none">
     <button class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Подписаться</button>

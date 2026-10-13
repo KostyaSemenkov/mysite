@@ -1,0 +1,15 @@
+{# Звёздочка «в избранное». Переменная: obj #}
+{% load site_extras %}
+{% if user.is_authenticated %}
+  <form method="post" action="{% url 'favorite_toggle' %}" class="inline">
+    {% csrf_token %}
+    <input type="hidden" name="ct" value="{% content_type_id obj %}">
+    <input type="hidden" name="oid" value="{{ obj.pk }}">
+    <button title="{% if is_favorite %}Убрать из избранного{% else %}В избранное{% endif %}"
+            class="text-xl leading-none align-middle {{ star_class|default:'' }}"
+            style="color: {% if is_favorite %}#dfb265{% else %}#5c4119{% endif %}">★</button>
+  </form>
+{% else %}
+  <a href="{% url 'login' %}" title="Войдите, чтобы добавлять в избранное"
+     class="text-xl leading-none align-middle" style="color:#5c4119">★</a>
+{% endif %}

@@ -1,12 +1,25 @@
 {% extends 'base.html' %}
+{% load site_extras %}
 {% block title %}{{ talk.title }}{% endblock %}
 {% block meta_description %}{{ talk.description|truncatechars:200 }}{% endblock %}
 
 {% block content %}
 <article>
-  {% if talk.spoke_at %}<time class="text-sm text-slate-500">{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
-  <h1 class="mt-2 text-3xl font-bold text-white">{{ talk.title }}</h1>
+  <div class="flex items-center gap-2 text-sm text-slate-500">
+    {% if talk.status == 'upcoming' %}
+      <span class="rounded-full bg-indigo-600/20 px-2 py-0.5 text-[11px] text-indigo-300">Анонс</span>
+    {% endif %}
+    {% if talk.spoke_at %}<time>{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
+  </div>
+  <h1 class="mt-2 text-3xl font-bold text-white">
+    {% is_favorite talk as fav %}{% include 'includes/fav_star.html' with obj=talk is_favorite=fav %}
+    {{ talk.title }}</h1>
   {% if talk.event %}<p class="mt-2 text-sm text-indigo-400">{{ talk.event }}</p>{% endif %}
+
+  {% if talk.status == 'upcoming' and talk.registration_url %}
+    <a href="{{ talk.registration_url }}" target="_blank" rel="noopener"
+       class="mt-4 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Зарегистрироваться на эфир</a>
+  {% endif %}
 
   <div class="mt-6 overflow-hidden rounded-xl border border-slate-800 bg-black">
     {% if talk.video %}

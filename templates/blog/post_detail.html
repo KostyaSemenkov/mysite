@@ -1,11 +1,18 @@
 {% extends 'base.html' %}
+{% load site_extras %}
 {% block title %}{{ post.title }}{% endblock %}
 {% block meta_description %}{{ post.excerpt }}{% endblock %}
 
 {% block content %}
 <article>
-  <time class="text-sm text-slate-500">{{ post.created_at|date:'d.m.Y' }}</time>
-  <h1 class="mt-2 text-3xl font-bold text-white">{{ post.title }}</h1>
+  <div class="flex items-center gap-2 text-sm text-slate-500">
+    <time>{{ post.created_at|date:'d.m.Y' }}</time>
+    <span>·</span>
+    <span>{{ post.reading_minutes }} мин чтения</span>
+  </div>
+  <h1 class="mt-2 text-3xl font-bold text-white">
+    {% is_favorite post as fav %}{% include 'includes/fav_star.html' with obj=post is_favorite=fav %}
+    {{ post.title }}</h1>
   {% if post.cover %}
     <img src="{{ post.cover.url }}" alt="{{ post.title }}" class="mt-6 w-full rounded-xl">
   {% endif %}
@@ -19,6 +26,13 @@
       {% endfor %}
     </div>
   {% endif %}
+  <div class="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+    <div>
+      <h3 class="font-semibold text-white">Есть что сказать по теме?</h3>
+      <p class="mt-1 text-sm text-slate-400">Обсудите статью на форуме — вопросы, дополнения и споры приветствуются.</p>
+    </div>
+    <a href="{% url 'forum:new_topic' %}" class="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Обсудить на форуме</a>
+  </div>
 </article>
 <a href="{% url 'blog:post_list' %}" class="mt-8 inline-block text-sm text-indigo-400 hover:text-indigo-300">← Все статьи</a>
 {% endblock %}

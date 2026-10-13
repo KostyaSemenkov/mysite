@@ -39,5 +39,10 @@ class Post(models.Model):
     def tag_list(self):
         return [t.strip() for t in self.tags.split(',') if t.strip()]
 
+    @property
+    def reading_minutes(self):
+        words = len(self.content.split())
+        return max(1, round(words / 180))
+
     def __str__(self):
         return self.title

@@ -52,11 +52,12 @@
 </head>
 <body class="text-slate-200 antialiased">
   <header class="border-b border-slate-800">
-    <div class="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
-      <a href="{% url 'home' %}" class="text-lg font-semibold text-white">
-        {{ profile.name|default:'Мой сайт' }}
+    <div class="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between gap-4">
+      <a href="{% url 'home' %}" class="shrink-0">
+        <span class="block text-lg font-semibold text-white leading-tight">{{ profile.name|default:'Мой сайт' }}</span>
+        {% if profile.tagline %}<span class="block text-[11px] text-slate-500">{{ profile.tagline }}</span>{% endif %}
       </a>
-      <nav class="flex items-center gap-6 text-sm">
+      <nav class="flex items-center gap-5 text-sm">
         <a href="{% url 'home' %}" class="hover:text-white">Главная</a>
         <a href="{% url 'blog:post_list' %}" class="hover:text-white">Блог</a>
         <a href="{% url 'projects:project_list' %}" class="hover:text-white">Проекты</a>
@@ -64,10 +65,12 @@
         <a href="/boardapp/sso/" class="hover:text-white">Доски</a>
         <a href="{% url 'forum:topic_list' %}" class="hover:text-white">Форум</a>
         <a href="{% url 'about' %}" class="hover:text-white">Обо мне</a>
+        <a href="{% url 'search' %}" title="Поиск по сайту" class="hover:text-white">🔍</a>
         {% if user.is_authenticated %}
+          <a href="{% url 'profile' %}" class="text-slate-400 hover:text-white" title="Мой профиль">{{ user.username }}</a>
           <form action="{% url 'logout' %}" method="post" class="inline">
             {% csrf_token %}
-            <button type="submit" class="text-slate-400 hover:text-white">{{ user.username }} · выйти</button>
+            <button type="submit" class="text-slate-400 hover:text-white">выйти</button>
           </form>
         {% else %}
           <a href="{% url 'login' %}" class="text-slate-400 hover:text-white">Войти</a>
@@ -92,11 +95,13 @@
     <div class="mx-auto max-w-5xl px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-400">
       <div>
         {% if profile %}
-          <div class="flex gap-4">
-                  {% if profile.github %}<a href="{{ profile.github }}" class="hover:text-white">GitHub</a>{% endif %}
+          <div class="flex flex-wrap gap-4">
+            {% if profile.github %}<a href="{{ profile.github }}" class="hover:text-white">GitHub</a>{% endif %}
             {% if profile.linkedin %}<a href="{{ profile.linkedin }}" class="hover:text-white">LinkedIn</a>{% endif %}
             {% if profile.telegram %}<a href="{{ profile.telegram }}" class="hover:text-white">Telegram</a>{% endif %}
             {% if profile.email %}<a href="mailto:{{ profile.email }}" class="hover:text-white">{{ profile.email }}</a>{% endif %}
+            <a href="{% url 'offer' %}" class="hover:text-white">Оферта</a>
+            <a href="{% url 'privacy' %}" class="hover:text-white">Конфиденциальность</a>
           </div>
         {% endif %}
       </div>
