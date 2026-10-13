@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api, apiError, clearAuth, getCurrentUser } from '../api'
+import { api, apiError, clearAuth, ensureUser, type CurrentUser } from '../api'
 import type { BoardsList } from './BoardsPageTypes'
 
 export default function BoardsPage() {
   const nav = useNavigate()
-  const me = getCurrentUser()
+  const [me, setMe] = useState<CurrentUser | null>(null)
   const [data, setData] = useState<BoardsList | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [renaming, setRenaming] = useState<string | null>(null)
@@ -22,6 +22,7 @@ export default function BoardsPage() {
   }
 
   useEffect(() => {
+    ensureUser().then(setMe)
     load()
   }, [])
 

@@ -14,7 +14,29 @@ export function getToken(): string | null {
 
 export function getCurrentUser(): CurrentUser | null {
   const raw = localStorage.getItem(USER_KEY)
-  return raw ? (JSON.parse(raw) as CurrentUser) : null
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw) as CurrentUser
+    if (parsed && typeof parsed.id === 'string') return parsed
+  } catch {
+    // битая запись (например, "[object Object]") — чистим
+  }
+  localStorage.removeItem(USER_KEY)
+  return null
+}
+
+/** Если токен есть, а пользователя нет/битый — подтягиваем с сервера. */
+export async function ensureUser(): Promise<CurrentUser | null> {
+  const existing = getCurrentUser()
+  if (existing) return existing
+  if (!getToken()) return null
+  try {
+    const { data } = await api.get<CurrentUser>('/api/auth/me')
+    localStorage.setItem(USER_KEY, JSON.stringify(data))
+    return data
+  } catch {
+    return null
+  }
 }
 
 export function setAuth(token: string, user: CurrentUser) {

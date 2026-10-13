@@ -43,10 +43,15 @@ async def test_sso_creates_user_and_returns_shim(client, sso_secret):
     assert 'boardapp_token' in r.text
     assert '/boards/' in r.text
 
-    # пользователь создан и валиден для обычного API
+    # shim кладёт валидную JSON-строку пользователя (не "[object Object]")
     import re
-    m = re.search(r"localStorage\.setItem\('boardapp_token', \"(.*?)\"\)", r.text)
-    app_token = m.group(1)
+    m = re.search(r"localStorage\.setItem\('boardapp_user', (\".*?\")\)", r.text)
+    assert m, 'shim должен сохранять пользователя строкой'
+    import json as _json
+    stored = _json.loads(_json.loads(m.group(1)))  # JS-литерал → JSON-текст → объект
+    assert stored['username'] == 'kotik'
+
+    app_token = re.search(r"localStorage\.setItem\('boardapp_token', \"(.*?)\"\)", r.text).group(1)
     me = await client.get('/api/auth/me', headers=auth(app_token))
     assert me.status_code == 200
     assert me.json()['username'] == 'kotik'

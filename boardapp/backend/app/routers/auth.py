@@ -51,11 +51,11 @@ def _sanitize_username(raw: str, fallback: str) -> str:
 
 _SSO_PAGE = """<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Вход…</title></head>
-<body style="background:#1e222c;color:#dde3ee;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
+<body style="background:#140d07;color:#cfae7c;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
 <p>Входим в «Доски»…</p>
 <script>
 localStorage.setItem('boardapp_token', {token_json});
-localStorage.setItem('boardapp_user', {user_json});
+localStorage.setItem('boardapp_user', {user_json_string});
 location.replace({next_json});
 </script>
 </body></html>"""
@@ -105,6 +105,7 @@ async def sso(token: str = Query(''), next: str = Query('/boards/'),
     next_url = next if next.startswith('/boards') else '/boards/'
     return HTMLResponse(_SSO_PAGE.format(
         token_json=json.dumps(create_token(user.id)),
-        user_json=json.dumps({'id': user.id, 'username': user.username}),
+        # двойной dumps: снаружи — JS-строковый литерал, внутри — JSON-текст
+        user_json_string=json.dumps(json.dumps({'id': user.id, 'username': user.username})),
         next_json=json.dumps(next_url),
     ))

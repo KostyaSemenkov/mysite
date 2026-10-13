@@ -21,7 +21,7 @@ import {
 import { toPng } from 'html-to-image'
 import '@xyflow/react/dist/style.css'
 
-import { getCurrentUser } from '../api'
+import { ensureUser } from '../api'
 import TicketNode from '../components/TicketNode'
 import ShareModal from '../components/ShareModal'
 import Toolbar from '../components/Toolbar'
@@ -53,7 +53,6 @@ export default function BoardEditorPage() {
 function BoardEditorInner() {
   const { id } = useParams<{ id: string }>()
   const nav = useNavigate()
-  const me = getCurrentUser()
   const { screenToFlowPosition } = useReactFlow()
 
   const nodes = useBoard((s) => s.nodes)
@@ -75,7 +74,7 @@ function BoardEditorInner() {
 
   useEffect(() => {
     if (!id) return
-    if (me) setMyUserId(me.id)
+    ensureUser().then((me) => { if (me) setMyUserId(me.id) })
     setBoard(id)
     connectBoard(id)
     return () => disconnect()
