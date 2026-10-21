@@ -32,22 +32,26 @@ export default function TicketNode({ id, data, selected }: NodeProps<TicketNodeT
     >
       {editable && <Handle type="source" position={Position.Right} />}
       {data.editing ? (
-        <textarea
-          ref={taRef}
-          className="nodrag"
-          defaultValue={data.text}
-          spellCheck={false}
-          placeholder="Текст…"
-          onChange={(e) => updateTicket(id, { text: e.target.value })}
-          onBlur={(e) => commit(e.target.value, data.text)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') commit(data.text, data.text)
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              commit((e.target as HTMLTextAreaElement).value, data.text)
-            }
-          }}
-        />
+        <>
+          <textarea
+            ref={taRef}
+            className="nodrag"
+            defaultValue={data.text}
+            spellCheck={false}
+            placeholder="Текст…"
+            maxLength={100}
+            onChange={(e) => updateTicket(id, { text: e.target.value })}
+            onBlur={(e) => commit(e.target.value, data.text)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') commit(data.text, data.text)
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                commit((e.target as HTMLTextAreaElement).value, data.text)
+              }
+            }}
+          />
+          <span className="char-counter nodrag">{data.text.length}/100</span>
+        </>
       ) : (
         <div className="ticket-text">{data.text || (editable ? '✏️ двойной клик' : '')}</div>
       )}

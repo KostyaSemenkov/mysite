@@ -84,6 +84,29 @@ class Ticket(Base):
     )
 
 
+class Zone(Base):
+    """Зона-подложка на доске: фон для группировки тикетов, с заголовком."""
+
+    __tablename__ = 'zones'
+
+    id: Mapped[str] = uuid_pk()  # генерирует клиент
+    board_id: Mapped[str] = mapped_column(
+        ForeignKey('boards.id', ondelete='CASCADE'), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False, default='')
+    x: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    y: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    width: Mapped[float] = mapped_column(Float, nullable=False, default=420)
+    height: Mapped[float] = mapped_column(Float, nullable=False, default=280)
+    updated_by: Mapped[str] = mapped_column(
+        ForeignKey('users.id', ondelete='SET NULL'), nullable=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(),
+        nullable=False
+    )
+
+
 class Edge(Base):
     __tablename__ = 'edges'
 

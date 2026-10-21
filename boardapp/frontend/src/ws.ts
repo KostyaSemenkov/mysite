@@ -2,7 +2,8 @@ import { getToken } from './api'
 import { useBoard } from './store'
 import {
   applyEdgeCreated, applyEdgeDeleted, applyInit, applyTicketCreated,
-  applyTicketDeleted, applyTicketUpdated,
+  applyTicketDeleted, applyTicketUpdated, applyZoneCreated, applyZoneDeleted,
+  applyZoneUpdated,
 } from './store'
 
 export type WsStatus = 'connecting' | 'online' | 'reconnecting'
@@ -79,6 +80,15 @@ function open() {
         break
       case 'edge:deleted':
         applyEdgeDeleted(msg.data.id)
+        break
+      case 'zone:created':
+        applyZoneCreated(msg.data)
+        break
+      case 'zone:updated':
+        applyZoneUpdated(msg.data.id, msg.data.patch)
+        break
+      case 'zone:deleted':
+        applyZoneDeleted(msg.data.id)
         break
       case 'presence:join':
         s.presenceJoin(msg.data)

@@ -25,22 +25,27 @@ import '@xyflow/react/dist/style.css'
 
 import { ensureUser } from '../api'
 import TicketNode from '../components/TicketNode'
+import ZoneNode from '../components/ZoneNode'
 import ShareModal from '../components/ShareModal'
 import Toolbar from '../components/Toolbar'
-import { EV, on, type TicketMsg } from '../boardEvents'
+import { EV, on, type TicketMsg, type ZoneMsg } from '../boardEvents'
 import {
   STICKER_COLORS,
   createEdge,
   createTicket,
+  createZone,
   deleteEdgeWithSnapshot,
   deleteTicketWithSnapshot,
+  deleteZoneWithSnapshot,
+  ticketAutoHeight,
   updateTicket,
+  updateZone,
   useBoard,
   type TicketData,
 } from '../store'
 import { connectBoard, disconnect, sendCursorThrottled, setMyUserId } from '../ws'
 
-const nodeTypes = { ticket: TicketNode }
+const nodeTypes = { ticket: TicketNode, zone: ZoneNode }
 
 export default function BoardEditorPage() {
   return (
@@ -55,7 +60,7 @@ function BoardEditorInner() {
   const nav = useNavigate()
   const { screenToFlowPosition } = useReactFlow()
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<Node<TicketData>>([])
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
   const role = useBoard((s) => s.role)
@@ -68,6 +73,7 @@ function BoardEditorInner() {
   const [shareOpen, setShareOpen] = useState(false)
   const [colorIdx, setColorIdx] = useState(0)
   const dragStart = useRef<Record<string, { x: number; y: number }>>({})
+  const zoneContents = useRef<Record<string, { id: string; x: number; y: number }[]>>({})
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const nodesRef = useRef(nodes)
   nodesRef.current = nodes
@@ -94,12 +100,12 @@ function BoardEditorInner() {
         setEdges(initEdges)
       }),
       on(EV.ticketCreated, (node: Node<TicketData>) => {
-        setNodes((ns) => (ns.some((n) => n.id === node.id) ? ns : [...ns, node]))
+        setNodes((ns: Node[]) => (ns.some((n) => n.id === node.id) ? ns : [...ns, node]))
       }),
       on(EV.ticketUpdated, ({ id: tid, patch }: { id: string; patch: Partial<TicketMsg> & { editing?: boolean } }) => {
-        setNodes((ns) => ns.map((n) => {
+        setNodes((ns: Node[]) => ns.map((n) => {
           if (n.id !== tid) return n
-          const data = { ...n.data }
+          const data = { ...n.data } as TicketData
           if (patch.text !== undefined) data.text = patch.text
           if (patch.color !== undefined) data.color = patch.color
           if (patch.editing !== undefined) data.editing = patch.editing
@@ -109,7 +115,11 @@ function BoardEditorInner() {
                 y: patch.y !== undefined ? patch.y : n.position.y,
               }
             : n.position
-          return { ...n, data, position }
+          // авторост высоты под текст, если сервер/локальная правка не принесла свою
+          const height = (patch.height !== undefined)
+            ? patch.height
+            : (patch.text !== undefined ? ticketAutoHeight(patch.text) : n.height)
+          return { ...n, data, position, height }
         }))
       }),
       on(EV.ticketDeleted, ({ id: tid }: { id: string }) => {
@@ -121,6 +131,29 @@ function BoardEditorInner() {
       }),
       on(EV.edgeDeleted, ({ id: eid }: { id: string }) => {
         setEdges((es) => es.filter((e) => e.id !== eid))
+      }),
+      on(EV.zoneCreated, (node: Node) => {
+        setNodes((ns: Node[]) => (ns.some((n) => n.id === node.id) ? ns : [...ns, node]))
+      }),
+      on(EV.zoneUpdated, ({ id: zid, patch }: { id: string; patch: Partial<ZoneMsg> }) => {
+        setNodes((ns: Node[]) => ns.map((n) => {
+          if (n.id !== zid) return n
+          const data = { ...n.data } as { title?: string }
+          if (patch.title !== undefined) data.title = patch.title
+          const position = (patch.x !== undefined || patch.y !== undefined)
+            ? {
+                x: patch.x !== undefined ? patch.x : n.position.x,
+                y: patch.y !== undefined ? patch.y : n.position.y,
+              }
+            : n.position
+          const dims: { width?: number; height?: number } = {}
+          if (patch.width !== undefined) dims.width = patch.width
+          if (patch.height !== undefined) dims.height = patch.height
+          return { ...n, data, position, ...dims }
+        }))
+      }),
+      on(EV.zoneDeleted, ({ id: zid }: { id: string }) => {
+        setNodes((ns) => ns.filter((n) => n.id !== zid))
       }),
     ]
     return () => offs.forEach((off) => off())
@@ -146,14 +179,44 @@ function BoardEditorInner() {
   }, [editable])
 
   const onNodeDragStart = useCallback(
-    (_: MouseEvent | TouchEvent, node: Node<TicketData>) => {
+    (_: MouseEvent | TouchEvent, node: Node) => {
       dragStart.current[node.id] = { ...node.position }
+      if (node.type === 'zone') {
+        // запоминаем тикеты, чей центр внутри зоны, — поедут вместе с ней
+        const zw = node.width ?? 420
+        const zh = node.height ?? 280
+        zoneContents.current[node.id] = nodesRef.current
+          .filter((n) => n.type === 'ticket')
+          .filter((n) => {
+            const cx = n.position.x + (n.width ?? 200) / 2
+            const cy = n.position.y + (n.height ?? 100) / 2
+            return cx >= node.position.x && cx <= node.position.x + zw
+              && cy >= node.position.y && cy <= node.position.y + zh
+          })
+          .map((n) => ({ id: n.id, x: n.position.x, y: n.position.y }))
+      }
     }, [])
 
   const onNodeDragStop = useCallback(
-    (_: MouseEvent | TouchEvent, node: Node<TicketData>) => {
+    (_: MouseEvent | TouchEvent, node: Node) => {
       const start = dragStart.current[node.id]
       if (!start) return
+      const dx = node.position.x - start.x
+      const dy = node.position.y - start.y
+      if (node.type === 'zone') {
+        if (dx !== 0 || dy !== 0) {
+          updateZone(node.id, { x: node.position.x, y: node.position.y },
+            { x: start.x, y: start.y })
+          // вложенные тикеты переезжают вместе с зоной (без отдельных undo-точек)
+          const contents = zoneContents.current[node.id] ?? []
+          for (const t of contents) {
+            updateTicket(t.id, { x: t.x + dx, y: t.y + dy })
+          }
+        }
+        delete zoneContents.current[node.id]
+        delete dragStart.current[node.id]
+        return
+      }
       if (start.x === node.position.x && start.y === node.position.y) return
       // одна undo-операция на весь drag
       updateTicket(node.id, { x: node.position.x, y: node.position.y },
@@ -166,9 +229,21 @@ function BoardEditorInner() {
     void selEdges
   }, [])
 
-  const onNodesDelete = useCallback((deleted: Node<TicketData>[]) => {
+  const onNodesDelete = useCallback((deleted: Node[]) => {
     if (!editable) return
-    deleted.forEach((n) => deleteTicketWithSnapshot(n))
+    deleted.forEach((n) => {
+      if (n.type === 'zone') {
+        deleteZoneWithSnapshot(n as unknown as {
+          id: string; position: { x: number; y: number };
+          width?: number; height?: number; data: { title: string };
+        })
+      } else {
+        deleteTicketWithSnapshot(n as unknown as {
+          id: string; position: { x: number; y: number };
+          width?: number; height?: number; data: TicketData;
+        })
+      }
+    })
   }, [editable])
 
   const onMove = useCallback((_: unknown, pos: XYPosition) => {
@@ -181,6 +256,12 @@ function BoardEditorInner() {
     createTicket(center.x - 100, center.y - 50, STICKER_COLORS[colorIdx % STICKER_COLORS.length])
     setColorIdx((i) => i + 1)
   }, [editable, screenToFlowPosition, colorIdx])
+
+  const addZoneToCenter = useCallback(() => {
+    if (!editable) return
+    const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
+    createZone(center.x - 210, center.y - 140)
+  }, [editable, screenToFlowPosition])
 
   const onWrapperDoubleClick = useCallback((event: React.MouseEvent) => {
     if (!editable) return
@@ -277,6 +358,7 @@ function BoardEditorInner() {
         edgesFocusable={editable}
         snapToGrid
         snapGrid={[20, 20]}
+        elevateNodesOnSelect={false}
         panOnScroll
         zoomOnScroll
         selectionOnDrag={false}
@@ -290,6 +372,7 @@ function BoardEditorInner() {
       {editable && (
         <div className="toolbar" style={{ top: 'auto', bottom: 12 }}>
           <button className="btn" onClick={addTicketToCenter}>+ Тикет</button>
+          <button className="btn ghost" onClick={addZoneToCenter}>+ Зона</button>
         </div>
       )}
       {cursorLabels}

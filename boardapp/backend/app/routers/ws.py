@@ -1,3 +1,4 @@
+import math
 import uuid
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -6,7 +7,7 @@ from sqlalchemy import select
 from ..access import get_board_or_404, get_role
 from ..board_manager import manager
 from ..database import SessionLocal
-from ..models import Board, Edge, Ticket
+from ..models import Board, Edge, Ticket, Zone
 from ..security import decode_token
 
 router = APIRouter(tags=['ws'])
@@ -17,6 +18,18 @@ def _valid_uuid(value) -> str | None:
         return str(uuid.UUID(value))
     except (ValueError, TypeError):
         return None
+
+
+def _clamp(value, lo, hi) -> float:
+    return max(lo, min(hi, float(value)))
+
+
+def _ticket_height(text: str) -> float:
+    """Авторост высоты тикета под текст (синхронизировано с фронтендом)."""
+    lines = 0
+    for ln in str(text).split('\n'):
+        lines += max(1, math.ceil(len(ln) / 22))
+    return max(100.0, 34 + lines * 21)
 
 
 @router.websocket('/ws/boards/{board_id}')
@@ -56,10 +69,17 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
             select(Ticket).where(Ticket.board_id == board_id))).all()
         edges = (await session.scalars(
             select(Edge).where(Edge.board_id == board_id))).all()
+        zones = (await session.scalars(
+            select(Zone).where(Zone.board_id == board_id))).all()
         init = {
             'type': 'init',
             'data': {
                 'board': {'id': board_id, 'title': board_title},
+                'zones': [
+                    {'id': z.id, 'title': z.title, 'x': z.x, 'y': z.y,
+                     'width': z.width, 'height': z.height}
+                    for z in zones
+                ],
                 'tickets': [
                     {'id': t.id, 'x': t.x, 'y': t.y, 'width': t.width,
                      'height': t.height, 'text': t.text, 'color': t.color}
@@ -113,7 +133,7 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                             x=float(data.get('x', 0)), y=float(data.get('y', 0)),
                             width=float(data.get('width', 200)),
                             height=float(data.get('height', 100)),
-                            text=str(data.get('text', ''))[:5000],
+                            text=str(data.get('text', ''))[:100],
                             color=str(data.get('color', '#FFF3B1'))[:9],
                             updated_by=user.id,
                         )
@@ -134,13 +154,17 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                             if field_name in patch:
                                 setattr(t, field_name, float(patch[field_name]))
                         if 'text' in patch:
-                            t.text = str(patch['text'])[:5000]
+                            t.text = str(patch['text'])[:100]
+                            t.height = _ticket_height(t.text)
                         if 'color' in patch:
                             t.color = str(patch['color'])[:9]
                         t.updated_by = user.id
                         await session.commit()
+                        out_patch = dict(patch)
+                        if 'text' in out_patch:
+                            out_patch['height'] = t.height
                         out = {'type': 'ticket:updated', 'actor': user.id,
-                               'data': {'id': t.id, 'patch': patch}}
+                               'data': {'id': t.id, 'patch': out_patch}}
                 elif mtype == 'ticket:delete':
                     tid = _valid_uuid(data.get('id'))
                     t = await session.get(Ticket, tid) if tid else None
@@ -182,6 +206,56 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                         await session.commit()
                         out = {'type': 'edge:deleted', 'actor': user.id,
                                'data': {'id': eid}}
+                elif mtype == 'zone:create':
+                    zid = _valid_uuid(data.get('id'))
+                    if not zid:
+                        await send_error('Некорректный id зоны')
+                    else:
+                        z = Zone(
+                            id=zid, board_id=board_id,
+                            title=str(data.get('title', ''))[:200],
+                            x=_clamp(data.get('x', 0), -100000, 100000),
+                            y=_clamp(data.get('y', 0), -100000, 100000),
+                            width=_clamp(data.get('width', 420), 160, 8000),
+                            height=_clamp(data.get('height', 280), 100, 8000),
+                            updated_by=user.id,
+                        )
+                        session.add(z)
+                        await session.commit()
+                        out = {'type': 'zone:created', 'actor': user.id,
+                               'data': {'id': z.id, 'title': z.title, 'x': z.x,
+                                        'y': z.y, 'width': z.width, 'height': z.height}}
+                elif mtype == 'zone:update':
+                    zid = _valid_uuid(data.get('id'))
+                    patch = data.get('patch') or {}
+                    z = await session.get(Zone, zid) if zid else None
+                    if z is None or z.board_id != board_id:
+                        await send_error('Зона не найдена')
+                    else:
+                        for field_name in ('x', 'y'):
+                            if field_name in patch:
+                                setattr(z, field_name,
+                                        _clamp(patch[field_name], -100000, 100000))
+                        for field_name in ('width', 'height'):
+                            if field_name in patch:
+                                setattr(z, field_name,
+                                        _clamp(patch[field_name], 100, 8000))
+                        if 'title' in patch:
+                            z.title = str(patch['title'])[:200]
+                        z.updated_by = user.id
+                        await session.commit()
+                        out = {'type': 'zone:updated', 'actor': user.id,
+                               'data': {'id': z.id, 'patch': patch}}
+                elif mtype == 'zone:delete':
+                    zid = _valid_uuid(data.get('id'))
+                    z = await session.get(Zone, zid) if zid else None
+                    if z is None or z.board_id != board_id:
+                        await send_error('Зона не найдена')
+                    else:
+                        await session.delete(z)
+                        await session.commit()
+                        out = {'type': 'zone:deleted', 'actor': user.id,
+                               'data': {'id': zid}}
                 else:
                     await send_error(f'Неизвестный тип сообщения: {mtype}')
 

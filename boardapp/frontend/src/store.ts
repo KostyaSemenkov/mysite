@@ -1,7 +1,10 @@
 import { create } from 'zustand'
 import type { Connection } from '@xyflow/react'
 import { send } from './ws'
-import { EV, edgeMsgToEdge, emit, ticketToNode, type EdgeMsg, type TicketMsg } from './boardEvents'
+import {
+  EV, edgeMsgToEdge, emit, ticketToNode, zoneToNode,
+  type EdgeMsg, type TicketMsg, type ZoneMsg,
+} from './boardEvents'
 
 export interface TicketData extends Record<string, unknown> {
   text: string
@@ -110,16 +113,29 @@ export const useBoard = create<BoardState>((set, get) => ({
 
 // --- применение изменений к канве (события слушает редактор) ---
 
+/** Авторост высоты тикета под текст; синхронизировано с бэкендом (_ticket_height). */
+export function ticketAutoHeight(text: string): number {
+  let lines = 0
+  for (const ln of text.split('\n')) {
+    lines += Math.max(1, Math.ceil(ln.length / 22))
+  }
+  return Math.max(100, 34 + lines * 21)
+}
+
 export function applyInit(data: {
   board: { title: string }
   tickets: TicketMsg[]
   edges: EdgeMsg[]
+  zones: ZoneMsg[]
   role: string
 }) {
   useBoard.getState().setTitle(data.board.title)
   useBoard.getState().setRole(data.role)
   emit(EV.init, {
-    nodes: data.tickets.map(ticketToNode),
+    nodes: [
+      ...(data.zones ?? []).map(zoneToNode),
+      ...data.tickets.map(ticketToNode),
+    ],
     edges: data.edges.map(edgeMsgToEdge),
   })
 }
@@ -142,6 +158,18 @@ export function applyEdgeCreated(e: EdgeMsg) {
 
 export function applyEdgeDeleted(id: string) {
   emit(EV.edgeDeleted, { id })
+}
+
+export function applyZoneCreated(z: ZoneMsg) {
+  emit(EV.zoneCreated, zoneToNode(z))
+}
+
+export function applyZoneUpdated(id: string, patch: Partial<ZoneMsg>) {
+  emit(EV.zoneUpdated, { id, patch })
+}
+
+export function applyZoneDeleted(id: string) {
+  emit(EV.zoneDeleted, { id })
 }
 
 // --- операции: локально (событием) + на сервер; эхо подавляется по actor в ws.ts ---
@@ -172,10 +200,17 @@ export function updateTicket(id: string, patch: Partial<TicketMsg> & { editing?:
   for (const [k, v] of Object.entries(patch)) {
     if (k !== 'editing') toServer[k] = v
   }
+  if (typeof toServer.text === 'string') {
+    toServer.text = (toServer.text as string).slice(0, 100) // жёсткий лимит тикета
+  }
   if (Object.keys(toServer).length > 0) {
     send({ type: 'ticket:update', data: { id, patch: toServer } })
   }
-  applyTicketUpdated(id, patch)
+  const clamped = { ...patch }
+  if (typeof clamped.text === 'string') {
+    clamped.text = clamped.text.slice(0, 100)
+  }
+  applyTicketUpdated(id, clamped)
   if (undoPatch) {
     useBoard.getState().pushUndo({
       undo: () => {
@@ -260,6 +295,66 @@ export function deleteEdgeWithSnapshot(edge: { id: string; source: string; targe
     redo: () => {
       send({ type: 'edge:delete', data: { id: edge.id } })
       applyEdgeDeleted(edge.id)
+    },
+  })
+}
+
+// --- зоны ---
+
+export function createZone(x: number, y: number, title = '') {
+  const id = crypto.randomUUID()
+  const msg: ZoneMsg = { id, title, x, y, width: 420, height: 280 }
+  send({ type: 'zone:create', data: msg })
+  applyZoneCreated(msg)
+  useBoard.getState().pushUndo({
+    undo: () => {
+      send({ type: 'zone:delete', data: { id } })
+      applyZoneDeleted(id)
+    },
+    redo: () => {
+      send({ type: 'zone:create', data: msg })
+      applyZoneCreated(msg)
+    },
+  })
+  return id
+}
+
+export function updateZone(id: string, patch: Partial<ZoneMsg>, undoPatch?: Partial<ZoneMsg>) {
+  send({ type: 'zone:update', data: { id, patch } })
+  applyZoneUpdated(id, patch)
+  if (undoPatch) {
+    useBoard.getState().pushUndo({
+      undo: () => {
+        send({ type: 'zone:update', data: { id, patch: undoPatch } })
+        applyZoneUpdated(id, undoPatch)
+      },
+      redo: () => {
+        send({ type: 'zone:update', data: { id, patch } })
+        applyZoneUpdated(id, patch)
+      },
+    })
+  }
+}
+
+export function deleteZoneWithSnapshot(node: {
+  id: string; position: { x: number; y: number };
+  width?: number; height?: number; data: { title: string };
+}) {
+  const msg: ZoneMsg = {
+    id: node.id, title: node.data.title,
+    x: node.position.x, y: node.position.y,
+    width: node.width ?? 420, height: node.height ?? 280,
+  }
+  send({ type: 'zone:delete', data: { id: node.id } })
+  applyZoneDeleted(node.id)
+  useBoard.getState().pushUndo({
+    undo: () => {
+      send({ type: 'zone:create', data: msg })
+      applyZoneCreated(msg)
+    },
+    redo: () => {
+      send({ type: 'zone:delete', data: { id: node.id } })
+      applyZoneDeleted(node.id)
     },
   })
 }

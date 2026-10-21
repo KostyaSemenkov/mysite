@@ -22,10 +22,20 @@ export interface EdgeMsg {
   target: string
 }
 
+export interface ZoneMsg {
+  id: string
+  title: string
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export interface BoardInitMsg {
   board: { title: string }
   tickets: TicketMsg[]
   edges: EdgeMsg[]
+  zones: ZoneMsg[]
   role: string
 }
 
@@ -36,7 +46,14 @@ export const EV = {
   ticketDeleted: 'rf:ticket-deleted',
   edgeCreated: 'rf:edge-created',
   edgeDeleted: 'rf:edge-deleted',
+  zoneCreated: 'rf:zone-created',
+  zoneUpdated: 'rf:zone-updated',
+  zoneDeleted: 'rf:zone-deleted',
 } as const
+
+export interface ZoneData extends Record<string, unknown> {
+  title: string
+}
 
 export function ticketToNode(t: TicketMsg): Node<TicketData> {
   return {
@@ -46,6 +63,19 @@ export function ticketToNode(t: TicketMsg): Node<TicketData> {
     data: { text: t.text, color: t.color },
     width: t.width,
     height: t.height,
+    zIndex: 5, // тикеты всегда поверх зон
+  }
+}
+
+export function zoneToNode(z: ZoneMsg): Node<ZoneData> {
+  return {
+    id: z.id,
+    type: 'zone',
+    position: { x: z.x, y: z.y },
+    data: { title: z.title },
+    width: z.width,
+    height: z.height,
+    zIndex: 0, // подложка
   }
 }
 
