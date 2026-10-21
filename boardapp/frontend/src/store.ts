@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import type { Connection, Edge, NodeChange } from '@xyflow/react'
-import { applyNodeChanges } from '@xyflow/react'
+import type { Connection } from '@xyflow/react'
 import { send } from './ws'
+import { EV, edgeMsgToEdge, emit, ticketToNode, type EdgeMsg, type TicketMsg } from './boardEvents'
 
 export interface TicketData extends Record<string, unknown> {
   text: string
@@ -30,29 +30,15 @@ interface Cursor {
 }
 
 interface BoardState {
-  boardId: string | null
   boardTitle: string
   role: string
-  nodes: Node<TicketData>[]
-  edges: Edge[]
   presence: Presence[]
   cursors: Cursor[]
   undoStack: UndoEntry[]
   redoStack: UndoEntry[]
-  setBoard: (id: string | null, title?: string) => void
-  initFromServer: (data: {
-    board: { title: string }
-    tickets: TicketMsg[]
-    edges: EdgeMsg[]
-    role: string
-  }) => void
-  applyNodeChangesLocally: (changes: NodeChange[]) => void
-  setEdges: (updater: (eds: Edge[]) => Edge[]) => void
-  remoteTicketCreated: (data: TicketMsg) => void
-  remoteTicketUpdated: (id: string, patch: Partial<TicketMsg>) => void
-  remoteTicketDeleted: (id: string) => void
-  remoteEdgeCreated: (data: EdgeMsg) => void
-  remoteEdgeDeleted: (id: string) => void
+  setTitle: (title: string) => void
+  setRole: (role: string) => void
+  reset: () => void
   presenceJoin: (data: Presence) => void
   presenceLeave: (userId: string) => void
   updateCursor: (userId: string, x: number, y: number) => void
@@ -61,128 +47,18 @@ interface BoardState {
   redo: () => void
 }
 
-export interface TicketMsg {
-  id: string
-  x: number
-  y: number
-  width: number
-  height: number
-  text: string
-  color: string
-}
-
-export interface EdgeMsg {
-  id: string
-  source: string
-  target: string
-}
-
-import type { Node } from '@xyflow/react'
-
 export const useBoard = create<BoardState>((set, get) => ({
-  boardId: null,
   boardTitle: '',
   role: 'viewer',
-  nodes: [],
-  edges: [],
   presence: [],
   cursors: [],
   undoStack: [],
   redoStack: [],
 
-  setBoard: (id, title = '') =>
-    set({
-      boardId: id, boardTitle: title, nodes: [], edges: [],
-      presence: [], cursors: [], undoStack: [], redoStack: [],
-    }),
-
-  initFromServer: ({ board, tickets, edges, role }) =>
-    set({
-      boardTitle: board.title,
-      role,
-      nodes: tickets.map((t) => ({
-        id: t.id,
-        type: 'ticket',
-        position: { x: t.x, y: t.y },
-        data: { text: t.text, color: t.color },
-        width: t.width,
-        height: t.height,
-      })),
-      edges: edges.map((e) => ({
-        id: e.id,
-        source: e.source,
-        target: e.target,
-        markerEnd: { type: 'arrowclosed' as never },
-      })),
-      undoStack: [],
-      redoStack: [],
-    }),
-
-  applyNodeChangesLocally: (changes) => {
-    // selection-изменения применяем локально; позиционные приходят через WS-эхо
-    const selOnly = changes.filter(
-      (c) => c.type === 'select' || c.type === 'dimensions' || c.type === 'remove',
-    )
-    set({ nodes: applyNodeChanges(selOnly, get().nodes) })
-  },
-
-  setEdges: (updater) => set({ edges: updater(get().edges) }),
-
-  remoteTicketCreated: (t) =>
-    set((s) => ({
-      nodes: s.nodes.some((n) => n.id === t.id) ? s.nodes : [
-        ...s.nodes,
-        {
-          id: t.id,
-          type: 'ticket',
-          position: { x: t.x, y: t.y },
-          data: { text: t.text, color: t.color },
-          width: t.width,
-          height: t.height,
-        },
-      ],
-    })),
-
-  remoteTicketUpdated: (id, patch) =>
-    set((s) => ({
-      nodes: s.nodes.map((n) => {
-        if (n.id !== id) return n
-        const data = { ...n.data }
-        if ('text' in patch && patch.text !== undefined) data.text = patch.text
-        if ('color' in patch && patch.color !== undefined) data.color = patch.color
-        const position = ('x' in patch || 'y' in patch)
-          ? {
-              x: patch.x !== undefined ? patch.x : n.position.x,
-              y: patch.y !== undefined ? patch.y : n.position.y,
-            }
-          : n.position
-        const dims: { width?: number; height?: number } = {}
-        if (patch.width !== undefined) dims.width = patch.width
-        if (patch.height !== undefined) dims.height = patch.height
-        return { ...n, data, position, ...dims }
-      }),
-    })),
-
-  remoteTicketDeleted: (id) =>
-    set((s) => ({
-      nodes: s.nodes.filter((n) => n.id !== id),
-      edges: s.edges.filter((e) => e.source !== id && e.target !== id),
-    })),
-
-  remoteEdgeCreated: (e) =>
-    set((s) =>
-      s.edges.some((x) => x.id === e.id)
-        ? s
-        : {
-            edges: [
-              ...s.edges,
-              { id: e.id, source: e.source, target: e.target, markerEnd: { type: 'arrowclosed' as never } },
-            ],
-          },
-    ),
-
-  remoteEdgeDeleted: (id) =>
-    set((s) => ({ edges: s.edges.filter((e) => e.id !== id) })),
+  setTitle: (boardTitle) => set({ boardTitle }),
+  setRole: (role) => set({ role }),
+  reset: () => set({ boardTitle: '', role: 'viewer', presence: [], cursors: [],
+                     undoStack: [], redoStack: [] }),
 
   presenceJoin: (p) =>
     set((s) => ({
@@ -232,65 +108,119 @@ export const useBoard = create<BoardState>((set, get) => ({
   },
 }))
 
-// --- операции: локально + на сервер (оптимистично), эхо подавляем по actor ---
+// --- применение изменений к канве (события слушает редактор) ---
+
+export function applyInit(data: {
+  board: { title: string }
+  tickets: TicketMsg[]
+  edges: EdgeMsg[]
+  role: string
+}) {
+  useBoard.getState().setTitle(data.board.title)
+  useBoard.getState().setRole(data.role)
+  emit(EV.init, {
+    nodes: data.tickets.map(ticketToNode),
+    edges: data.edges.map(edgeMsgToEdge),
+  })
+}
+
+export function applyTicketCreated(t: TicketMsg) {
+  emit(EV.ticketCreated, ticketToNode(t))
+}
+
+export function applyTicketUpdated(id: string, patch: Partial<TicketMsg>) {
+  emit(EV.ticketUpdated, { id, patch })
+}
+
+export function applyTicketDeleted(id: string) {
+  emit(EV.ticketDeleted, { id })
+}
+
+export function applyEdgeCreated(e: EdgeMsg) {
+  emit(EV.edgeCreated, edgeMsgToEdge(e))
+}
+
+export function applyEdgeDeleted(id: string) {
+  emit(EV.edgeDeleted, { id })
+}
+
+// --- операции: локально (событием) + на сервер; эхо подавляется по actor в ws.ts ---
 
 export function createTicket(x: number, y: number, color = STICKER_COLORS[0]) {
   const id = crypto.randomUUID()
   const msg: TicketMsg = { id, x, y, width: 200, height: 100, text: '', color }
   send({ type: 'ticket:create', data: msg })
-  useBoard.getState().remoteTicketCreated(msg) // оптимистично
+  applyTicketCreated(msg)
+  // новый тикет сразу в режиме редактирования
+  applyTicketUpdated(id, { editing: true } as never)
   useBoard.getState().pushUndo({
     undo: () => {
       send({ type: 'ticket:delete', data: { id } })
-      useBoard.getState().remoteTicketDeleted(id)
+      applyTicketDeleted(id)
     },
     redo: () => {
       send({ type: 'ticket:create', data: msg })
-      useBoard.getState().remoteTicketCreated(msg)
+      applyTicketCreated(msg)
     },
   })
   return id
 }
 
-export function updateTicket(id: string, patch: Partial<TicketMsg>, undoPatch?: Partial<TicketMsg>) {
-  send({ type: 'ticket:update', data: { id, patch } })
-  useBoard.getState().remoteTicketUpdated(id, patch)
+export function updateTicket(id: string, patch: Partial<TicketMsg> & { editing?: boolean },
+                             undoPatch?: Partial<TicketMsg>) {
+  const toServer: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(patch)) {
+    if (k !== 'editing') toServer[k] = v
+  }
+  if (Object.keys(toServer).length > 0) {
+    send({ type: 'ticket:update', data: { id, patch: toServer } })
+  }
+  applyTicketUpdated(id, patch)
   if (undoPatch) {
     useBoard.getState().pushUndo({
       undo: () => {
         send({ type: 'ticket:update', data: { id, patch: undoPatch } })
-        useBoard.getState().remoteTicketUpdated(id, undoPatch)
+        applyTicketUpdated(id, undoPatch)
       },
       redo: () => {
-        send({ type: 'ticket:update', data: { id, patch } })
-        useBoard.getState().remoteTicketUpdated(id, patch)
+        send({ type: 'ticket:update', data: { id, patch: toServer as Partial<TicketMsg> } })
+        applyTicketUpdated(id, toServer as Partial<TicketMsg>)
       },
     })
   }
 }
 
+// снять editing-флаг локально (после commit в TicketNode)
+export function stopEditing(id: string) {
+  emit(EV.ticketUpdated, { id, patch: { editing: false } as never })
+}
+
 export function deleteTicket(id: string) {
-  const node = useBoard.getState().nodes.find((n) => n.id === id)
-  if (!node) return
-  const snapshot: TicketMsg = {
-    id,
-    x: node.position.x,
-    y: node.position.y,
-    width: node.width ?? 200,
-    height: node.height ?? 100,
-    text: node.data.text,
-    color: node.data.color,
-  }
+  // снимок для undo берём из DOM-события редактора: упрощённо — редактор
+  // перед драгом/удалением сам держит данные; здесь только операции
   send({ type: 'ticket:delete', data: { id } })
-  useBoard.getState().remoteTicketDeleted(id)
+  applyTicketDeleted(id)
+}
+
+export function deleteTicketWithSnapshot(node: {
+  id: string; position: { x: number; y: number };
+  width?: number; height?: number; data: TicketData;
+}) {
+  const msg: TicketMsg = {
+    id: node.id, x: node.position.x, y: node.position.y,
+    width: node.width ?? 200, height: node.height ?? 100,
+    text: node.data.text, color: node.data.color,
+  }
+  send({ type: 'ticket:delete', data: { id: node.id } })
+  applyTicketDeleted(node.id)
   useBoard.getState().pushUndo({
     undo: () => {
-      send({ type: 'ticket:create', data: snapshot })
-      useBoard.getState().remoteTicketCreated(snapshot)
+      send({ type: 'ticket:create', data: msg })
+      applyTicketCreated(msg)
     },
     redo: () => {
-      send({ type: 'ticket:delete', data: { id } })
-      useBoard.getState().remoteTicketDeleted(id)
+      send({ type: 'ticket:delete', data: { id: node.id } })
+      applyTicketDeleted(node.id)
     },
   })
 }
@@ -300,33 +230,36 @@ export function createEdge(connection: Connection) {
   const id = crypto.randomUUID()
   const msg: EdgeMsg = { id, source: connection.source, target: connection.target }
   send({ type: 'edge:create', data: msg })
-  useBoard.getState().remoteEdgeCreated(msg)
+  applyEdgeCreated(msg)
   useBoard.getState().pushUndo({
     undo: () => {
       send({ type: 'edge:delete', data: { id } })
-      useBoard.getState().remoteEdgeDeleted(id)
+      applyEdgeDeleted(id)
     },
     redo: () => {
       send({ type: 'edge:create', data: msg })
-      useBoard.getState().remoteEdgeCreated(msg)
+      applyEdgeCreated(msg)
     },
   })
 }
 
 export function deleteEdge(id: string) {
-  const edge = useBoard.getState().edges.find((e) => e.id === id)
-  if (!edge) return
-  const msg: EdgeMsg = { id, source: edge.source, target: edge.target }
   send({ type: 'edge:delete', data: { id } })
-  useBoard.getState().remoteEdgeDeleted(id)
+  applyEdgeDeleted(id)
+}
+
+export function deleteEdgeWithSnapshot(edge: { id: string; source: string; target: string }) {
+  const msg: EdgeMsg = { id: edge.id, source: edge.source, target: edge.target }
+  send({ type: 'edge:delete', data: { id: edge.id } })
+  applyEdgeDeleted(edge.id)
   useBoard.getState().pushUndo({
     undo: () => {
       send({ type: 'edge:create', data: msg })
-      useBoard.getState().remoteEdgeCreated(msg)
+      applyEdgeCreated(msg)
     },
     redo: () => {
-      send({ type: 'edge:delete', data: { id } })
-      useBoard.getState().remoteEdgeDeleted(id)
+      send({ type: 'edge:delete', data: { id: edge.id } })
+      applyEdgeDeleted(edge.id)
     },
   })
 }

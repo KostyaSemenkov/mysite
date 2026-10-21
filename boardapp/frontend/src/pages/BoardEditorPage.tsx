@@ -10,11 +10,13 @@ import {
   addEdge,
   getNodesBounds,
   getViewportForBounds,
+  useEdgesState,
+  useNodesState,
   useReactFlow,
   type Connection,
+  type Edge,
   type EdgeChange,
   type Node,
-  type NodeTypes,
   type OnSelectionChangeParams,
   type XYPosition,
 } from '@xyflow/react'
@@ -25,22 +27,20 @@ import { ensureUser } from '../api'
 import TicketNode from '../components/TicketNode'
 import ShareModal from '../components/ShareModal'
 import Toolbar from '../components/Toolbar'
+import { EV, on, type TicketMsg } from '../boardEvents'
 import {
   STICKER_COLORS,
   createEdge,
   createTicket,
-  deleteEdge,
-  deleteTicket,
+  deleteEdgeWithSnapshot,
+  deleteTicketWithSnapshot,
   updateTicket,
   useBoard,
   type TicketData,
 } from '../store'
 import { connectBoard, disconnect, sendCursorThrottled, setMyUserId } from '../ws'
 
-const nodeTypes: NodeTypes = { ticket: TicketNode }
-
-// React Flow использует DOM-события в drag-хендлерах
-type FlowDragEvent = MouseEvent | TouchEvent
+const nodeTypes = { ticket: TicketNode }
 
 export default function BoardEditorPage() {
   return (
@@ -55,13 +55,13 @@ function BoardEditorInner() {
   const nav = useNavigate()
   const { screenToFlowPosition } = useReactFlow()
 
-  const nodes = useBoard((s) => s.nodes)
-  const edges = useBoard((s) => s.edges)
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<TicketData>>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+
   const role = useBoard((s) => s.role)
   const cursors = useBoard((s) => s.cursors)
-  const setBoard = useBoard((s) => s.setBoard)
-  const applyNodeChangesLocally = useBoard((s) => s.applyNodeChangesLocally)
-  const setEdges = useBoard((s) => s.setEdges)
+  const presence = useBoard((s) => s.presence)
+  const resetBoard = useBoard((s) => s.reset)
   const undo = useBoard((s) => s.undo)
   const redo = useBoard((s) => s.redo)
 
@@ -69,16 +69,62 @@ function BoardEditorInner() {
   const [colorIdx, setColorIdx] = useState(0)
   const dragStart = useRef<Record<string, { x: number; y: number }>>({})
   const viewportRef = useRef<HTMLDivElement | null>(null)
+  const nodesRef = useRef(nodes)
+  nodesRef.current = nodes
+  const edgesRef = useRef(edges)
+  edgesRef.current = edges
 
   const editable = role === 'owner' || role === 'editor'
 
   useEffect(() => {
     if (!id) return
     ensureUser().then((me) => { if (me) setMyUserId(me.id) })
-    setBoard(id)
+    resetBoard()
+    setNodes([])
+    setEdges([])
     connectBoard(id)
     return () => disconnect()
   }, [id])
+
+  // единый поток изменений канвы → локальное состояние (React Flow canonical)
+  useEffect(() => {
+    const offs = [
+      on(EV.init, ({ nodes: initNodes, edges: initEdges }) => {
+        setNodes(initNodes)
+        setEdges(initEdges)
+      }),
+      on(EV.ticketCreated, (node: Node<TicketData>) => {
+        setNodes((ns) => (ns.some((n) => n.id === node.id) ? ns : [...ns, node]))
+      }),
+      on(EV.ticketUpdated, ({ id: tid, patch }: { id: string; patch: Partial<TicketMsg> & { editing?: boolean } }) => {
+        setNodes((ns) => ns.map((n) => {
+          if (n.id !== tid) return n
+          const data = { ...n.data }
+          if (patch.text !== undefined) data.text = patch.text
+          if (patch.color !== undefined) data.color = patch.color
+          if (patch.editing !== undefined) data.editing = patch.editing
+          const position = (patch.x !== undefined || patch.y !== undefined)
+            ? {
+                x: patch.x !== undefined ? patch.x : n.position.x,
+                y: patch.y !== undefined ? patch.y : n.position.y,
+              }
+            : n.position
+          return { ...n, data, position }
+        }))
+      }),
+      on(EV.ticketDeleted, ({ id: tid }: { id: string }) => {
+        setNodes((ns) => ns.filter((n) => n.id !== tid))
+        setEdges((es) => es.filter((e) => e.source !== tid && e.target !== tid))
+      }),
+      on(EV.edgeCreated, (edge: Edge) => {
+        setEdges((es) => (es.some((x) => x.id === edge.id) ? es : [...es, edge]))
+      }),
+      on(EV.edgeDeleted, ({ id: eid }: { id: string }) => {
+        setEdges((es) => es.filter((e) => e.id !== eid))
+      }),
+    ]
+    return () => offs.forEach((off) => off())
+  }, [])
 
   const onConnect = useCallback(
     (c: Connection) => {
@@ -92,17 +138,20 @@ function BoardEditorInner() {
   const onEdgesDelete = useCallback((changes: EdgeChange[]) => {
     if (!editable) return
     changes.forEach((c) => {
-      if (c.type === 'remove') deleteEdge(c.id)
+      if (c.type === 'remove') {
+        const snap = edgesRef.current.find((e) => e.id === c.id)
+        if (snap) deleteEdgeWithSnapshot({ id: snap.id, source: snap.source, target: snap.target })
+      }
     })
   }, [editable])
 
   const onNodeDragStart = useCallback(
-    (_: FlowDragEvent, node: Node<TicketData>) => {
+    (_: MouseEvent | TouchEvent, node: Node<TicketData>) => {
       dragStart.current[node.id] = { ...node.position }
     }, [])
 
   const onNodeDragStop = useCallback(
-    (_: FlowDragEvent, node: Node<TicketData>) => {
+    (_: MouseEvent | TouchEvent, node: Node<TicketData>) => {
       const start = dragStart.current[node.id]
       if (!start) return
       if (start.x === node.position.x && start.y === node.position.y) return
@@ -112,15 +161,14 @@ function BoardEditorInner() {
       delete dragStart.current[node.id]
     }, [])
 
-  const onSelectionChange = useCallback(({ nodes, edges }: OnSelectionChangeParams) => {
-    // удаление выделенного через Delete обрабатывают сами React Flow changes
-    void nodes
-    void edges
+  const onSelectionChange = useCallback(({ nodes: selNodes, edges: selEdges }: OnSelectionChangeParams) => {
+    void selNodes
+    void selEdges
   }, [])
 
-  const onNodesDelete = useCallback((deleted: Node[]) => {
+  const onNodesDelete = useCallback((deleted: Node<TicketData>[]) => {
     if (!editable) return
-    deleted.forEach((n) => deleteTicket(n.id))
+    deleted.forEach((n) => deleteTicketWithSnapshot(n))
   }, [editable])
 
   const onMove = useCallback((_: unknown, pos: XYPosition) => {
@@ -147,7 +195,7 @@ function BoardEditorInner() {
   const exportPng = useCallback(async () => {
     const viewport = viewportRef.current?.querySelector('.react-flow__viewport') as HTMLElement | null
     if (!viewport) return
-    const currentNodes = useBoard.getState().nodes
+    const currentNodes = nodesRef.current
     if (currentNodes.length === 0) return
     const bounds = getNodesBounds(currentNodes)
     const width = Math.ceil(bounds.width) + 200
@@ -190,10 +238,10 @@ function BoardEditorInner() {
           className="cursor-label"
           style={{ left: c.x, top: c.y, ['--cursor-color' as string]: c.color }}
         >
-          {useBoard.getState().presence.find((p) => p.userId === c.userId)?.username ?? '?'}
+          {presence.find((p) => p.userId === c.userId)?.username ?? '?'}
         </div>
       )),
-    [cursors],
+    [cursors, presence],
   )
 
   if (!id) {
@@ -213,17 +261,10 @@ function BoardEditorInner() {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
-        onNodesChange={applyNodeChangesLocally}
+        onNodesChange={onNodesChange}
         onEdgesChange={(changes) => {
           onEdgesDelete(changes)
-          setEdges((eds) =>
-            eds
-              .map((e) => {
-                const sel = changes.find((c) => 'id' in c && c.id === e.id && c.type === 'select')
-                return sel ? { ...e, selected: (sel as { selected?: boolean }).selected } : e
-              })
-              .filter((e) => !changes.some((c) => 'id' in c && c.id === e.id && c.type === 'remove')),
-          )
+          onEdgesChange(changes)
         }}
         onConnect={onConnect}
         onNodeDragStart={onNodeDragStart}
@@ -234,6 +275,8 @@ function BoardEditorInner() {
         nodesDraggable={editable}
         nodesConnectable={editable}
         edgesFocusable={editable}
+        snapToGrid
+        snapGrid={[20, 20]}
         panOnScroll
         zoomOnScroll
         selectionOnDrag={false}

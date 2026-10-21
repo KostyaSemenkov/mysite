@@ -166,6 +166,26 @@ a { color: var(--accent-light); text-decoration: none; }
   height: 100%;
   display: flex;
   border: 2px solid transparent;
+  cursor: grab;
+}
+/* во время перетаскивания — сжатая рука везде, включая текстовое поле */
+.react-flow__node.dragging,
+.react-flow__node.dragging * {
+  cursor: grabbing !important;
+}
+/* приподнятый тикет в полёте — видно, куда он встанет */
+.react-flow__node.dragging .ticket-node {
+  box-shadow: 0 14px 28px rgba(0,0,0,0.5);
+  opacity: 0.95;
+}
+.ticket-node textarea { cursor: text; }
+.ticket-text {
+  flex: 1;
+  padding: 4px;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: none;
 }
 .ticket-node.selected { border-color: var(--accent); }
 .ticket-node textarea {

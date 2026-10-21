@@ -1,5 +1,9 @@
 import { getToken } from './api'
 import { useBoard } from './store'
+import {
+  applyEdgeCreated, applyEdgeDeleted, applyInit, applyTicketCreated,
+  applyTicketDeleted, applyTicketUpdated,
+} from './store'
 
 export type WsStatus = 'connecting' | 'online' | 'reconnecting'
 
@@ -59,22 +63,22 @@ function open() {
     const s = useBoard.getState()
     switch (msg.type) {
       case 'init':
-        s.initFromServer(msg.data)
+        applyInit(msg.data)
         break
       case 'ticket:created':
-        s.remoteTicketCreated(msg.data)
+        applyTicketCreated(msg.data)
         break
       case 'ticket:updated':
-        s.remoteTicketUpdated(msg.data.id, msg.data.patch)
+        applyTicketUpdated(msg.data.id, msg.data.patch)
         break
       case 'ticket:deleted':
-        s.remoteTicketDeleted(msg.data.id)
+        applyTicketDeleted(msg.data.id)
         break
       case 'edge:created':
-        s.remoteEdgeCreated(msg.data)
+        applyEdgeCreated(msg.data)
         break
       case 'edge:deleted':
-        s.remoteEdgeDeleted(msg.data.id)
+        applyEdgeDeleted(msg.data.id)
         break
       case 'presence:join':
         s.presenceJoin(msg.data)
