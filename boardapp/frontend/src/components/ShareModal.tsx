@@ -112,7 +112,7 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
                 <div
                   key={h}
                   onClick={() => { setUsername(h); setHints([]) }}
-                  style={{ padding: '7px 10px', cursor: 'pointer', fontSize: 14 }}
+                  style={{ padding: '7px 10px', cursor: 'pointer', fontSize: 21 }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >

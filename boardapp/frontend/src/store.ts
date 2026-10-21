@@ -117,14 +117,14 @@ export const useBoard = create<BoardState>((set, get) => ({
 // --- применение изменений к канве (события слушает редактор) ---
 
 /** Авторост высоты тикета под текст; синхронизировано с бэкендом (_ticket_height).
- *  Консервативные константы: 19 знаков/строку, 22px на строку,
- *  база 48px (паддинги + резерв под точки цветов и счётчик), потолок 720px. */
+ *  Под крупный шрифт 24px: ~13 знаков/строку, 32px на строку,
+ *  база 56px (паддинги + резерв под точки цветов и счётчик), потолок 760px. */
 export function ticketAutoHeight(text: string): number {
   let lines = 0
   for (const ln of text.split('\n')) {
-    lines += Math.max(1, Math.ceil(ln.length / 19))
+    lines += Math.max(1, Math.ceil(ln.length / 13))
   }
-  return Math.min(720, Math.max(110, 48 + lines * 22))
+  return Math.min(760, Math.max(130, 56 + lines * 32))
 }
 
 export function applyInit(data: {
