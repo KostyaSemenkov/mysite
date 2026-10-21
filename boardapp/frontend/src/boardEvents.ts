@@ -50,6 +50,7 @@ export const EV = {
   zoneCreated: 'rf:zone-created',
   zoneUpdated: 'rf:zone-updated',
   zoneDeleted: 'rf:zone-deleted',
+  nodeDeleteRequest: 'rf:node-delete-request',
 } as const
 
 export interface ZoneData extends Record<string, unknown> {

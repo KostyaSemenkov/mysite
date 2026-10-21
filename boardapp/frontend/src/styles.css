@@ -224,20 +224,6 @@ a { color: var(--accent-light); text-decoration: none; }
   cursor: text;
   text-shadow: 0 1px 2px rgba(0,0,0,0.4);
 }
-.zone-color-dots {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  display: none;
-  gap: 5px;
-}
-.zone-node:hover .zone-color-dots, .zone-node.selected .zone-color-dots { display: flex; }
-.zone-color-dot {
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.55);
-  cursor: pointer;
-}
 
 .zone-title-input {
   position: absolute;
@@ -251,6 +237,49 @@ a { color: var(--accent-light); text-decoration: none; }
   color: var(--text);
   font-size: 14px;
   cursor: text !important;
+}
+
+/* Кнопка удаления ноды (тикет/группа): видна при наведении/выделении */
+.node-delete {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 5;
+}
+.node-delete:hover { background: #a03e2e; border-color: #c9503c; color: #fff; }
+.ticket-node:hover .node-delete,
+.ticket-node.selected .node-delete,
+.zone-node:hover .node-delete,
+.zone-node.selected .node-delete { display: flex; }
+
+/* Инструменты группы: [×][цвета] в правом верхнем углу */
+.zone-tools {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: none;
+  gap: 6px;
+  align-items: center;
+}
+.zone-node:hover .zone-tools, .zone-node.selected .zone-tools { display: flex; }
+.zone-tools .node-delete { position: static; top: auto; right: auto; }
+.zone-color-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.55);
+  cursor: pointer;
 }
 
 /* Кнопка удаления связи */

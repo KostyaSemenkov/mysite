@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react'
-import { useBoard, updateTicket, STICKER_COLORS, type TicketData } from '../store'
+import { useBoard, updateTicket, requestDeleteNode, STICKER_COLORS, type TicketData } from '../store'
 
 export type TicketNodeType = Node<TicketData, 'ticket'>
 
@@ -54,6 +54,16 @@ export default function TicketNode({ id, data, selected }: NodeProps<TicketNodeT
         </>
       ) : (
         <div className="ticket-text">{data.text || (editable ? '✏️ двойной клик' : '')}</div>
+      )}
+      {editable && (
+        <button
+          className="node-delete nodrag"
+          title="Удалить тикет"
+          onClick={(e) => {
+            e.stopPropagation()
+            requestDeleteNode(id)
+          }}
+        >×</button>
       )}
       {editable && (
         <div className="color-dots nodrag">

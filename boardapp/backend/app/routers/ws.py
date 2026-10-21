@@ -210,7 +210,7 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                 elif mtype == 'zone:create':
                     zid = _valid_uuid(data.get('id'))
                     if not zid:
-                        await send_error('Некорректный id зоны')
+                        await send_error('Некорректный id группы')
                     else:
                         z = Zone(
                             id=zid, board_id=board_id,
@@ -232,7 +232,7 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                     patch = data.get('patch') or {}
                     z = await session.get(Zone, zid) if zid else None
                     if z is None or z.board_id != board_id:
-                        await send_error('Зона не найдена')
+                        await send_error('Группа не найдена')
                     else:
                         for field_name in ('x', 'y'):
                             if field_name in patch:
@@ -254,7 +254,7 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                     zid = _valid_uuid(data.get('id'))
                     z = await session.get(Zone, zid) if zid else None
                     if z is None or z.board_id != board_id:
-                        await send_error('Зона не найдена')
+                        await send_error('Группа не найдена')
                     else:
                         await session.delete(z)
                         await session.commit()

@@ -177,6 +177,11 @@ export function applyZoneDeleted(id: string) {
   emit(EV.zoneDeleted, { id })
 }
 
+/** Запрос на удаление ноды (тикет/группа) — редактор найдёт снимок и удалит. */
+export function requestDeleteNode(id: string) {
+  emit(EV.nodeDeleteRequest, { id })
+}
+
 // --- операции: локально (событием) + на сервер; эхо подавляется по actor в ws.ts ---
 
 export function createTicket(x: number, y: number, color = STICKER_COLORS[0]) {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NodeResizer, type Node, type NodeProps } from '@xyflow/react'
-import { updateZone, useBoard, ZONE_COLORS } from '../store'
+import { updateZone, useBoard, requestDeleteNode, ZONE_COLORS } from '../store'
 import type { ZoneData } from '../boardEvents'
 
 export type ZoneNodeType = Node<ZoneData, 'zone'>
@@ -35,14 +35,14 @@ export default function ZoneNode({ id, data, selected }: NodeProps<ZoneNodeType>
           defaultValue={data.title}
           autoFocus
           maxLength={60}
-          placeholder="Название зоны"
+          placeholder="Название группы"
           onBlur={(e) => {
-            updateZone(id, { title: e.target.value.trim() || 'Зона' })
+            updateZone(id, { title: e.target.value.trim() || 'Группа' })
             setEditing(false)
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              const v = (e.target as HTMLInputElement).value.trim() || 'Зона'
+              const v = (e.target as HTMLInputElement).value.trim() || 'Группа'
               updateZone(id, { title: v })
               setEditing(false)
             }
@@ -55,17 +55,25 @@ export default function ZoneNode({ id, data, selected }: NodeProps<ZoneNodeType>
           onDoubleClick={() => editable && setEditing(true)}
           title={editable ? 'Двойной клик — переименовать' : undefined}
         >
-          {data.title || 'Зона'}
+          {data.title || 'Группа'}
         </div>
       )}
       {editable && !editing && (
-        <div className="zone-color-dots nodrag">
+        <div className="zone-tools nodrag">
+          <button
+            className="node-delete nodrag"
+            title="Удалить группу"
+            onClick={(e) => {
+              e.stopPropagation()
+              requestDeleteNode(id)
+            }}
+          >×</button>
           {ZONE_COLORS.map((c) => (
             <span
               key={c}
               className="zone-color-dot"
               style={{ background: c }}
-              title="Цвет зоны"
+              title="Цвет группы"
               onClick={(e) => {
                 e.stopPropagation()
                 updateZone(id, { color: c }, { color: data.color || ZONE_COLORS[0] })

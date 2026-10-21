@@ -163,6 +163,21 @@ function BoardEditorInner() {
       on(EV.zoneDeleted, ({ id: zid }: { id: string }) => {
         setNodes((ns) => ns.filter((n) => n.id !== zid))
       }),
+      on(EV.nodeDeleteRequest, ({ id: rid }: { id: string }) => {
+        const n = nodesRef.current.find((x) => x.id === rid)
+        if (!n) return
+        if (n.type === 'zone') {
+          deleteZoneWithSnapshot(n as unknown as {
+            id: string; position: { x: number; y: number };
+            width?: number; height?: number; data: { title: string };
+          })
+        } else {
+          deleteTicketWithSnapshot(n as unknown as {
+            id: string; position: { x: number; y: number };
+            width?: number; height?: number; data: TicketData;
+          })
+        }
+      }),
     ]
     return () => offs.forEach((off) => off())
   }, [])
@@ -383,7 +398,7 @@ function BoardEditorInner() {
       {editable && (
         <div className="toolbar" style={{ top: 'auto', bottom: 12 }}>
           <button className="btn" onClick={addTicketToCenter}>+ Тикет</button>
-          <button className="btn ghost" onClick={addZoneToCenter}>+ Зона</button>
+          <button className="btn ghost" onClick={addZoneToCenter}>+ Группа</button>
         </div>
       )}
       {cursorLabels}
