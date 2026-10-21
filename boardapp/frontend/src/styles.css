@@ -181,10 +181,11 @@ a { color: var(--accent-light); text-decoration: none; }
 .ticket-node textarea {
   cursor: text;
   overflow: hidden; /* без скроллбара: высоту растит авторост */
+  padding-bottom: 24px; /* резерв под точки цветов и счётчик */
 }
 .ticket-text {
   flex: 1;
-  padding: 4px;
+  padding: 4px 4px 24px 4px; /* резерв под точки цветов */
   overflow: hidden;
   white-space: pre-wrap;
   word-break: break-word;

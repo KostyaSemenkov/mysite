@@ -25,11 +25,12 @@ def _clamp(value, lo, hi) -> float:
 
 
 def _ticket_height(text: str) -> float:
-    """Авторост высоты тикета под текст (синхронизировано с фронтендом)."""
+    """Авторост высоты тикета под текст (синхронизировано с фронтендом).
+    Консервативно: 19 знаков/строку, 22px/строка, база 48, потолок 720."""
     lines = 0
     for ln in str(text).split('\n'):
-        lines += max(1, math.ceil(len(ln) / 22))
-    return max(100.0, 34 + lines * 21)
+        lines += max(1, math.ceil(len(ln) / 19))
+    return min(720.0, max(110.0, 48 + lines * 22))
 
 
 @router.websocket('/ws/boards/{board_id}')

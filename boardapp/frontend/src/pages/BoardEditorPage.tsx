@@ -100,7 +100,10 @@ function BoardEditorInner() {
   useEffect(() => {
     const offs = [
       on(EV.init, ({ nodes: initNodes, edges: initEdges }) => {
-        setNodes(initNodes)
+        setNodes((initNodes as Node[]).map((n) =>
+          n.type === 'ticket'
+            ? { ...n, height: ticketAutoHeight(String((n.data as TicketData).text ?? '')) }
+            : n))
         setEdges(initEdges)
       }),
       on(EV.ticketCreated, (node: Node<TicketData>) => {
@@ -142,8 +145,9 @@ function BoardEditorInner() {
       on(EV.zoneUpdated, ({ id: zid, patch }: { id: string; patch: Partial<ZoneMsg> }) => {
         setNodes((ns: Node[]) => ns.map((n) => {
           if (n.id !== zid) return n
-          const data = { ...n.data } as { title?: string }
+          const data = { ...n.data } as { title?: string; color?: string }
           if (patch.title !== undefined) data.title = patch.title
+          if (patch.color !== undefined) data.color = patch.color
           const position = (patch.x !== undefined || patch.y !== undefined)
             ? {
                 x: patch.x !== undefined ? patch.x : n.position.x,

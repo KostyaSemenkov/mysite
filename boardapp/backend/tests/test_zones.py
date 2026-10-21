@@ -100,4 +100,4 @@ def test_ticket_text_autogrows_height(ws_setup):
             m = _recv_until(ws, 'ticket:updated')
             # текст обрезается лимитом тикета (100), высота растёт под него
             assert m['data']['patch']['height'] > short_height
-            assert m['data']['patch']['height'] >= 139  # ~5 строк по 21px + отступы
+            assert m['data']['patch']['height'] >= 170  # ~6 строк по 22px + база
