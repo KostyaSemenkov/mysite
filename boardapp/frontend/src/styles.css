@@ -219,7 +219,7 @@ a { color: var(--accent-light); text-decoration: none; }
   position: absolute;
   top: 10px;
   left: 14px;
-  font-size: 23px;
+  font-size: 30px;
   font-weight: 600;
   color: #f7e8cf;
   cursor: text;
@@ -236,7 +236,7 @@ a { color: var(--accent-light); text-decoration: none; }
   border-radius: 6px;
   background: var(--panel2) !important;
   color: var(--text);
-  font-size: 21px;
+  font-size: 30px;
   cursor: text !important;
 }
 
