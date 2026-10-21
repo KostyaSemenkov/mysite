@@ -19,6 +19,9 @@ export interface UndoEntry {
 
 export const STICKER_COLORS = ['#FFF3B1', '#FFD6A5', '#CAFFBF', '#9BF6FF', '#BDB2FF', '#FFC6FF']
 
+// плотные цвета зон — отличны от ярких стикеров
+export const ZONE_COLORS = ['#7a4a2b', '#5a5a2f', '#5d3a52']
+
 interface Presence {
   userId: string
   username: string
@@ -301,9 +304,9 @@ export function deleteEdgeWithSnapshot(edge: { id: string; source: string; targe
 
 // --- зоны ---
 
-export function createZone(x: number, y: number, title = '') {
+export function createZone(x: number, y: number, title = '', color = ZONE_COLORS[0]) {
   const id = crypto.randomUUID()
-  const msg: ZoneMsg = { id, title, x, y, width: 420, height: 280 }
+  const msg: ZoneMsg = { id, title, color, x, y, width: 420, height: 280 }
   send({ type: 'zone:create', data: msg })
   applyZoneCreated(msg)
   useBoard.getState().pushUndo({

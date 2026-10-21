@@ -10,6 +10,7 @@ from .routers import auth, boards, ws
 app = FastAPI(title='board-app')
 
 app.include_router(auth.router)
+app.include_router(auth.users_router)
 app.include_router(boards.router)
 app.include_router(ws.router)
 

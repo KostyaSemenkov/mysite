@@ -76,8 +76,8 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
             'data': {
                 'board': {'id': board_id, 'title': board_title},
                 'zones': [
-                    {'id': z.id, 'title': z.title, 'x': z.x, 'y': z.y,
-                     'width': z.width, 'height': z.height}
+                    {'id': z.id, 'title': z.title, 'color': z.color,
+                     'x': z.x, 'y': z.y, 'width': z.width, 'height': z.height}
                     for z in zones
                 ],
                 'tickets': [
@@ -214,6 +214,7 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                         z = Zone(
                             id=zid, board_id=board_id,
                             title=str(data.get('title', ''))[:200],
+                            color=str(data.get('color', '#7a4a2b'))[:9],
                             x=_clamp(data.get('x', 0), -100000, 100000),
                             y=_clamp(data.get('y', 0), -100000, 100000),
                             width=_clamp(data.get('width', 420), 160, 8000),
@@ -223,8 +224,8 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                         session.add(z)
                         await session.commit()
                         out = {'type': 'zone:created', 'actor': user.id,
-                               'data': {'id': z.id, 'title': z.title, 'x': z.x,
-                                        'y': z.y, 'width': z.width, 'height': z.height}}
+                               'data': {'id': z.id, 'title': z.title, 'color': z.color,
+                                        'x': z.x, 'y': z.y, 'width': z.width, 'height': z.height}}
                 elif mtype == 'zone:update':
                     zid = _valid_uuid(data.get('id'))
                     patch = data.get('patch') or {}
@@ -242,6 +243,8 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = ''):
                                         _clamp(patch[field_name], 100, 8000))
                         if 'title' in patch:
                             z.title = str(patch['title'])[:200]
+                        if 'color' in patch:
+                            z.color = str(patch['color'])[:9]
                         z.updated_by = user.id
                         await session.commit()
                         out = {'type': 'zone:updated', 'actor': user.id,

@@ -12,6 +12,7 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
   const [role, setRole] = useState<'editor' | 'viewer'>('editor')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [hints, setHints] = useState<string[]>([])
 
   async function load() {
     try {
@@ -25,6 +26,28 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
   useEffect(() => {
     load()
   }, [boardId])
+
+  // подсказки имён по первым символам (>= 2)
+  useEffect(() => {
+    const q = username.trim()
+    if (q.length < 2) {
+      setHints([])
+      return
+    }
+    let alive = true
+    const t = setTimeout(async () => {
+      try {
+        const { data } = await api.get('/api/users/search', { params: { q } })
+        if (alive) setHints((data.items ?? []).map((u: { username: string }) => u.username))
+      } catch {
+        /* подсказки не критичны */
+      }
+    }, 250)
+    return () => {
+      alive = false
+      clearTimeout(t)
+    }
+  }, [username])
 
   async function invite() {
     if (!username.trim()) return
@@ -67,13 +90,37 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
           <button className="btn ghost" onClick={onClose}>×</button>
         </div>
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, position: 'relative' }}>
           <input
-            placeholder="Имя пользователя"
+            placeholder="Начните вводить имя…"
+            list="user-hints"
+            autoComplete="off"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             style={{ flex: 1, background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)' }}
           />
+          <datalist id="user-hints">
+            {hints.map((h) => <option key={h} value={h} />)}
+          </datalist>
+          {hints.length > 0 && username.trim().length >= 2 && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, width: '60%', zIndex: 50,
+              background: 'var(--panel2)', border: '1px solid var(--border)',
+              borderRadius: 8, marginTop: 4, overflow: 'hidden',
+            }}>
+              {hints.map((h) => (
+                <div
+                  key={h}
+                  onClick={() => { setUsername(h); setHints([]) }}
+                  style={{ padding: '7px 10px', cursor: 'pointer', fontSize: 14 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  {h}
+                </div>
+              ))}
+            </div>
+          )}
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as 'editor' | 'viewer')}

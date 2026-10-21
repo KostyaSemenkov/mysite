@@ -25,6 +25,7 @@ export interface EdgeMsg {
 export interface ZoneMsg {
   id: string
   title: string
+  color?: string
   x: number
   y: number
   width: number
@@ -53,6 +54,7 @@ export const EV = {
 
 export interface ZoneData extends Record<string, unknown> {
   title: string
+  color?: string
 }
 
 export function ticketToNode(t: TicketMsg): Node<TicketData> {
@@ -72,7 +74,7 @@ export function zoneToNode(z: ZoneMsg): Node<ZoneData> {
     id: z.id,
     type: 'zone',
     position: { x: z.x, y: z.y },
-    data: { title: z.title },
+    data: { title: z.title, color: z.color },
     width: z.width,
     height: z.height,
     zIndex: 0, // подложка
@@ -84,6 +86,7 @@ export function edgeMsgToEdge(e: EdgeMsg): Edge {
     id: e.id,
     source: e.source,
     target: e.target,
+    type: 'deletable',
     markerEnd: { type: 'arrowclosed' },
   }
 }

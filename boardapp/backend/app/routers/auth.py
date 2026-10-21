@@ -12,6 +12,19 @@ from ..schemas import AuthOut, LoginIn, RegisterIn, UserOut
 from ..security import create_token, get_current_user, hash_password, verify_password
 
 router = APIRouter(prefix='/api/auth', tags=['auth'])
+users_router = APIRouter(prefix='/api/users', tags=['users'])
+
+
+@users_router.get('/search')
+async def search_users(q: str = Query('', min_length=2),
+                       user: User = Depends(get_current_user),
+                       session: AsyncSession = Depends(get_session)):
+    """Подсказки имен для приглашения в доску: по первым символам."""
+    found = (await session.scalars(
+        select(User).where(User.username.ilike(f'{q}%'))
+        .order_by(User.username).limit(8)
+    )).all()
+    return {'items': [UserOut.of(u) for u in found]}
 
 
 @router.post('/register', response_model=AuthOut)

@@ -24,6 +24,7 @@ import { toPng } from 'html-to-image'
 import '@xyflow/react/dist/style.css'
 
 import { ensureUser } from '../api'
+import DeletableEdge from '../components/DeletableEdge'
 import TicketNode from '../components/TicketNode'
 import ZoneNode from '../components/ZoneNode'
 import ShareModal from '../components/ShareModal'
@@ -31,6 +32,7 @@ import Toolbar from '../components/Toolbar'
 import { EV, on, type TicketMsg, type ZoneMsg } from '../boardEvents'
 import {
   STICKER_COLORS,
+  ZONE_COLORS,
   createEdge,
   createTicket,
   createZone,
@@ -46,6 +48,7 @@ import {
 import { connectBoard, disconnect, sendCursorThrottled, setMyUserId } from '../ws'
 
 const nodeTypes = { ticket: TicketNode, zone: ZoneNode }
+const edgeTypes = { deletable: DeletableEdge }
 
 export default function BoardEditorPage() {
   return (
@@ -72,6 +75,7 @@ function BoardEditorInner() {
 
   const [shareOpen, setShareOpen] = useState(false)
   const [colorIdx, setColorIdx] = useState(0)
+  const zoneColorIdx = useRef(0)
   const dragStart = useRef<Record<string, { x: number; y: number }>>({})
   const zoneContents = useRef<Record<string, { id: string; x: number; y: number }[]>>({})
   const viewportRef = useRef<HTMLDivElement | null>(null)
@@ -260,7 +264,9 @@ function BoardEditorInner() {
   const addZoneToCenter = useCallback(() => {
     if (!editable) return
     const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
-    createZone(center.x - 210, center.y - 140)
+    createZone(center.x - 210, center.y - 140, '',
+      ZONE_COLORS[zoneColorIdx.current % ZONE_COLORS.length])
+    zoneColorIdx.current += 1
   }, [editable, screenToFlowPosition])
 
   const onWrapperDoubleClick = useCallback((event: React.MouseEvent) => {
@@ -342,6 +348,7 @@ function BoardEditorInner() {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={(changes) => {
           onEdgesDelete(changes)

@@ -178,7 +178,10 @@ a { color: var(--accent-light); text-decoration: none; }
   box-shadow: 0 14px 28px rgba(0,0,0,0.5);
   opacity: 0.95;
 }
-.ticket-node textarea { cursor: text; }
+.ticket-node textarea {
+  cursor: text;
+  overflow: hidden; /* без скроллбара: высоту растит авторост */
+}
 .ticket-text {
   flex: 1;
   padding: 4px;
@@ -196,19 +199,19 @@ a { color: var(--accent-light); text-decoration: none; }
   opacity: 0.55;
 }
 
-/* Зона-подложка */
+/* Зона-подложка: плотная заливка, 3 цвета на выбор */
 .zone-node {
   width: 100%;
   height: 100%;
-  border: 2px dashed rgba(223, 178, 101, 0.45);
+  border: 2px solid rgba(223, 178, 101, 0.55);
   border-radius: 14px;
-  background: rgba(223, 178, 101, 0.06);
+  background: var(--zone-color, #7a4a2b);
   cursor: grab;
 }
-.zone-node:hover { border-color: rgba(223, 178, 101, 0.7); }
+.zone-node:hover { border-color: rgba(223, 178, 101, 0.85); }
 .react-flow__node.dragging .zone-node {
   cursor: grabbing !important;
-  border-color: rgba(223, 178, 101, 0.9);
+  border-color: var(--accent-light);
 }
 .zone-title {
   position: absolute;
@@ -216,10 +219,25 @@ a { color: var(--accent-light); text-decoration: none; }
   left: 14px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--accent-light);
-  opacity: 0.9;
+  color: #f7e8cf;
   cursor: text;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
 }
+.zone-color-dots {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: none;
+  gap: 5px;
+}
+.zone-node:hover .zone-color-dots, .zone-node.selected .zone-color-dots { display: flex; }
+.zone-color-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.55);
+  cursor: pointer;
+}
+
 .zone-title-input {
   position: absolute;
   top: 6px;
@@ -233,6 +251,29 @@ a { color: var(--accent-light); text-decoration: none; }
   font-size: 14px;
   cursor: text !important;
 }
+
+/* Кнопка удаления связи */
+.edge-delete {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 30;
+}
+.edge-delete:hover { background: #a03e2e; border-color: #c9503c; color: #fff; }
+.react-flow__edge:hover .edge-delete,
+.react-flow__edge.selected .edge-delete { display: flex; }
+
 .zone-resize-line { border-color: var(--accent) !important; }
 .zone-resize-handle {
   width: 10px !important; height: 10px !important;

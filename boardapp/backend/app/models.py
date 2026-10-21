@@ -94,6 +94,7 @@ class Zone(Base):
         ForeignKey('boards.id', ondelete='CASCADE'), nullable=False
     )
     title: Mapped[str] = mapped_column(String(200), nullable=False, default='')
+    color: Mapped[str] = mapped_column(String(9), nullable=False, default='#7a4a2b')
     x: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     y: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     width: Mapped[float] = mapped_column(Float, nullable=False, default=420)

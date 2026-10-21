@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { NodeResizer, type Node, type NodeProps } from '@xyflow/react'
-import { updateZone, useBoard } from '../store'
+import { updateZone, useBoard, ZONE_COLORS } from '../store'
 import type { ZoneData } from '../boardEvents'
 
 export type ZoneNodeType = Node<ZoneData, 'zone'>
@@ -11,7 +11,10 @@ export default function ZoneNode({ id, data, selected }: NodeProps<ZoneNodeType>
   const [editing, setEditing] = useState(false)
 
   return (
-    <div className="zone-node">
+    <div
+      className={`zone-node${selected ? ' selected' : ''}`}
+      style={{ ['--zone-color' as string]: data.color || ZONE_COLORS[0] }}
+    >
       {editable && (
         <NodeResizer
           isVisible={selected}
@@ -53,6 +56,22 @@ export default function ZoneNode({ id, data, selected }: NodeProps<ZoneNodeType>
           title={editable ? 'Двойной клик — переименовать' : undefined}
         >
           {data.title || 'Зона'}
+        </div>
+      )}
+      {editable && !editing && (
+        <div className="zone-color-dots nodrag">
+          {ZONE_COLORS.map((c) => (
+            <span
+              key={c}
+              className="zone-color-dot"
+              style={{ background: c }}
+              title="Цвет зоны"
+              onClick={(e) => {
+                e.stopPropagation()
+                updateZone(id, { color: c }, { color: data.color || ZONE_COLORS[0] })
+              }}
+            />
+          ))}
         </div>
       )}
     </div>
