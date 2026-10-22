@@ -24,6 +24,7 @@ export default function Toolbar({ onExport }: { onExport: () => void }) {
   return (
     <div className="toolbar">
       <Link to="/" style={{ color: 'var(--muted)' }}>← Доски</Link>
+      <a href="/" title="На главную сайта" style={{ fontSize: 18, textDecoration: 'none' }}>🏠</a>
       <strong style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {title}
       </strong>

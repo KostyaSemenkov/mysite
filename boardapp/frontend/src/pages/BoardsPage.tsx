@@ -61,8 +61,12 @@ export default function BoardsPage() {
   return (
     <div className="page">
       <div className="page-head">
-        <h1>Мои доски</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <a href="/" title="На главную сайта" style={{ fontSize: 26, textDecoration: 'none' }}>🏠</a>
+          <h1>Мои доски</h1>
+        </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <a href="/" className="btn ghost" style={{ display: 'inline-block', lineHeight: '20px', padding: '10px 14px' }}>← На сайт</a>
           <span className="hint">{me?.username}</span>
           <button
             className="btn ghost"
