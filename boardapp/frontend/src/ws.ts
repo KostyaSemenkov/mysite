@@ -51,6 +51,11 @@ function open() {
   ws.onopen = () => {
     retryDelay = 500
     setStatus('online')
+    // досылаем накопленное, пока канал был недоступен
+    const queued = outbox.splice(0, outbox.length)
+    for (const payload of queued) {
+      ws?.send(payload)
+    }
   }
 
   ws.onmessage = (ev) => {
@@ -125,11 +130,18 @@ export function disconnect() {
   setStatus('connecting')
 }
 
+// очередь исходящих сообщений на время переподключения:
+// оптимистичные операции не теряются, а доезжают после reconnect
+let outbox: string[] = []
+
 export function send(msg: unknown) {
+  const payload = JSON.stringify(msg)
   if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify(msg))
+    ws.send(payload)
+  } else if (outbox.length < 200) {
+    outbox.push(payload)
   } else {
-    console.warn('WS не подключён, сообщение отброшено', msg)
+    console.warn('WS: очередь исходящих переполнена, сообщение отброшено', msg)
   }
 }
 

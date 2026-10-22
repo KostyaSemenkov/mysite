@@ -97,6 +97,7 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
             autoComplete="off"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            onBlur={() => setTimeout(() => setHints([]), 200)}
             style={{ flex: 1, background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)' }}
           />
           <datalist id="user-hints">
