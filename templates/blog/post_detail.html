@@ -36,7 +36,7 @@
   {% if post.tags %}
     <div class="mt-6 flex flex-wrap gap-2">
       {% for tag in post.tag_list %}
-        <span class="rounded-full bg-indigo-950 px-2.5 py-0.5 text-xs text-indigo-300">{{ tag }}</span>
+        <a href="{% url 'blog:posts_by_tag' tag %}" class="rounded-full bg-indigo-950 px-2.5 py-0.5 text-xs text-indigo-300 hover:bg-indigo-900">{{ tag }}</a>
       {% endfor %}
     </div>
   {% endif %}

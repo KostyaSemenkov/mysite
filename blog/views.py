@@ -19,6 +19,14 @@ def post_list(request):
     return render(request, 'blog/post_list.html', {'page_obj': page})
 
 
+def posts_by_tag(request, tag):
+    tag = tag.strip()
+    posts = Post.objects.published().filter(tags__icontains=tag)
+    paginator = Paginator(posts, 6)
+    page = paginator.get_page(request.GET.get('page'))
+    return render(request, 'blog/tag.html', {'tag': tag, 'page_obj': page})
+
+
 def post_detail(request, slug):
     post = get_object_or_404(Post, slug=slug, is_published=True)
     return render(request, 'blog/post_detail.html', {'post': post})

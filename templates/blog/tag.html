@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Рубрика «{{ tag }}» — Блог{% endblock %}
+{% block meta_description %}Все статьи блога по теме: {{ tag }}{% endblock %}
+
+{% block content %}
+<nav class="text-xs text-slate-500 mb-4 flex items-center gap-1.5">
+  <a href="{% url 'home' %}" class="hover:text-white">Главная</a>
+  <svg class="icon" style="width:.8em;height:.8em"><use href="/static/img/icons.svg#chevron-down" transform="rotate(-90 12 12)"/></svg>
+  <a href="{% url 'blog:post_list' %}" class="hover:text-white">Блог</a>
+  <svg class="icon" style="width:.8em;height:.8em"><use href="/static/img/icons.svg#chevron-down" transform="rotate(-90 12 12)"/></svg>
+  <span class="text-slate-400">{{ tag }}</span>
+</nav>
+
+<h1 class="font-display text-3xl font-bold text-white">Рубрика: {{ tag }}</h1>
+<p class="mt-2 text-slate-400">{{ page_obj.paginator.count }} статей по теме</p>
+
+<div id="posts-list" class="mt-8 space-y-6">
+  {% include 'blog/includes/posts_page.html' %}
+</div>
+
+{% if page_obj.has_other_pages %}
+  <div class="mt-8 flex gap-2">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="btn-warm ghost">← Новее</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="btn-warm ghost">Старее →</a>
+    {% endif %}
+  </div>
+{% endif %}
+
+<a href="{% url 'blog:post_list' %}" class="mt-8 inline-block text-sm text-indigo-400 hover:text-indigo-300">← Все статьи</a>
+{% endblock %}
