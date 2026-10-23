@@ -1,46 +1,20 @@
 /* Тёплая янтарно-коричневая тема — как на lemurqa.ru */
 :root {
-  --bg: #140d07;
-  --panel: #241809;
-  --panel2: #1a1108;
-  --border: #3d2b12;
-  --border2: #5c4119;
-  --text: #cfae7c;
-  --muted: #b08a55;
-  --title: #ffffff;
-  --accent: #b9853c;
-  --accent-dark: #a3742f;
-  --accent-light: #dfb265;
+  /* значения приходят из /static/css/tokens.css сайта (общие темы) */
+  --accent-dark: var(--accent-hov, #a3742f);
   --error: #ff9d7a;
 }
+:root { color-scheme: dark; }
+html[data-theme="light"] { color-scheme: light; }
 
 * { box-sizing: border-box; }
-
-html {
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse 90% 55% at 50% -5%, rgba(223, 178, 101, 0.22), transparent 70%),
-    radial-gradient(ellipse 70% 45% at 50% 110%, rgba(217, 153, 76, 0.10), transparent 70%);
-  background-attachment: fixed;
-}
 
 body {
   margin: 0;
   color: var(--text);
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  /* фон, градиенты и фото-подложка — из tokens.css сайта */
   font-size: 24px; /* все тексты крупнее в 1.5 раза */
   position: relative;
-}
-
-/* размытое фото-подложка со слайдов презентации */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: url('./assets/bg.jpg') center/cover no-repeat;
-  filter: blur(36px) saturate(1.1) brightness(0.55);
-  opacity: 0.5;
-  z-index: -1;
 }
 
 a { color: var(--accent-light); text-decoration: none; }
@@ -404,3 +378,42 @@ dialog select {
   background: var(--panel2);
   color: var(--text);
 }
+
+
+/* карточки досок */
+.boards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 10px;
+}
+.board-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 16px 14px;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color .2s, transform .2s;
+}
+.board-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+.board-card .title { color: var(--title); font-size: 21px; font-weight: 600; }
+.board-card-actions { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+.board-card-actions .btn { padding: 4px 10px; font-size: 16px; }
+
+/* пустые состояния */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 34px 16px;
+  border: 1px dashed var(--border2);
+  border-radius: 14px;
+}
+.empty-ico { font-size: 40px; margin-bottom: 8px; }
+
+/* адаптив модалок и тулбара */
+.auth-card { width: min(340px, 92vw); }
+dialog[open] { max-width: 92vw; }
+.toolbar { flex-wrap: wrap; row-gap: 6px; }

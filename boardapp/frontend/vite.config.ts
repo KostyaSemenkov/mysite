@@ -10,6 +10,7 @@ export default defineConfig({
     proxy: {
       '/boards/api': { target: 'http://localhost:8000', changeOrigin: true,
                        rewrite: (p) => p.replace(/^\/boards/, '') },
+      '/static': { target: 'http://localhost:8000' },
       '/boards/ws': { target: 'http://localhost:8000', ws: true,
                       rewrite: (p) => p.replace(/^\/boards/, '') },
     },

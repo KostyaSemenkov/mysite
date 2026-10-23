@@ -96,8 +96,9 @@ export default function BoardsPage() {
 
       <div className="boards-section">
         <h2>Мои доски</h2>
+        <div className="boards-grid">
         {(data?.own ?? []).map((b) => (
-          <div key={b.id} className="board-row">
+          <div key={b.id} className="board-card">
             {renaming === b.id ? (
               <>
                 <input
@@ -116,35 +117,51 @@ export default function BoardsPage() {
             ) : (
               <>
                 <Link to={`/board/${b.id}`} className="title">{b.title}</Link>
-                <span className="role-badge">owner</span>
-                <button
-                  className="btn ghost"
-                  onClick={() => {
-                    setRenaming(b.id)
-                    setRenameTitle(b.title)
-                  }}
-                >
-                  Переименовать
-                </button>
-                <button className="btn ghost" onClick={() => removeBoard(b.id, b.title)}>
-                  Удалить
-                </button>
+                <div className="board-card-actions">
+                  <span className="role-badge">owner</span>
+                  <button
+                    className="btn ghost"
+                    title="Переименовать"
+                    onClick={() => {
+                      setRenaming(b.id)
+                      setRenameTitle(b.title)
+                    }}
+                  >
+                    ✎
+                  </button>
+                  <button className="btn ghost" title="Удалить доску" onClick={() => removeBoard(b.id, b.title)}>
+                    🗑
+                  </button>
+                </div>
               </>
             )}
           </div>
         ))}
-        {data && data.own.length === 0 && <p className="hint">Пока нет ни одной доски — создайте первую.</p>}
+        {data && data.own.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-ico">📋</div>
+            <p className="hint">Пока нет ни одной доски — создайте первую кнопкой «Создать».</p>
+          </div>
+        )}
+        </div>
       </div>
 
       <div className="boards-section">
         <h2>Доступные мне</h2>
+        <div className="boards-grid">
         {(data?.shared ?? []).map((b) => (
-          <div key={b.id} className="board-row">
+          <div key={b.id} className="board-card">
             <Link to={`/board/${b.id}`} className="title">{b.title}</Link>
             <span className="role-badge">{b.role}</span>
           </div>
         ))}
-        {data && data.shared.length === 0 && <p className="hint">Вам пока не дали доступ к чужим доскам.</p>}
+        {data && data.shared.length === 0 && (
+          <div className="empty-state">
+            <div className="empty-ico">🤝</div>
+            <p className="hint">Вам пока не дали доступ к чужим доскам. Попросите владельца поделиться.</p>
+          </div>
+        )}
+        </div>
       </div>
     </div>
   )

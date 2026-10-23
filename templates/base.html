@@ -35,26 +35,7 @@
     })();
   </script>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            // палитра ведёт в tokens.css — темы переключаются CSS-переменными
-            slate: { 950: 'var(--bg)', 900: 'var(--panel)', 800: 'var(--border)', 700: 'var(--border2)',
-                     600: 'var(--accent-hov)', 500: 'var(--muted)', 400: 'var(--muted)', 300: 'var(--text)' },
-            indigo: { 950: 'var(--accent-dim)', 900: 'var(--accent-dim)', 600: 'var(--accent)', 500: 'var(--accent-hov)',
-                      400: 'var(--accent-light)', 300: 'var(--accent-lighter)' },
-          },
-          fontFamily: {
-            sans: ['Manrope', 'Segoe UI', 'system-ui', 'sans-serif'],
-            display: ['Unbounded', 'Manrope', 'sans-serif'],
-          },
-        },
-      },
-    };
-  </script>
+  <link rel="stylesheet" href="{% static 'css/tw.css' %}">
 
   <script type="application/ld+json">
   {
@@ -195,6 +176,44 @@
         entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('is-visible'); io.unobserve(en.target); } });
       }, { threshold: 0.12 });
       els.forEach(function (e) { io.observe(e) });
+    })();
+
+    // анимированные счётчики
+    (function () {
+      var counters = document.querySelectorAll('.counter');
+      if (!counters.length) return;
+      var animate = function (el) {
+        var target = parseInt(el.dataset.target || '0', 10);
+        if (target <= 0) { el.textContent = '0'; return; }
+        var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced) { el.textContent = target; return; }
+        var t0 = null, dur = 900;
+        var step = function (t) {
+          if (!t0) t0 = t;
+          var p = Math.min(1, (t - t0) / dur);
+          el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      };
+      if (!('IntersectionObserver' in window)) { counters.forEach(animate); return; }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (en.isIntersecting) { animate(en.target); io.unobserve(en.target); } });
+      }, { threshold: 0.4 });
+      counters.forEach(function (c) { io.observe(c) });
+    })();
+  </script>
+
+  <button class="scroll-top" id="scroll-top" aria-label="Наверх"
+          onclick="window.scrollTo({ top: 0, behavior: 'smooth' })">
+    <svg class="icon"><use href="{% static 'img/icons.svg' %}#arrow-up"/></svg>
+  </button>
+  <script>
+    (function () {
+      var btn = document.getElementById('scroll-top');
+      var onScroll = function () { btn.classList.toggle('visible', window.scrollY > 500); };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
     })();
   </script>
 </body>

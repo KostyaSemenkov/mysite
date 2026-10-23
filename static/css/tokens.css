@@ -239,6 +239,17 @@ html[data-theme="light"] {
   --header-glass: rgba(239, 227, 207, 0.78);
 }
 
+/* фото-подложка со слайдов презентации (размытая, с приглушением в светлой теме) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url('../img/bg.webp') center/cover no-repeat;
+  filter: blur(36px) saturate(1.1) brightness(0.55);
+  opacity: var(--photo-opacity);
+  z-index: -1;
+}
+
 /* ─── базовая типографика ─── */
 html {
   background-color: var(--bg);
@@ -377,4 +388,81 @@ html:not([data-theme="light"]) .theme-toggle .ico-sun { display: none; }
 .reveal.is-visible { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+
+/* ═══ D2: динамика и адаптив ═══ */
+
+/* скролл-топ */
+.scroll-top {
+  position: fixed;
+  right: 1.2rem; bottom: 1.2rem;
+  z-index: 30;
+  width: 2.7rem; height: 2.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  background: var(--panel);
+  color: var(--muted);
+  display: none;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--card-shadow);
+  transition: opacity .3s, color .15s;
+}
+.scroll-top.visible { display: flex; }
+.scroll-top:hover { color: var(--accent-light); border-color: var(--accent); }
+
+/* скелетоны подгрузки */
+.skeleton {
+  border-radius: 14px;
+  background: linear-gradient(100deg, var(--panel) 40%, var(--panel2) 50%, var(--panel) 60%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s infinite;
+  border: 1px solid var(--border);
+}
+.skeleton-card { height: 150px; }
+@keyframes skeleton-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+/* hero-плашка */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  background: var(--panel);
+  color: var(--accent-light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.hero-avatar {
+  border-radius: 999px;
+  padding: 4px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* горизонтальная лента на мобиле */
+.hscroll {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 78%;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.hscroll > * { scroll-snap-align: start; }
+@media (min-width: 640px) {
+  .hscroll {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-columns: unset;
+    overflow-x: visible;
+  }
 }

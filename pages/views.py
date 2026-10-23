@@ -22,19 +22,27 @@ def home(request):
             messages.success(request, 'Вы в списке ожидания — напишем, как только стартуем!')
             return redirect(request.POST['next'])
 
+    stats = {
+        'posts': Post.objects.published().count(),
+        'projects': Project.objects.published().count(),
+        'talks': Talk.objects.published().count(),
+        'topics': Topic.objects.count(),
+        'members': _member_count(),
+    }
     context = {
+        'stats': stats,
+        'stats_list': [
+            (stats['posts'], 'статей в блоге'),
+            (stats['talks'], 'выступлений'),
+            (stats['projects'], 'проектов'),
+            (stats['topics'], 'тем на форуме'),
+            (stats['members'], 'участников'),
+        ],
         'latest_posts': Post.objects.published()[:3],
         'featured_projects': Project.objects.published()[:3],
         'upcoming_talks': Talk.objects.upcoming()[:2],
         'testimonials': Testimonial.objects.filter(is_published=True),
         'faq_items': FaqItem.objects.filter(is_published=True),
-        'stats': {
-            'posts': Post.objects.published().count(),
-            'projects': Project.objects.published().count(),
-            'talks': Talk.objects.published().count(),
-            'topics': Topic.objects.count(),
-            'members': _member_count(),
-        },
     }
     return render(request, 'pages/home.html', context)
 

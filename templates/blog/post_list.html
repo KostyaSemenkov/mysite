@@ -24,6 +24,8 @@ async function loadMore(btn) {
   if (!page) { btn.remove(); return; }
   btn.disabled = true;
   document.getElementById('posts-loading').classList.remove('hidden');
+  document.getElementById('posts-skeleton').classList.remove('hidden');
+  btn.classList.add('hidden');
   try {
     const resp = await fetch(`?page=${page}`, { headers: { 'X-Load-More': '1' } });
     const html = await resp.text();
@@ -33,7 +35,8 @@ async function loadMore(btn) {
     if (!list.dataset.next) btn.remove();
   } catch (e) { console.error(e); }
   btn.disabled = false;
-  document.getElementById('posts-loading').classList.add('hidden');
+  btn.classList.remove('hidden');
+  document.getElementById('posts-skeleton').classList.add('hidden');
 }
 </script>
 {% endblock %}

@@ -1,44 +1,33 @@
 {% extends 'base.html' %}
-{% load static %}
 {% load site_extras static %}
 
 {% block content %}
 {# ── Hero ─────────────────────────────────────────── #}
-<section class="text-center py-14">
+<section class="text-center py-14 reveal is-visible">
+  <span class="hero-badge">
+    <svg class="icon"><use href="{% static 'img/icons.svg' %}#check"/></svg>
+    QA · автоматизация · сообщество
+  </span>
   {% if profile and profile.photo %}
     <img src="{{ profile.photo.url }}" alt="{{ profile.name }}"
-         class="mx-auto h-32 w-32 rounded-full object-cover ring-2 ring-indigo-600">
+         class="hero-avatar mx-auto mt-6 h-32 w-32 object-cover">
   {% endif %}
-  <h1 class="font-display mt-6 text-4xl font-bold text-white sm:text-5xl">{{ profile.name|default:'Ваше имя' }}</h1>
-  <p class="mt-4 text-xl text-indigo-300">{{ profile.tagline|default:'IT-специалист' }}</p>
-  <div class="mt-8 flex justify-center gap-4">
-    <a href="{% url 'contacts:contact' %}" class="rounded-lg bg-indigo-600 px-5 py-2.5 text-white hover:bg-indigo-500">Написать мне</a>
-    <a href="{% url 'projects:project_list' %}" class="rounded-lg border border-slate-700 px-5 py-2.5 hover:border-slate-500">Мои проекты</a>
+  <h1 class="font-display mt-6 text-4xl font-bold text-white sm:text-6xl">{{ profile.name|default:'Ваше имя' }}</h1>
+  <p class="mt-4 text-lg text-indigo-300 sm:text-xl">{{ profile.tagline|default:'IT-специалист' }}</p>
+  <div class="mt-8 flex flex-wrap justify-center gap-4">
+    <a href="{% url 'contacts:contact' %}" class="btn-warm px-5 py-2.5">Написать мне</a>
+    <a href="{% url 'projects:project_list' %}" class="btn-warm ghost px-5 py-2.5">Мои проекты</a>
   </div>
 </section>
 
-{# ── Цифры ────────────────────────────────────────── #}
-<section class="grid grid-cols-2 gap-3 sm:grid-cols-5 py-4 text-center">
-  <div class="card-warm p-4">
-    <div class="text-2xl font-bold text-indigo-300">{{ stats.posts }}</div>
-    <div class="text-xs text-slate-500">статей в блоге</div>
-  </div>
-  <div class="card-warm p-4">
-    <div class="text-2xl font-bold text-indigo-300">{{ stats.talks }}</div>
-    <div class="text-xs text-slate-500">выступлений</div>
-  </div>
-  <div class="card-warm p-4">
-    <div class="text-2xl font-bold text-indigo-300">{{ stats.projects }}</div>
-    <div class="text-xs text-slate-500">проектов</div>
-  </div>
-  <div class="card-warm p-4">
-    <div class="text-2xl font-bold text-indigo-300">{{ stats.topics }}</div>
-    <div class="text-xs text-slate-500">тем на форуме</div>
-  </div>
-  <div class="rounded-xl border border-slate-800 bg-slate-900 p-4 col-span-2 sm:col-span-1">
-    <div class="text-2xl font-bold text-indigo-300">{{ stats.members }}</div>
-    <div class="text-xs text-slate-500">участников</div>
-  </div>
+{# ── Цифры (накручиваются при появлении) ──────────── #}
+<section class="grid grid-cols-2 gap-3 sm:grid-cols-5 py-4 text-center reveal">
+  {% for value, label in stats_list %}
+    <div class="card-warm p-4{% if forloop.last %} col-span-2 sm:col-span-1{% endif %}">
+      <div class="font-display text-2xl font-bold text-indigo-300 counter" data-target="{{ value }}">0</div>
+      <div class="text-xs text-slate-500">{{ label }}</div>
+    </div>
+  {% endfor %}
 </section>
 
 {# ── Два ядра ─────────────────────────────────────── #}
@@ -138,7 +127,7 @@
       <h2 class="text-2xl font-semibold text-white">Последние статьи</h2>
       <a href="{% url 'blog:post_list' %}" class="text-sm text-indigo-400 hover:text-indigo-300">Все статьи →</a>
     </div>
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="hscroll">
       {% for post in latest_posts %}
         <a href="{{ post.get_absolute_url }}"
            class="card-warm p-6">
