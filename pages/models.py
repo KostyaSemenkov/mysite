@@ -83,3 +83,44 @@ class Favorite(models.Model):
 
     def __str__(self):
         return f'{self.user} → {self.content_object}'
+
+
+class UsefulFile(models.Model):
+    """Чек-лист/шаблон из раздела «Полезности» — лид-магнит для подписки."""
+
+    title = models.CharField('Название', max_length=200)
+    description = models.CharField('Краткое описание', max_length=300, blank=True)
+    file = models.FileField('Файл', upload_to='useful/')
+    downloads = models.PositiveIntegerField('Скачиваний', default=0)
+    order = models.PositiveSmallIntegerField('Порядок', default=0)
+    is_published = models.BooleanField('Опубликован', default=True)
+
+    class Meta:
+        verbose_name = 'Полезный файл'
+        verbose_name_plural = 'Полезности'
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return self.title
+
+
+class QuizQuestion(models.Model):
+    """Вопрос мини-тренажёра тестирования."""
+
+    order = models.PositiveSmallIntegerField('Порядок', default=0)
+    question = models.CharField('Вопрос', max_length=400)
+    option_a = models.CharField('Вариант A', max_length=250)
+    option_b = models.CharField('Вариант B', max_length=250)
+    option_c = models.CharField('Вариант C', max_length=250)
+    option_d = models.CharField('Вариант D', max_length=250)
+    correct = models.CharField('Правильный', max_length=1,
+                               choices=[('a', 'A'), ('b', 'B'), ('c', 'C'), ('d', 'D')])
+    explanation = models.TextField('Разбор', blank=True)
+
+    class Meta:
+        verbose_name = 'Вопрос квиза'
+        verbose_name_plural = 'Вопросы квиза'
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return self.question[:60]

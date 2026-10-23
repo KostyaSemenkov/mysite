@@ -58,6 +58,22 @@ services:
       - caddy_data:/data
       - caddy_config:/config
 
+  umami:
+    image: umamisoftware/umami:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mysite}:${POSTGRES_PASSWORD}@db:5432/umami
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${UMAMI_APP_SECRET:-change-me-umami}
+      PORT: "3000"
+    ports:
+      - "127.0.0.1:3200:3000"
+    labels:
+      - "описание=аналитика; наружу не опубликована, ждёт поддомен"
+
 volumes:
   pgdata:
   media:

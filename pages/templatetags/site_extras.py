@@ -43,3 +43,22 @@ def is_favorite(context, obj):
     ct = ContentType.objects.get_for_model(obj)
     return Favorite.objects.filter(user=user, content_type=ct,
                                    object_id=str(obj.pk)).exists()
+
+
+@register.filter
+def highlight(text, q):
+    """Подсветка подстроки <mark>."""
+    text = str(text)
+    q = str(q or '').strip()
+    if not q:
+        return text
+    import re as _re
+    pattern = _re.compile('(' + _re.escape(q) + ')', _re.IGNORECASE)
+    from django.utils.safestring import mark_safe
+    return mark_safe(pattern.sub(r'<mark></mark>', text))
+
+
+@register.filter
+def opt(question, letter):
+    return {'a': question.option_a, 'b': question.option_b,
+            'c': question.option_c, 'd': question.option_d}.get(letter, '')

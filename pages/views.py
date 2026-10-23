@@ -8,7 +8,7 @@ from forum.models import Comment, Topic
 from projects.models import Project
 from talks.models import Talk
 
-from .models import FaqItem, Favorite, Profile, Testimonial
+from .models import FaqItem, Favorite, Profile, QuizQuestion, Testimonial, UsefulFile
 
 
 def home(request):
@@ -93,24 +93,28 @@ def favorite_toggle(request):
 
 def search(request):
     q = request.GET.get('q', '').strip()
+    section = request.GET.get('section', '').strip()
     results = []
     if q:
         lookups = {
-            'Посты': Post.objects.published().filter(
-                Q(title__icontains=q) | Q(excerpt__icontains=q) | Q(content__icontains=q)),
-            'Проекты': Project.objects.published().filter(
+            'blog': ('Посты', Post.objects.published().filter(
+                Q(title__icontains=q) | Q(excerpt__icontains=q) | Q(content__icontains=q))),
+            'projects': ('Проекты', Project.objects.published().filter(
                 Q(title__icontains=q) | Q(description__icontains=q)
-                | Q(tech_stack__icontains=q)),
-            'Выступления': Talk.objects.published().filter(
+                | Q(tech_stack__icontains=q))),
+            'talks': ('Выступления', Talk.objects.published().filter(
                 Q(title__icontains=q) | Q(description__icontains=q)
-                | Q(event__icontains=q)),
-            'Темы форума': Topic.objects.filter(
-                Q(title__icontains=q) | Q(body__icontains=q)),
+                | Q(event__icontains=q))),
+            'forum': ('Темы форума', Topic.objects.filter(
+                Q(title__icontains=q) | Q(body__icontains=q))),
         }
-        for label, qs in lookups.items():
+        for key, (label, qs) in lookups.items():
+            if section and key != section:
+                continue
             for obj in qs[:20]:
                 results.append((label, obj))
-    return render(request, 'pages/search.html', {'q': q, 'results': results})
+    return render(request, 'pages/search.html',
+                  {'q': q, 'results': results, 'section': section})
 
 
 @login_required
@@ -132,4 +136,52 @@ def profile(request):
                                               is_approved=True).select_related('topic')[:15],
         'favorites': favorites,
         'fav_count': favs.count(),
+    })
+
+
+def useful_downloads(request):
+    files = UsefulFile.objects.filter(is_published=True)
+    return render(request, 'pages/useful.html', {'files': files})
+
+
+def download_file(request, pk):
+    from django.http import FileResponse
+    from django.shortcuts import get_object_or_404 as _g
+    uf = _g(UsefulFile, pk=pk, is_published=True)
+    uf.downloads += 1
+    uf.save(update_fields=['downloads'])
+    return FileResponse(uf.file.open('rb'), as_attachment=True, filename=uf.file.name.split('/')[-1])
+
+
+def services(request):
+    return render(request, 'pages/services.html')
+
+
+def quiz(request):
+    questions = list(QuizQuestion.objects.all())
+    score = None
+    answers = {}
+    explanations = []
+    if request.method == 'POST' and questions:
+        for i, question in enumerate(questions):
+            picked = request.POST.get(f'q{question.id}', '')
+            answers[question.id] = picked
+        correct_count = sum(1 for question in questions
+                            if answers.get(question.id) == question.correct)
+        score = round(correct_count * 100 / max(1, len(questions)))
+        explanations = [
+            {'question': question, 'picked': answers.get(question.id, ''),
+             'is_right': answers.get(question.id) == question.correct}
+            for question in questions
+        ]
+        # подписка «получить разбор на почту» — тем же механизмом
+        email = request.POST.get('email', '').strip().lower()
+        if email and score is not None:
+            from contacts.models import Subscriber
+            from django.contrib import messages
+            Subscriber.objects.get_or_create(email=email)
+            messages.success(request, 'Разбор отправлен в ближайший дайджест — вы в списке!')
+    return render(request, 'pages/quiz.html', {
+        'questions': questions, 'score': score, 'answers': answers,
+        'explanations': explanations,
     })

@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from pages.notify import tg_notify
 
 from .forms import CommentForm, TopicForm
+from .models import TopicReaction
 from .models import Topic
 
 
@@ -24,6 +25,11 @@ def topic_detail(request, slug):
         'topic': topic,
         'comments': comments,
         'form': form,
+        'fire_count': topic.reactions.filter(kind='fire').count(),
+        'like_count': topic.reactions.filter(kind='like').count(),
+        'my_reactions': set(
+            topic.reactions.filter(user=request.user).values_list('kind', flat=True)
+        ) if request.user.is_authenticated else set(),
     })
 
 
@@ -83,3 +89,37 @@ def register(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+
+@login_required
+@require_POST
+def toggle_reaction(request, slug):
+    from django.http import JsonResponse
+    topic = get_object_or_404(Topic, slug=slug)
+    kind = request.POST.get('kind', 'fire')
+    if kind not in ('fire', 'like'):
+        kind = 'fire'
+    existing = TopicReaction.objects.filter(topic=topic, user=request.user, kind=kind).first()
+    if existing:
+        existing.delete()
+        added = False
+    else:
+        TopicReaction.objects.create(topic=topic, user=request.user, kind=kind)
+        added = True
+    counts = {
+        'fire': topic.reactions.filter(kind='fire').count(),
+        'like': topic.reactions.filter(kind='like').count(),
+    }
+    return JsonResponse({'added': added, 'counts': counts})
+
+
+@login_required
+@require_POST
+def toggle_resolved(request, slug):
+    topic = get_object_or_404(Topic, slug=slug)
+    if request.user.is_staff or (topic.created_by and topic.created_by_id == request.user.id):
+        topic.is_resolved = not topic.is_resolved
+        topic.save(update_fields=['is_resolved'])
+        from django.contrib import messages
+        messages.success(request, 'Отмечено как решённая.' if topic.is_resolved else 'Снята метка «решено».')
+    return redirect(topic.get_absolute_url())

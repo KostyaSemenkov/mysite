@@ -13,6 +13,7 @@ class Topic(models.Model):
                                    related_name='topics')
     is_pinned = models.BooleanField('Закреплена', default=False)
     is_closed = models.BooleanField('Закрыта для комментариев', default=False)
+    is_resolved = models.BooleanField('Решено', default=False)
     created_at = models.DateTimeField('Создана', auto_now_add=True)
 
     class Meta:
@@ -57,3 +58,24 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'{self.display_name}: {self.body[:50]}'
+
+
+class TopicReaction(models.Model):
+    """Реакция на тему форума: 🔥 полезно / 👍 согласен."""
+
+    KINDS = [('fire', '🔥 Полезно'), ('like', '👍 Согласен')]
+
+    topic = models.ForeignKey(Topic, verbose_name='Тема', on_delete=models.CASCADE,
+                              related_name='reactions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='topic_reactions')
+    kind = models.CharField('Реакция', max_length=5, choices=KINDS, default='fire')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Реакция на тему'
+        verbose_name_plural = 'Реакции на темы'
+        unique_together = ('topic', 'user', 'kind')
+
+    def __str__(self):
+        return f'{self.user} {self.kind} → {self.topic}'

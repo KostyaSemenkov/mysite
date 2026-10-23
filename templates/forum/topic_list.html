@@ -35,6 +35,7 @@
       <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         {% if topic.is_pinned %}<span class="text-xs text-amber-400">📌</span>{% endif %}
         {% if topic.is_closed %}<span class="text-xs text-slate-500">🔒 закрыта</span>{% endif %}
+        {% if topic.is_resolved %}<span class="rounded-full bg-emerald-900/50 px-2 py-0.5 text-[11px] text-emerald-300">решено</span>{% endif %}
         <h2 class="font-semibold text-white">{{ topic.title }}</h2>
       </div>
       <p class="mt-1 text-xs text-slate-500">

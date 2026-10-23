@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Услуги — {{ profile.name|default:'' }}{% endblock %}
+{% block meta_description %}Аудит тестирования, ревью автотестов, менторство в QA. Пакеты и порядок работы.{% endblock %}
+
+{% block content %}
+<h1 class="font-display text-3xl font-bold text-white">Чем могу быть полезен</h1>
+<p class="mt-2 text-slate-400">Три формата работы. Пишите — обсудим вашу ситуацию и соберём пакет под неё.</p>
+
+<div class="mt-8 grid gap-6 lg:grid-cols-3">
+  <div class="card-warm p-6 flex flex-col">
+    <span class="hero-badge self-start">Аудит</span>
+    <h3 class="font-display mt-4 text-xl font-semibold text-white">Аудит тестирования</h3>
+    <p class="mt-2 text-sm text-slate-400 flex-1">Разбираю процессы команды: покрытие, метрики, регресс, баги по местам обнаружения. На выходе — карта проблем и план на квартал.</p>
+    <ul class="mt-4 space-y-1.5 text-sm text-slate-400">
+      <li>✓ 2 недели работы</li><li>✓ Отчёт + защита перед командой</li><li>✓ Метрики «до/после»</li>
+    </ul>
+  </div>
+  <div class="card-warm p-6 flex flex-col" style="border-color: var(--accent)">
+    <span class="hero-badge self-start">Код</span>
+    <h3 class="font-display mt-4 text-xl font-semibold text-white">Ревью автотестов</h3>
+    <p class="mt-2 text-sm text-slate-400 flex-1">Разбираю ваш фреймворк: стабильность, селекторы, архитектура, скорость прогона. С_recommendациями и примерами рефакторинга.</p>
+    <ul class="mt-4 space-y-1.5 text-sm text-slate-400">
+      <li>✓ 3–5 дней</li><li>✓ Отчёт по каждому тесту</li><li>✓ Сессия разбора 1:1</li>
+    </ul>
+  </div>
+  <div class="card-warm p-6 flex flex-col">
+    <span class="hero-badge self-start">Рост</span>
+    <h3 class="font-display mt-4 text-xl font-semibold text-white">Менторство в QA</h3>
+    <p class="mt-2 text-sm text-slate-400 flex-1">Для джунов и мидлов: план развития, разбор задач, подготовка к интервью, поддержка в реальных рабочих ситуациях.</p>
+    <ul class="mt-4 space-y-1.5 text-sm text-slate-400">
+      <li>✓ 4 встречи/месяц</li><li>✓ Чат с ответами</li><li>✓ Домашние задания с проверкой</li>
+    </ul>
+  </div>
+</div>
+
+<div class="mt-10 flex flex-wrap gap-4">
+  <a href="{% url 'contacts:contact' %}" class="btn-warm">Обсудить задачу</a>
+  <a href="{% url 'waiting_list' %}" class="btn-warm ghost">Курс по автотестам — скоро</a>
+</div>
+{% endblock %}

@@ -47,6 +47,9 @@
     {% if profile.github %},"sameAs": ["{{ profile.github }}"{% if profile.linkedin %}, "{{ profile.linkedin }}"{% endif %}]{% endif %}
   }
   </script>
+  {% if UMAMI_SRC and UMAMI_WEBSITE_ID %}
+  <script defer src="{{ UMAMI_SRC }}" data-website-id="{{ UMAMI_WEBSITE_ID }}"></script>
+  {% endif %}
 </head>
 <body class="text-slate-200 antialiased" style="background: transparent">
 
@@ -66,7 +69,13 @@
         <a href="{% url 'talks:talk_list' %}" class="hover:text-white">Выступления</a>
         <a href="/boardapp/sso/" class="hover:text-white">Доски</a>
         <a href="{% url 'forum:topic_list' %}" class="hover:text-white">Форум</a>
-        <a href="{% url 'about' %}" class="hover:text-white">Обо мне</a>
+        <a href="{% url 'useful' %}" class="hover:text-white">Полезности</a>
+        <a href="{% url 'quiz' %}" class="hover:text-white">Тренажёр</a>
+        <a href="{% url 'useful' %}" class="hover:text-white">Полезности</a>
+        <a href="{% url 'quiz' %}" class="hover:text-white">Тренажёр</a>
+        <a href="{% url 'useful' %}" class="hover:text-white">Полезности</a>
+      <a href="{% url 'quiz' %}" class="hover:text-white">Тренажёр</a>
+      <a href="{% url 'about' %}" class="hover:text-white">Обо мне</a>
         <a href="{% url 'search' %}" title="Поиск по сайту" class="hover:text-white">
           <svg class="icon"><use href="{% static 'img/icons.svg' %}#search"/></svg>
         </a>
@@ -148,6 +157,9 @@
           <a href="{% url 'talks:talk_list' %}" class="hover:text-white">Выступления</a>
           <a href="/boardapp/sso/" class="hover:text-white">Доски</a>
           <a href="{% url 'forum:topic_list' %}" class="hover:text-white">Форум</a>
+          <a href="{% url 'useful' %}" class="hover:text-white">Полезности</a>
+          <a href="{% url 'quiz' %}" class="hover:text-white">Тренажёр</a>
+          <a href="{% url 'services' %}" class="hover:text-white">Услуги</a>
           <a href="{% url 'waiting_list' %}" class="hover:text-white">Скоро: курс</a>
         </div>
       </div>

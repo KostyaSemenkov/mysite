@@ -9,6 +9,8 @@ from django.core.management.base import BaseCommand
 from blog.models import Post
 from projects.models import Project
 
+from ._quiz_data import FILES_CONTENT, QUIZ, USEFUL
+
 POSTS = [
     {
         'title': 'С чего начать в QA в 2026: карта пути для новичка',
@@ -258,6 +260,24 @@ class Command(BaseCommand):
                           'tech_stack': pr['tech_stack'],
                           'is_published': False})
             created_projects += int(is_new)
+        from pages.models import QuizQuestion, UsefulFile
+        from django.core.files.base import ContentFile
+        created_quiz = 0
+        for i, (q, a, b, c, d, correct, expl) in enumerate(QUIZ, 1):
+            _, is_new = QuizQuestion.objects.get_or_create(
+                question=q,
+                defaults={'order': i, 'option_a': a, 'option_b': b,
+                          'option_c': c, 'option_d': d,
+                          'correct': correct, 'explanation': expl})
+            created_quiz += int(is_new)
+        created_files = 0
+        for i, (title, desc, fname) in enumerate(USEFUL, 1):
+            if UsefulFile.objects.filter(title=title).exists():
+                continue
+            uf = UsefulFile(title=title, description=desc, order=i)
+            uf.file.save(fname, ContentFile(FILES_CONTENT[fname].encode('utf-8')), save=True)
+            created_files += 1
         self.stdout.write(self.style.SUCCESS(
-            f'Статей-черновиков создано: {created_posts} (всего {Post.objects.filter(is_published=False).count()}), '
-            f'проектов-образцов: {created_projects}. Опубликуйте из админки после вычитки.'))
+            f'Статей: {created_posts}, проектов: {created_projects}, '
+            f'вопросов квиза: {created_quiz}, полезных файлов: {created_files}. '
+            'Статьи и проекты опубликуйте из админки после вычитки.'))

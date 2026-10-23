@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import FaqItem, Favorite, Profile, Testimonial
+from .models import FaqItem, Favorite, Profile, QuizQuestion, Testimonial, UsefulFile
 
 
 @admin.register(Profile)
@@ -26,3 +26,16 @@ class FaqItemAdmin(admin.ModelAdmin):
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'content_type', 'object_id', 'created_at')
     list_filter = ('content_type',)
+
+
+@admin.register(UsefulFile)
+class UsefulFileAdmin(admin.ModelAdmin):
+    list_display = ('title', 'downloads', 'order', 'is_published')
+    list_editable = ('order', 'is_published')
+
+
+@admin.register(QuizQuestion)
+class QuizQuestionAdmin(admin.ModelAdmin):
+    list_display = ('question', 'order')
+    list_editable = ('order',)
+    search_fields = ('question',)
