@@ -1,8 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}{{ topic.title }} — Форум{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold text-white">{% if topic.is_pinned %}📌 {% endif %}{{ topic.title }}</h1>
+<h1 class="text-2xl font-bold text-white">{% if topic.is_pinned %}{% endif %}{{ topic.title }}</h1>
 <p class="mt-1 text-xs text-slate-500">
   {{ topic.created_at|date:'d.m.Y H:i' }}{% if topic.created_by %} · {{ topic.created_by.username }}{% endif %}
 </p>

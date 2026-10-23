@@ -2,12 +2,16 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.contrib.sitemaps.views import sitemap as sitemap_view
 from django.urls import include, path
+from django.views.generic import TemplateView
 
 from contacts import views as contact_views
 from forum import views as forum_views
 from pages import views as page_views
+from pages.sitemaps import sitemaps
 from pages.sso import boards_sso
+from blog.feeds import LatestPostsFeed
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,6 +23,7 @@ urlpatterns = [
     path('search/', page_views.search, name='search'),
     path('profile/', page_views.profile, name='profile'),
     path('favorites/toggle/', page_views.favorite_toggle, name='favorite_toggle'),
+    path('blog/rss/', LatestPostsFeed(), name='blog-rss'),
     path('blog/', include('blog.urls')),
     path('projects/', include('projects.urls')),
     path('contacts/', include('contacts.urls')),
@@ -29,6 +34,10 @@ urlpatterns = [
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('accounts/register/', forum_views.register, name='register'),
     path('subscribe/', contact_views.subscribe, name='subscribe'),
+    path('sitemap.xml', sitemap_view, {'sitemaps': sitemaps}, name='sitemap'),
+    path('robots.txt', TemplateView.as_view(template_name='robots.txt',
+                                            content_type='text/plain'), name='robots'),
+    path('blog/rss/', LatestPostsFeed(), name='blog-rss'),
 ]
 
 if settings.DEBUG:

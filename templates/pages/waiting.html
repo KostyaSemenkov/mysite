@@ -9,12 +9,12 @@
     теста на pytest до фреймворка с отчётами и CI. Записывайтесь в лист ожидания —
     напишем первыми и подарим скидку ранним подписчикам.</p>
 
-  <form action="/" method="post" class="mt-8 mx-auto flex max-w-md gap-3 rounded-xl border border-slate-800 bg-slate-900 p-6">
+  <form action="/" method="post" class="card-warm mt-8 mx-auto flex max-w-md gap-3 p-6">
     {% csrf_token %}
     <input type="hidden" name="next" value="{% url 'waiting_list' %}">
     <input type="email" name="email" required placeholder="Ваш email"
-           class="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none">
-    <button class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">В список</button>
+           class="input">
+    <button class="btn-warm">В список</button>
   </form>
 
   <p class="mt-6 text-xs text-slate-500">Никакого спама — только одно письмо о старте курса.</p>

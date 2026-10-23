@@ -1,0 +1,380 @@
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/manrope-400-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/manrope-400-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/manrope-400-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/manrope-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/manrope-600-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/manrope-600-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/manrope-600-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../fonts/manrope-600-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/manrope-700-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/manrope-700-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/manrope-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/manrope-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('../fonts/manrope-800-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('../fonts/manrope-800-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('../fonts/manrope-800-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('../fonts/manrope-800-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/unbounded-500-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/unbounded-500-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/unbounded-500-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('../fonts/unbounded-500-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/unbounded-700-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/unbounded-700-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/unbounded-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/unbounded-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}/* ═══ Дизайн-токены Лемурзильни: тёмная «Карамель» + светлая «Пустыня» ═══
+   Единый источник палитры для сайта и Досок.
+   Тема: html[data-theme="light"], по умолчанию — тёмная. */
+
+:root {
+  --bg: #140d07;
+  --panel: #241809;
+  --panel2: #1a1108;
+  --border: #3d2b12;
+  --border2: #5c4119;
+  --text: #cfae7c;
+  --muted: #b08a55;
+  --title: #ffffff;
+  --accent: #b9853c;
+  --accent-hov: #a3742f;
+  --accent-light: #dfb265;
+  --accent-lighter: #ecc57f;
+  --accent-dim: #33200a;
+  --accent-text: #1a1108;
+  --input-bg: #140d07;
+  --glow-top: rgba(223, 178, 101, 0.22);
+  --glow-bottom: rgba(217, 153, 76, 0.10);
+  --photo-opacity: 0.5;
+  --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --header-glass: rgba(20, 13, 7, 0.72);
+}
+
+html[data-theme="light"] {
+  --bg: #efe3cf;
+  --panel: #faf3e6;
+  --panel2: #fffdf8;
+  --border: #d9c4a0;
+  --border2: #c0a87e;
+  --text: #5f4b32;
+  --muted: #7d6a50;
+  --title: #2f2314;
+  --accent: #a5713c;
+  --accent-hov: #8f5f30;
+  --accent-light: #8a5a2c;
+  --accent-lighter: #a5713c;
+  --accent-dim: #ecdfc8;
+  --accent-text: #fff8ec;
+  --input-bg: #fffdf8;
+  --glow-top: rgba(165, 113, 60, 0.10);
+  --glow-bottom: rgba(165, 113, 60, 0.06);
+  --photo-opacity: 0.18;
+  --card-shadow: 0 6px 18px rgba(107, 82, 54, 0.10);
+  --header-glass: rgba(239, 227, 207, 0.78);
+}
+
+/* ─── базовая типографика ─── */
+html {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -5%, var(--glow-top), transparent 70%),
+    radial-gradient(ellipse 70% 45% at 50% 110%, var(--glow-bottom), transparent 70%);
+  background-attachment: fixed;
+}
+
+body {
+  font-family: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Unbounded', 'Manrope', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* длинные тексты статей — комфортная мера строки */
+.prose-warm {
+  max-width: 72ch;
+  line-height: 1.7;
+}
+
+/* ─── единые элементы форм ─── */
+.input {
+  width: 100%;
+  background: var(--input-bg);
+  color: var(--title);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  margin-top: 0.25rem;
+  font: inherit;
+}
+.input:focus { outline: none; border-color: var(--accent); }
+.input::placeholder { color: var(--muted); }
+
+.btn-warm {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+.btn-warm:hover { background: var(--accent-hov); }
+.btn-warm:disabled { opacity: 0.55; cursor: default; }
+.btn-warm.ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+.btn-warm.ghost:hover { border-color: var(--accent); color: var(--text); }
+
+/* Django-формы через as_p — приводим к тёплой палитре автоматически */
+form p label { display: block; font-size: 0.875rem; color: var(--muted); }
+form p input, form p textarea, form p select {
+  width: 100%;
+  background: var(--input-bg);
+  color: var(--title);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  margin-top: 0.25rem;
+  font: inherit;
+}
+form p input:focus, form p textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+.errorlist { color: #e0705a; font-size: 0.875rem; list-style: none; padding: 0; }
+.helptext { color: var(--muted); font-size: 0.75rem; }
+
+/* ─── карточки ─── */
+.card-warm {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--card-shadow);
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+.card-warm:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+}
+a.card-warm { display: block; }
+
+/* обложка-заглушка: тёплый градиент по хэшу + первая буква */
+.cover-fallback {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 11rem;
+  border-radius: 13px 13px 0 0;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 3rem;
+  color: rgba(255, 248, 236, 0.85);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* ─── иконки ─── */
+.icon {
+  width: 1.15em; height: 1.15em;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -0.18em;
+}
+
+/* ─── переключатель темы ─── */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem; height: 2.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.theme-toggle:hover { color: var(--accent-light); border-color: var(--accent); }
+html[data-theme="light"] .theme-toggle .ico-moon { display: none; }
+html:not([data-theme="light"]) .theme-toggle .ico-sun { display: none; }
+
+/* появление секций при скролле */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s, transform 0.5s; }
+.reveal.is-visible { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}

@@ -3,6 +3,21 @@ from django.contrib.contenttypes.models import ContentType
 
 register = template.Library()
 
+# тёплые градиенты обложек-заглушек (по хэшу заголовка)
+_COVER_GRADIENTS = [
+    'linear-gradient(135deg, #7a4a2b 0%, #b9853c 100%)',
+    'linear-gradient(135deg, #5a5a2f 0%, #96713f 100%)',
+    'linear-gradient(135deg, #5d3a52 0%, #a3742f 100%)',
+    'linear-gradient(135deg, #33200a 0%, #7a581f 100%)',
+]
+
+
+@register.filter
+def cover_gradient(title):
+    import hashlib
+    h = int(hashlib.md5(str(title).encode('utf8')).hexdigest(), 16)
+    return _COVER_GRADIENTS[h % len(_COVER_GRADIENTS)]
+
 
 @register.filter
 def split(value, separator=','):
