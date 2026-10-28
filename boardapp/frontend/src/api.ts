@@ -60,9 +60,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && !location.pathname.startsWith('/login')) {
+    if (err.response?.status === 401 && !location.hash.startsWith('#/login')) {
       clearAuth()
-      location.assign('/login')
+      location.assign('/boardapp/sso/')
     }
     return Promise.reject(err)
   },
