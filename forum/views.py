@@ -44,6 +44,9 @@ def add_comment(request, slug):
 
     form = CommentForm(request.POST, user=request.user)
     if form.is_valid():
+        if form.honeypot_triggered():
+            messages.success(request, 'Комментарий отправлен и появится после проверки модератором.')
+            return redirect(topic.get_absolute_url())
         comment = form.save(commit=False)
         comment.topic = topic
         if request.user.is_authenticated:
@@ -70,6 +73,10 @@ def new_topic(request):
     if request.method == 'POST':
         form = TopicForm(request.POST)
         if form.is_valid():
+            if form.honeypot_triggered():
+                # бот: делаем вид, что тема создана, но не сохраняем
+                messages.success(request, 'Тема создана.')
+                return redirect('forum:topic_list')
             topic = form.save(commit=False)
             topic.created_by = request.user
             topic.save()

@@ -466,3 +466,8 @@ html:not([data-theme="light"]) .theme-toggle .ico-sun { display: none; }
     overflow-x: visible;
   }
 }
+
+
+/* honeypot-поле формы невидимо людям */
+p:has(> input.hp-field) { display: none !important; }
+input.hp-field { display: none; }
