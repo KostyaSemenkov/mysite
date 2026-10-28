@@ -32,6 +32,8 @@
 </div>
 
 <div class="mt-8 flex flex-wrap items-center gap-3" id="reactions">
+  {% if not user.is_authenticated %}<span class="hint">Войдите, чтобы ставить реакции и отмечать решения.</span>{% endif %}
+  {% if user.is_authenticated %}
   <button class="btn-warm ghost" data-kind="fire"
           data-on="{% if 'fire' in my_reactions %}1{% else %}0{% endif %}">
     <span id="react-fire-ico">{% if "fire" in my_reactions %}🔥✓{% else %}🔥{% endif %}</span> Полезно · <span id="react-fire-n">{{ fire_count }}</span>
@@ -40,7 +42,8 @@
           data-on="{% if 'like' in my_reactions %}1{% else %}0{% endif %}">
     <span id="react-like-ico">{% if "like" in my_reactions %}👍✓{% else %}👍{% endif %}</span> Согласен · <span id="react-like-n">{{ like_count }}</span>
   </button>
-  {% if user.is_staff or topic.created_by_id == user.id %}
+  {% endif %}
+  {% if can_resolve %}
   <button class="btn-warm ghost" id="toggle-resolved"
           data-resolved="{% if topic.is_resolved %}1{% else %}0{% endif %}">
     {% if topic.is_resolved %}Снять «решено»{% else %}✓ Отметить решённой{% endif %}

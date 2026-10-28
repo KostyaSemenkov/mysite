@@ -30,6 +30,8 @@ def topic_detail(request, slug):
         'my_reactions': set(
             topic.reactions.filter(user=request.user).values_list('kind', flat=True)
         ) if request.user.is_authenticated else set(),
+        'can_resolve': request.user.is_authenticated and (
+            request.user.is_staff or topic.created_by_id == request.user.id),
     })
 
 
