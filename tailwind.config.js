@@ -5,6 +5,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        white: 'var(--title)',  // в светлой теме «белый» текст становится тёмным
         slate: { 950: 'var(--bg)', 900: 'var(--panel)', 800: 'var(--border)', 700: 'var(--border2)',
                  600: 'var(--accent-hov)', 500: 'var(--muted)', 400: 'var(--muted)', 300: 'var(--text)' },
         indigo: { 950: 'var(--accent-dim)', 900: 'var(--accent-dim)', 600: 'var(--accent)', 500: 'var(--accent-hov)',
