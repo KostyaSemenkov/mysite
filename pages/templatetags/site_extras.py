@@ -55,7 +55,8 @@ def highlight(text, q):
     import re as _re
     pattern = _re.compile('(' + _re.escape(q) + ')', _re.IGNORECASE)
     from django.utils.safestring import mark_safe
-    return mark_safe(pattern.sub(r'<mark></mark>', text))
+    return mark_safe(pattern.sub(
+        lambda m: '<mark>' + m.group(0) + '</mark>', text))
 
 
 @register.filter

@@ -56,17 +56,17 @@
   {# ── Шапка: sticky-стекло + бургер + тема ── #}
   <header class="sticky top-0 z-40 border-b border-slate-800 backdrop-blur-md"
           style="background: var(--header-glass)">
-    <div class="mx-auto max-w-5xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-      <a href="{% url 'home' %}" class="shrink-0">
-        <span class="block font-display text-base sm:text-lg font-bold text-white leading-tight">{{ profile.name|default:'Мой сайт' }}</span>
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+      <a href="{% url 'home' %}" class="min-w-0 flex-1 lg:flex-none">
+        <span class="block font-display text-base sm:text-lg font-bold text-white leading-tight truncate">{{ profile.name|default:'Мой сайт' }}</span>
         {% if profile.tagline %}<span class="hidden sm:block text-[11px] text-slate-500">{{ profile.tagline }}</span>{% endif %}
       </a>
 
-      <nav class="hidden lg:flex items-center gap-5 text-sm">
+      <nav class="hidden lg:flex items-center gap-4 text-sm flex-wrap">
         <a href="{% url 'home' %}" class="hover:text-white">Главная</a>
         <a href="{% url 'blog:post_list' %}" class="hover:text-white">Блог</a>
-        <a href="{% url 'projects:project_list' %}" class="hover:text-white">Проекты</a>
-        <a href="{% url 'talks:talk_list' %}" class="hover:text-white">Выступления</a>
+        <a href="{% url 'projects:project_list' %}" class="hover:text-white hidden xl:inline">Проекты</a>
+        <a href="{% url 'talks:talk_list' %}" class="hover:text-white hidden xl:inline">Выступления</a>
         <a href="/boardapp/sso/" class="hover:text-white">Доски</a>
         <a href="{% url 'forum:topic_list' %}" class="hover:text-white">Форум</a>
         <a href="{% url 'useful' %}" class="hover:text-white">Полезности</a>
@@ -92,20 +92,19 @@
         <a href="{% url 'contacts:contact' %}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white hover:bg-indigo-500 font-semibold">Связаться</a>
       </nav>
 
-      <div class="flex lg:hidden items-center gap-2">
+      <div class="flex lg:hidden xl:hidden items-center gap-1.5">
         <button class="theme-toggle" title="Переключить тему"
                 onclick="var h=document.documentElement;h.dataset.theme=h.dataset.theme==='light'?'dark':'light';localStorage.setItem('theme',h.dataset.theme)">
           <svg class="icon ico-sun"><use href="{% static 'img/icons.svg' %}#sun"/></svg>
           <svg class="icon ico-moon"><use href="{% static 'img/icons.svg' %}#moon"/></svg>
         </button>
-        <a href="{% url 'contacts:contact' %}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-white text-sm font-semibold">Связаться</a>
         <button class="theme-toggle" title="Меню" aria-label="Меню" onclick="document.getElementById('mobile-nav').classList.toggle('hidden')">
           <svg class="icon"><use href="{% static 'img/icons.svg' %}#menu"/></svg>
         </button>
       </div>
     </div>
 
-    <nav id="mobile-nav" class="hidden lg:hidden border-t border-slate-800 px-6 py-4 flex flex-col gap-3 text-sm"
+    <nav id="mobile-nav" class="hidden xl:hidden border-t border-slate-800 px-6 py-4 flex flex-col gap-3 text-sm"
          style="background: var(--header-glass)">
       <a href="{% url 'home' %}" class="hover:text-white">Главная</a>
       <a href="{% url 'blog:post_list' %}" class="hover:text-white">Блог</a>
@@ -124,7 +123,7 @@
     </nav>
   </header>
 
-  <main class="mx-auto max-w-5xl px-4 sm:px-6 py-10 sm:py-12">
+  <main class="mx-auto max-w-6xl px-4 sm:px-6 py-10 sm:py-12">
     {% if messages %}
       {% for message in messages %}
         <div class="mb-6 rounded-lg border border-emerald-700 bg-emerald-900/40 px-4 py-3 text-emerald-200">
@@ -137,7 +136,7 @@
 
   {# ── Футер колонками ── #}
   <footer class="border-t border-slate-800">
-    <div class="mx-auto max-w-5xl px-4 sm:px-6 py-10 grid gap-8 sm:grid-cols-3 text-sm">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid gap-8 sm:grid-cols-3 text-sm">
       <div>
         <div class="font-display font-bold text-white">{{ profile.name|default:'' }}</div>
         <p class="mt-2 text-slate-400">{{ profile.tagline|default:'' }}</p>
