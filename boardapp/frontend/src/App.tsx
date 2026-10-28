@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import BoardsPage from './pages/BoardsPage'
 import BoardEditorPage from './pages/BoardEditorPage'
+import SiteChrome from './components/SiteChrome'
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   // пускаем по токену; пользователя при необходимости подтянет ensureUser,
@@ -16,13 +17,13 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<SiteChrome><LoginPage /></SiteChrome>} />
+        <Route path="/register" element={<SiteChrome><RegisterPage /></SiteChrome>} />
         <Route
           path="/"
           element={
             <RequireAuth>
-              <BoardsPage />
+              <SiteChrome><BoardsPage /></SiteChrome>
             </RequireAuth>
           }
         />

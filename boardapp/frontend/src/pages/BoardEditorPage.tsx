@@ -29,6 +29,7 @@ import TicketNode from '../components/TicketNode'
 import ZoneNode from '../components/ZoneNode'
 import ShareModal from '../components/ShareModal'
 import Toolbar from '../components/Toolbar'
+import SiteStrip from '../components/SiteStrip'
 import { EV, on, type TicketMsg, type ZoneMsg } from '../boardEvents'
 import {
   STICKER_COLORS,
@@ -67,6 +68,7 @@ function BoardEditorInner() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
 
   const role = useBoard((s) => s.role)
+  const boardTitle = useBoard((s) => s.boardTitle)
   const cursors = useBoard((s) => s.cursors)
   const presence = useBoard((s) => s.presence)
   const resetBoard = useBoard((s) => s.reset)
@@ -356,6 +358,8 @@ function BoardEditorInner() {
   }
 
   return (
+    <div className="editor-with-strip">
+    <SiteStrip title={boardTitle} />
     <div className="editor-wrap" ref={viewportRef} onDoubleClick={onWrapperDoubleClick}>
       <Toolbar onExport={exportPng} />
       {role === 'owner' && (
@@ -403,6 +407,7 @@ function BoardEditorInner() {
       )}
       {cursorLabels}
       {shareOpen && <ShareModal boardId={id} onClose={() => setShareOpen(false)} />}
+    </div>
     </div>
   )
 }
