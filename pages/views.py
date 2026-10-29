@@ -91,11 +91,46 @@ def favorite_toggle(request):
     return redirect(request.META.get('HTTP_REFERER') or '/')
 
 
+
+class _SectionResult:
+    """Раздел сайта как результат поиска."""
+
+    def __init__(self, title, url):
+        self.title = title
+        self.url = url
+
+    def get_absolute_url(self):
+        return self.url
+
+    def __str__(self):
+        return self.title
+
+
+SITE_SECTIONS = [
+    ('Главная', '/', 'домой home старт'),
+    ('Блог', '/blog/', 'статьи посты записи'),
+    ('Проекты', '/projects/', 'портфолио работы кейсы пет'),
+    ('Выступления', '/talks/', 'доклады вебинары конференции записи видео'),
+    ('Календарь выступлений', '/talks/calendar/', 'календарь расписание даты события митап ical'),
+    ('Доски', '/boardapp/sso/', 'доска miro миро стикеры стикер канбан канван групп совместные'),
+    ('Форум', '/forum/', 'обсуждения темы сообщество комментарии'),
+    ('Полезности', '/useful/', 'чеклист чек-лист скачать шаблоны файлы репорт баг'),
+    ('Тренажёр', '/quiz/', 'квиз тест вопросы проверка знаний обучение'),
+    ('Услуги', '/services/', 'консультации аудит менторство ревью автотестов цена заказать'),
+    ('Обо мне', '/about/', 'автор биография манифест таймлайн кто'),
+    ('Контакты', '/contacts/', 'связаться написать email письмо заявка'),
+    ('Курс по автотестам', '/waiting/', 'курс обучение автотесты ожидание pytest'),
+]
+
 def search(request):
     q = request.GET.get('q', '').strip()
     section = request.GET.get('section', '').strip()
     results = []
     if q:
+        ql = q.lower()
+        for title, url, keywords in SITE_SECTIONS:
+            if ql in title.lower() or any(k in ql or ql in k for k in keywords.split()):
+                results.append(('Раздел', _SectionResult(title, url)))
         lookups = {
             'blog': ('Посты', Post.objects.published().filter(
                 Q(title__icontains=q) | Q(excerpt__icontains=q) | Q(content__icontains=q))),
@@ -108,6 +143,8 @@ def search(request):
             'forum': ('Темы форума', Topic.objects.filter(
                 Q(title__icontains=q) | Q(body__icontains=q))),
         }
+        if section == 'sections':
+            lookups = {}
         for key, (label, qs) in lookups.items():
             if section and key != section:
                 continue
