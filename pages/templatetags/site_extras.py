@@ -81,3 +81,25 @@ def score_color(score):
     if score >= 50:
         return 'text-indigo-300'
     return 'text-amber-500'
+
+
+import re as _re
+
+
+@register.filter
+def video_embed(url):
+    """YouTube/VK ссылка → embed URL для iframe."""
+    url = str(url or '')
+    m = _re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([\w-]{6,})', url)
+    if m:
+        return 'https://www.youtube.com/embed/' + m.group(1)
+    m = _re.search(r'vk\.com/video(-?\d+_\d+)', url)
+    if m:
+        return 'https://vk.com/video_ext.php?oid=' + m.group(1).replace('_', '&id=') + '&hd=2'
+    return url
+
+
+@register.filter
+def stars(rating):
+    n = max(0, min(5, int(rating or 0)))
+    return '★' * n + '☆' * (5 - n)

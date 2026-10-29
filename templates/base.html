@@ -224,6 +224,17 @@
       onScroll();
     })();
   </script>
+<div id="cookie-banner" class="cookie-banner">
+  <span>Мы используем куки для работы сайта и анонимной статистики.
+    <a href="{% url 'privacy' %}" class="underline">Подробнее</a></span>
+  <button onclick="localStorage.setItem('cookies_ok','1');document.getElementById('cookie-banner').remove()"
+          class="btn-warm">Хорошо</button>
+</div>
+<script>
+  if (!localStorage.getItem('cookies_ok')) {
+    document.getElementById('cookie-banner').classList.add('visible');
+  }
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

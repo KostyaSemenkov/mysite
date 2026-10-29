@@ -20,6 +20,16 @@
   </div>
 </section>
 
+{% if profile.promo_video_url %}
+<section class="reveal mt-10 mx-auto max-w-2xl">
+  <div class="card-warm overflow-hidden">
+    <iframe src="{{ profile.promo_video_url|video_embed }}" title="Промо-видео"
+            class="w-full aspect-video" allowfullscreen
+            allow="accelerometer; encrypted-media; picture-in-picture" frameborder="0"></iframe>
+  </div>
+</section>
+{% endif %}
+
 {# ── Цифры (накручиваются при появлении) ──────────── #}
 <section class="grid grid-cols-2 gap-3 sm:grid-cols-5 py-4 text-center reveal">
   {% for value, label in stats_list %}
@@ -167,13 +177,15 @@
 {# ── Отзывы ───────────────────────────────────────── #}
 {% if testimonials %}
   <section class="py-8">
-    <h2 class="text-2xl font-semibold text-white">Отзывы</h2>
+    <h2 class="font-display text-2xl font-semibold text-white">Отзывы
+  {% if avg_rating %}<span class="text-indigo-300">· {{ avg_rating|floatformat:1 }}/5</span>{% endif %}</h2>
     <div id="testimonials-wall" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {% for t in testimonials %}
         {% with forloop.counter0 as idx %}
         <div class="testimonial card-warm p-5 text-sm{% if idx >= 6 %} hidden{% endif %}">
           <p class="text-slate-300">«{{ t.quote }}»</p>
-          <div class="mt-3 text-xs">
+          <div class="mt-3 text-xs flex items-center gap-2 flex-wrap">
+            <span class="text-indigo-300">{{ t.rating|stars }}</span>
             <span class="font-medium text-indigo-300">{{ t.author }}</span>
             {% if t.role %}<span class="text-slate-500"> · {{ t.role }}</span>{% endif %}
           </div>

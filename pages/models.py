@@ -16,6 +16,8 @@ class Profile(models.Model):
     github = models.URLField('GitHub', blank=True)
     linkedin = models.URLField('LinkedIn', blank=True)
     telegram = models.URLField('Telegram', blank=True)
+    promo_video_url = models.URLField('Промо-видео', blank=True,
+                                      help_text='YouTube/VK: на главной появится плеер')
 
     class Meta:
         verbose_name = 'Профиль'
@@ -32,6 +34,7 @@ class Testimonial(models.Model):
     role = models.CharField('Кто он', max_length=160, blank=True,
                             help_text='Например: QA-лид, компания X')
     quote = models.CharField('Короткая цитата', max_length=300)
+    rating = models.PositiveSmallIntegerField('Оценка 1-5', default=5)
     full_text = models.TextField('Полная история', blank=True,
                                  help_text='Показывается в попапе «Читать полностью»')
     photo = models.ImageField('Фото', upload_to='testimonials/', blank=True, null=True)

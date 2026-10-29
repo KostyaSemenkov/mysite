@@ -558,3 +558,18 @@ html[data-theme="light"] .cal-cta {
 }
 .path-check:not(.done):hover { border-color: var(--accent); color: var(--accent-light); }
 .path-check.ghost { cursor: default; opacity: .5; }
+
+
+/* cookie-баннер */
+.cookie-banner {
+  position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+  z-index: 60; display: none; align-items: center; gap: 1rem;
+  max-width: min(92vw, 640px);
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 0.9rem 1.2rem;
+  font-size: 0.85rem; color: var(--text);
+  box-shadow: var(--card-shadow);
+}
+.cookie-banner.visible { display: flex; flex-wrap: wrap; }

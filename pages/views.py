@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db import models as _djmodels
+from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -43,6 +44,8 @@ def home(request):
         'featured_projects': Project.objects.published()[:3],
         'upcoming_talks': Talk.objects.upcoming()[:2],
         'testimonials': Testimonial.objects.filter(is_published=True),
+        'avg_rating': (Testimonial.objects.filter(is_published=True)
+                       .aggregate(Avg('rating'))['rating__avg']),
         'faq_items': FaqItem.objects.filter(is_published=True),
     }
     return render(request, 'pages/home.html', context)
