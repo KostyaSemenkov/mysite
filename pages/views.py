@@ -124,6 +124,8 @@ SITE_SECTIONS = [
     ('Обо мне', '/about/', 'автор биография манифест таймлайн кто'),
     ('Контакты', '/contacts/', 'связаться написать email письмо заявка'),
     ('Курс по автотестам', '/waiting/', 'курс обучение автотесты ожидание pytest'),
+    ('Путь тестировщика', '/path/', 'путь дорожка обучение рост ступени прогресс'),
+    ('Песочница с багами', '/sandbox/', 'песочница баги практика магазин тренажер найти'),
 ]
 
 def search(request):
@@ -223,8 +225,16 @@ def quiz(request):
              'is_right': answers.get(question.id) == question.correct}
             for question in questions
         ]
-        QuizAttempt.objects.create(user=request.user if request.user.is_authenticated else None,
-                                   mode=mode, score=score, total=len(questions))
+        attempt = QuizAttempt.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            mode=mode, score=score, total=len(questions))
+        certificate = None
+        if mode == 'interview' and score >= 80 and request.user.is_authenticated:
+            from .models import Certificate
+            certificate = Certificate.objects.filter(attempt__user=request.user).first()
+            if certificate is None:
+                certificate = Certificate.objects.create(
+                    user=request.user, attempt=attempt)
         # подписка «получить разбор на почту» — тем же механизмом
         email = request.POST.get('email', '').strip().lower()
         if email and score is not None:
@@ -234,7 +244,9 @@ def quiz(request):
             messages.success(request, 'Разбор отправлен в ближайший дайджест — вы в списке!')
     return render(request, 'pages/quiz.html', {
         'questions': questions, 'score': score, 'answers': answers,
-        'explanations': explanations, 'mode': mode,
+        'explanations': explanations, 'mode': mode, 'certificate': certificate,
+        'user_certs': (request.user.certificates.all()[:3]
+                       if request.user.is_authenticated else []),
     })
 
 
@@ -287,3 +299,17 @@ def path_toggle(request, item_id):
     done_count = UserPathProgress.objects.filter(user=request.user).count()
     return JsonResponse({'ok': True, 'done': done,
                          'percent': round(done_count * 100 / total) if total else 0})
+
+
+def certificate_page(request, uid):
+    import uuid as _uuid
+    from .models import Certificate
+    try:
+        cert = Certificate.objects.select_related('user', 'attempt').get(uuid=_uuid.UUID(str(uid)))
+    except (ValueError, Certificate.DoesNotExist):
+        cert = None
+    return render(request, 'pages/certificate.html', {'cert': cert})
+
+
+def sandbox(request):
+    return render(request, 'pages/sandbox.html')

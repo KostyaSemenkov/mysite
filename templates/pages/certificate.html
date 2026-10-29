@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Сертификат {{ cert.number|default:'не найден' }}{% endblock %}
+
+{% block content %}
+{% if cert %}
+<div class="max-w-2xl mx-auto">
+  <div class="card-warm p-8 sm:p-12 text-center" style="border: 3px solid var(--accent); position: relative; overflow: hidden">
+    <div style="position:absolute; inset:0; background:radial-gradient(ellipse at top, var(--accent-dim), transparent 70%); pointer-events:none"></div>
+    <div class="relative">
+      <div class="text-4xl">🐒</div>
+      <h1 class="font-display text-3xl font-bold text-white mt-3">Сертификат</h1>
+      <p class="mt-1 text-slate-400">успешного прохождения симулятора собеседования</p>
+
+      <div class="mt-8 font-display text-2xl font-bold text-indigo-300">
+        {% if cert.user %}{{ cert.user.username }}{% else %}Анонимный лемур{% endif %}</div>
+
+      <div class="mt-6 grid grid-cols-2 gap-4 text-sm">
+        <div class="rounded-xl p-4" style="background: var(--panel2)">
+          <div class="text-slate-500 text-xs uppercase">Результат</div>
+          <div class="font-display text-2xl font-bold text-white mt-1">{{ cert.attempt.score }}%</div>
+          <div class="text-xs text-slate-500">{{ cert.attempt.total }} вопросов</div>
+        </div>
+        <div class="rounded-xl p-4" style="background: var(--panel2)">
+          <div class="text-slate-500 text-xs uppercase">Дата</div>
+          <div class="font-semibold text-white mt-1">{{ cert.created_at|date:'d.m.Y' }}</div>
+          <div class="text-xs text-slate-500">№ {{ cert.number }}</div>
+        </div>
+      </div>
+
+      <div class="mt-6 text-xs text-slate-500">
+        Лемурзильня тестировщика · lemurqa.ru<br>
+        Проверка подлинности: <span class="text-indigo-400">lemurqa.ru/cert/{{ cert.uuid }}/</span>
+      </div>
+    </div>
+  </div>
+  <p class="mt-4 text-center text-sm text-slate-500">
+    <a href="{% url 'quiz' %}?mode=interview" class="text-indigo-400 hover:text-indigo-300">Пройти симулятор →</a>
+  </p>
+</div>
+{% else %}
+<div class="text-center py-16">
+  <div class="font-display text-6xl font-bold text-indigo-400">?</div>
+  <h1 class="mt-4 text-2xl font-semibold text-white">Сертификат не найден</h1>
+  <p class="mt-3 text-slate-400">Проверьте ссылку — или пройдите симулятор собеседования на 80%+, чтобы получить свой.</p>
+  <a href="{% url 'quiz' %}?mode=interview" class="btn-warm mt-6 inline-block">К симулятору</a>
+</div>
+{% endif %}
+{% endblock %}

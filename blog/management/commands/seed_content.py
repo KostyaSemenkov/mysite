@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand
 from blog.models import Post
 from projects.models import Project
 
+from ._cheatsheets import CHEATSHEETS
 from ._path_seed import INTERVIEW_QUESTIONS, PATH
 from ._quiz_data import FILES_CONTENT, QUIZ, USEFUL
 
@@ -272,11 +273,12 @@ class Command(BaseCommand):
                           'correct': correct, 'explanation': expl})
             created_quiz += int(is_new)
         created_files = 0
-        for i, (title, desc, fname) in enumerate(USEFUL, 1):
+        for i, (title, desc, fname, content) in enumerate(CHEATSHEETS, 1):
             if UsefulFile.objects.filter(title=title).exists():
                 continue
             uf = UsefulFile(title=title, description=desc, order=i)
-            uf.file.save(fname, ContentFile(FILES_CONTENT[fname].encode('utf-8')), save=True)
+            body = content if content else FILES_CONTENT[fname]
+            uf.file.save(fname, ContentFile(body.encode('utf-8')), save=True)
             created_files += 1
         from pages.models import PathItem, PathStep
         created_steps = created_items_c = created_q = 0

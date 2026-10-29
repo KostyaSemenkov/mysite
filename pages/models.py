@@ -214,3 +214,34 @@ class QuizAttempt(models.Model):
 
     def __str__(self):
         return f'{self.get_mode_display()} · {self.score}%'
+
+
+class Certificate(models.Model):
+    """Сертификат по симулятору собеседования, с публичной страницей проверки."""
+
+    uuid = models.UUIDField('Код', unique=True, default=__import__('uuid').uuid4,
+                            editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                             on_delete=models.SET_NULL, related_name='certificates')
+    attempt = models.ForeignKey('QuizAttempt', on_delete=models.CASCADE,
+                                related_name='certificate')
+    number = models.CharField('Номер', max_length=20, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Сертификат'
+        verbose_name_plural = 'Сертификаты'
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.number:
+            import datetime as _dt
+            from django.db import connection
+            with connection.cursor() as cur:
+                cur.execute("SELECT COUNT(*) FROM pages_certificate")
+                seq = cur.fetchone()[0] + 1
+            self.number = f'LEM-{_dt.date.today().year}-{seq:05d}'
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.number

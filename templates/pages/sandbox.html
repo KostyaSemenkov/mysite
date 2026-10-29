@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Песочница: магазин с багами — {{ profile.name|default:'' }}{% endblock %}
+{% block meta_description %}Тренировка тестирования: интернет-магазин с 8 багами. Найдите их всех и оформите репорты.{% endblock %}
+
+{% block content %}
+<nav class="text-xs text-slate-500 mb-4">
+  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
+  <a href="{% url 'useful' %}" class="hover:text-white">Полезности</a> ·
+  <span class="text-slate-400">Песочница</span>
+</nav>
+
+<h1 class="font-display text-3xl font-bold text-white">Песочница: магазин с багами</h1>
+<p class="mt-2 text-slate-400 max-w-xl">Перед вами интерфейс интернет-магазина «Лемур-Маркет».
+  В нём <b class="text-indigo-300">8 багов</b>: функциональные, UI, данные, логика. Найдите как можно больше,
+  выпишите репорты — и сверьтесь с эталоном в конце. Без спойлеров!</p>
+
+{# ══ БАГ-ИНТЕРФЕЙС ══ #}
+<div class="card-warm mt-8 p-6" id="sandbox-shop">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="font-display font-bold text-white">🛒 Лемур-Маркет</h3>
+    <span class="text-sm text-slate-400">Корзина: <b id="cart-count">0</b> шт ·
+      Сумма: <b id="cart-total">0</b> ₽</span>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-3" id="products">
+    <div class="card-warm p-4" data-id="1" data-price="100">
+      <div class="text-2xl">🍌</div>
+      <div class="font-semibold text-white mt-2">Бананы, 1 кг</div>
+      <div class="text-sm text-slate-400">100 ₽/кг</div>
+      <div class="text-xs text-slate-500 mt-1">Скидка 20% от 3 кг</div>
+      <input type="number" class="input mt-2" value="1" min="1" style="width:80px"
+             data-qty aria-label="Количество бананов">
+      <button class="btn-warm mt-2" data-add>В корзину</button>
+    </div>
+    <div class="card-warm p-4" data-id="2" data-price="250">
+      <div class="text-2xl">🥥</div>
+      <div class="font-semibold text-white mt-2">Кокосы, 1 шт</div>
+      <div class="text-sm text-slate-400">250 ₽/шт</div>
+      <div class="text-xs text-slate-500 mt-1">Акция: 3 по цене 2</div>
+      <input type="number" class="input mt-2" value="1" min="1" style="width:80px"
+             data-qty aria-label="Количество кокосов">
+      <button class="btn-warm mt-2" data-add>В корзину</button>
+    </div>
+    <div class="card-warm p-4" data-id="3" data-price="500">
+      <div class="text-2xl">🥩</div>
+      <div class="font-semibold text-white mt-2">Корм, 5 кг</div>
+      <div class="text-sm text-slate-400">500 ₽</div>
+      <div class="text-xs text-slate-500 mt-1">Доставка бесплатно от 1000 ₽</div>
+      <input type="number" class="input mt-2" value="1" min="1" style="width:80px"
+             data-qty aria-label="Количество корма">
+      <button class="btn-warm mt-2" data-add>В корзину</button>
+    </div>
+  </div>
+
+  <div class="mt-6 border-t pt-4" style="border-color: var(--border)">
+    <div class="flex flex-wrap items-center gap-4 text-sm">
+      <label class="flex items-center gap-2 text-slate-400">
+        <input type="checkbox" id="promo" checked> Применить промокод LEMUR10 (-10%)
+      </label>
+      <span id="delivery-line" class="text-slate-400">Доставка: <b id="delivery-cost">300 ₽</b></span>
+      <span class="ml-auto font-display font-bold text-white" id="grand-total">Итого: 0 ₽</span>
+      <button class="btn-warm" id="checkout">Оформить</button>
+    </div>
+    <div id="order-result" class="mt-3 hidden text-sm"></div>
+  </div>
+</div>
+
+{# ══ СПИСОК НАХОДОК ══ #}
+<div class="card-warm mt-8 p-6">
+  <h3 class="font-semibold text-white">Ваши находки</h3>
+  <p class="text-sm text-slate-400 mt-1">Опишите каждый баг: где нашли, что ожидали, что произошло.</p>
+  <textarea id="findings" class="input mt-3" rows="6"
+    placeholder="1) Каталог, бананы: ...&#10;2) Корзина: ..."></textarea>
+  <button id="check-btn" class="btn-warm mt-3">Сверить с эталоном</button>
+  <div id="check-result" class="mt-4 hidden"></div>
+</div>
+
+<script>
+(function () {
+  var cart = {};
+  var $ = function (id) { return document.getElementById(id); };
+  function recalc() {
+    var count = 0, total = 0;
+    for (var id in cart) { count += cart[id].qty; total += cart[id].price * cart[id].qty; }
+    // БАГ #4: счётчик штук округляет вниз (Math.floor вместо round для дробных qty)
+    $('cart-count').textContent = Math.floor(count);
+    $('cart-total').textContent = Math.round(total);
+    var delivery = total >= 1000 ? 0 : 300;
+    // БАГ #5: бесплатная доставка не работает (delivery всегда 300, несмотря на условие)
+    delivery = 300;
+    $('delivery-cost').textContent = delivery + ' ₽';
+    var promo = $('promo').checked ? total * 0.1 : 0;
+    // БАГ #6: промокод вычитается из суммы ДО доставки, но должен от суммы товаров; тут вычитаем 10% от total+delivery
+    promo = $('promo').checked ? (total + delivery) * 0.1 : 0;
+    var grand = total + delivery - promo;
+    // БАГ #7: итог округляется вниз до сотен (теряются копейки)
+    grand = Math.floor(grand / 100) * 100;
+    $('grand-total').textContent = 'Итого: ' + grand + ' ₽';
+    return { total: total, delivery: delivery, promo: promo, grand: grand };
+  }
+  document.querySelectorAll('[data-add]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var card = btn.closest('[data-id]');
+      var id = card.dataset.id;
+      var qty = parseFloat(card.querySelector('[data-qty]').value) || 0;
+      // БАГ #1: можно добавить 0 или отрицательное количество
+      if (qty <= 0) { alert('Товар добавлен (qty=' + qty + ')'); return; }
+      // БАГ #2: количество не суммируется — каждый клик затирает предыдущее
+      cart[id] = { qty: qty, price: parseInt(card.dataset.price) };
+      // БАГ #3: цена бананов не учитывает скидку 20% от 3 кг
+      recalc();
+    });
+  });
+  $('checkout').addEventListener('click', function () {
+    var r = recalc();
+    var res = $('order-result');
+    res.classList.remove('hidden');
+    // БАГ #8: кнопка «Оформить» показывает «Заказ оформлен» даже при пустой корзине
+    res.innerHTML = '✅ Заказ оформлен! Итого к оплате: ' + r.grand + ' ₽' +
+      '<br><span style="color:var(--muted);font-size:12px">Номер заказа: LEM-' + Date.now() + '</span>';
+  });
+  $('promo').addEventListener('change', recalc);
+
+  // сверка с эталоном
+  $('check-btn').addEventListener('click', function () {
+    var found = $('findings').value.toLowerCase();
+    var bugs = [
+      ['1. Валидация: можно добавить 0 или отрицательное количество', ['отрицательн', 'нулевое', 'меньше', '0']],
+      ['2. Корзина: количество не суммируется при повторном добавлении', ['затирает', 'не суммирует', 'перезаписыва', 'заменяет']],
+      ['3. Скидка 20% от 3 кг бананов не применяется', ['скидк', 'банан']],
+      ['4. Счётчик товаров некорректен при дробном количестве', ['счётчик', 'счетчик', 'количество штук', 'округля']],
+      ['5. Бесплатная доставка от 1000 ₽ не активируется', ['доставк']],
+      ['6. Промокод считает 10% от суммы С доставкой (должен без)', ['промокод', 'промо']],
+      ['7. Итоговая сумма округляется вниз до сотен', ['итог', 'округлен', 'сумма']],
+      ['8. «Оформить» работает при пустой корзине', ['пуст', 'нулевая корзина', 'без товаров', '0 товаров']],
+    ];
+    var hit = 0, html = '<div class="space-y-2">';
+    bugs.forEach(function (b) {
+      var isFound = b[1].some(function (kw) { return found.includes(kw); });
+      if (isFound) hit++;
+      html += '<div class="flex items-start gap-2 text-sm"><span style="color:' +
+        (isFound ? 'var(--accent-light)' : 'var(--muted)') + '">' +
+        (isFound ? '✓' : '✗') + '</span><span class="' +
+        (isFound ? 'text-white' : 'text-slate-400') + '">' + b[0] + '</span></div>';
+    });
+    html += '</div><p class="mt-3 text-sm text-slate-400">Найдено: <b class="text-indigo-300">' + hit +
+      ' из 8</b> — ' + (hit >= 6 ? 'отличная находчивость! 🐒' : hit >= 4 ? 'хорошая база, смотрите что пропустили' :
+      'загляните в подсказки в статье о чек-листах') + '</p>';
+    var box = $('check-result');
+    box.innerHTML = html;
+    box.classList.remove('hidden');
+  });
+})();
+</script>
+{% endblock %}

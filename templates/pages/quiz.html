@@ -42,6 +42,16 @@
   </p>
 </section>
 
+{% if certificate %}
+<section class="card-warm mt-8 p-8 text-center" style="border-color: var(--accent); border-width: 2px">
+  <svg class="icon mx-auto" style="width:48px;height:48px;color:var(--accent-light)"><use href="/static/img/icons.svg#check"/></svg>
+  <h2 class="font-display text-2xl font-bold text-white mt-3">Сертификат получен!</h2>
+  <p class="mt-2 text-slate-400">Симулятор собеседования пройден на {{ score }}% — выдаём сертификат с проверяемой страницей.</p>
+  <div class="mt-4 font-display text-2xl font-bold text-indigo-300">{{ certificate.number }}</div>
+  <a href="/cert/{{ certificate.uuid }}/" class="btn-warm mt-4 inline-block">Открыть сертификат →</a>
+</section>
+{% endif %}
+
 <section class="mt-8 space-y-4">
   <h2 class="font-display text-xl font-semibold text-white">Разбор</h2>
   {% for e in explanations %}
