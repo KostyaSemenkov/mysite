@@ -63,3 +63,11 @@ def highlight(text, q):
 def opt(question, letter):
     return {'a': question.option_a, 'b': question.option_b,
             'c': question.option_c, 'd': question.option_d}.get(letter, '')
+
+
+@register.filter
+def lookup(d, key):
+    try:
+        return d.get(key) or []
+    except AttributeError:
+        return []

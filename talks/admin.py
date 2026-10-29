@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Talk
+from .models import CalendarEvent, Talk
 
 
 @admin.register(Talk)
@@ -10,3 +10,12 @@ class TalkAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description', 'event')
     prepopulated_fields = {'slug': ('title',)}
     date_hierarchy = 'spoke_at'
+
+
+@admin.register(CalendarEvent)
+class CalendarEventAdmin(admin.ModelAdmin):
+    list_display = ('date', 'time', 'kind', 'title')
+    list_filter = ('kind', 'date')
+    date_hierarchy = 'date'
+    search_fields = ('title', 'text')
+    autocomplete_fields = []

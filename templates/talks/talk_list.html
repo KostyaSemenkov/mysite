@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1 class="text-3xl font-bold text-white">Выступления</h1>
-<p class="mt-2 text-slate-400">Доклады, вебинары и записи с конференций.</p>
+<p class="mt-2 text-slate-400">Доклады, вебинары и записи с конференций. <a href="{% url 'talks:calendar' %}" class="text-indigo-400 hover:text-indigo-300">Календарь событий →</a></p>
 <div class="mt-8 grid gap-6 sm:grid-cols-2">
   {% for talk in talks %}
     <a href="{{ talk.get_absolute_url }}"

@@ -471,3 +471,44 @@ html:not([data-theme="light"]) .theme-toggle .ico-sun { display: none; }
 /* honeypot-поле формы невидимо людям */
 p:has(> input.hp-field) { display: none !important; }
 input.hp-field { display: none; }
+
+
+/* ═══ Календарь выступлений ═══ */
+.cal-wrap { overflow-x: auto; padding-bottom: 6px; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(96px, 1fr));
+  gap: 6px;
+  min-width: 700px;
+}
+.cal-wd {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--muted); text-align: center; padding: 4px 0;
+}
+.cal-cell {
+  min-height: 84px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cal-cell.empty { background: transparent; border-color: transparent; }
+.cal-cell.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.cal-day { font-size: 13px; font-weight: 700; color: var(--muted); }
+.cal-cell.today .cal-day { color: var(--accent-light); }
+.cal-chip {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; line-height: 1.2;
+  padding: 3px 6px; border-radius: 6px;
+  text-decoration: none; overflow: hidden;
+}
+.cal-time { font-weight: 700; flex-shrink: 0; }
+.kind-talk { background: rgba(185, 133, 60, 0.25); color: var(--accent-lighter); }
+.kind-attend { background: rgba(90, 90, 47, 0.45); color: var(--text); }
+.kind-cfp { background: rgba(160, 62, 46, 0.35); color: #ffb59e; }
+.kind-personal { background: var(--accent-dim); color: var(--muted); }
+.kind-badge.kind-talk { background: rgba(185, 133, 60, 0.25); color: var(--accent-lighter); }
+.kind-badge.kind-attend { background: rgba(90, 90, 47, 0.45); color: var(--text); }
+.kind-badge.kind-cfp { background: rgba(160, 62, 46, 0.35); color: #ffb59e; }
+.kind-badge.kind-personal { background: var(--accent-dim); color: var(--muted); }

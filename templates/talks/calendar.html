@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load static site_extras %}
+{% block title %}Календарь — {{ month_name }} {{ year }}{% endblock %}
+{% block meta_description %}Календарь выступлений и событий: доклады, участие, дедлайны.{% endblock %}
+
+{% block content %}
+<nav class="text-xs text-slate-500 mb-4 flex items-center gap-1.5">
+  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
+  <a href="{% url 'talks:talk_list' %}" class="hover:text-white">Выступления</a> ·
+  <span class="text-slate-400">Календарь</span>
+</nav>
+
+<div class="flex flex-wrap items-center justify-between gap-3">
+  <h1 class="font-display text-3xl font-bold text-white">{{ month_name }} {{ year }}</h1>
+  <div class="flex items-center gap-2">
+    <a href="?y={{ prev.0 }}&m={{ prev.1 }}" class="btn-warm ghost">←</a>
+    <a href="?y={{ today.year }}&m={{ today.month }}" class="btn-warm ghost">Сегодня</a>
+    <a href="?y={{ next.0 }}&m={{ next.1 }}" class="btn-warm ghost">→</a>
+    <a href="{% url 'talks:ical_feed' %}" class="btn-warm" title="Подписка в Google/Apple календарь">
+      <svg class="icon"><use href="{% static 'img/icons.svg' %}#rss"/></svg> iCal
+    </a>
+  </div>
+</div>
+
+{# ── Сетка месяца ── #}
+<div class="cal-wrap mt-6">
+  <div class="cal-grid">
+    {% for wd in weekdays %}<div class="cal-wd">{{ wd }}</div>{% endfor %}
+    {% for week in weeks %}
+      {% for day in week %}
+        {% if day == 0 %}
+          <div class="cal-cell empty"></div>
+        {% else %}
+          <div class="cal-cell{% if day == today.day and month == today.month and year == today.year %} today{% endif %}{% if by_day|lookup:day %} has-events{% endif %}">
+            <span class="cal-day">{{ day }}</span>
+            {% for ev in by_day|lookup:day %}
+              <a href="#event-{{ day }}-{{ forloop.counter }}" class="cal-chip kind-{{ ev.kind }}"
+                 title="{{ ev.title }}">
+                {% if ev.time %}<span class="cal-time">{{ ev.time|date:'H:i' }}</span>{% endif %}
+                <span class="cal-chip-title">{{ ev.title|truncatechars:18 }}</span>
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+  </div>
+</div>
+
+{# ── События месяца с текстами и ссылками ── #}
+{% if month_events %}
+<section class="mt-10">
+  <h2 class="font-display text-xl font-semibold text-white mb-4">События месяца</h2>
+  <div class="space-y-4">
+    {% for ev in month_events %}
+    <div id="event-{{ ev.date.day }}-{{ forloop.counter }}" class="card-warm p-5">
+      <div class="flex flex-wrap items-center gap-3">
+        <span class="rounded-full px-2.5 py-0.5 text-xs kind-badge kind-{{ ev.kind }}">
+          {% if ev.kind == 'talk' %}Доклад{% elif ev.kind == 'attend' %}Участие{% elif ev.kind == 'cfp' %}CFP-дедлайн{% else %}Личное{% endif %}
+        </span>
+        <span class="text-sm text-slate-400">{{ ev.date|date:'d.m.Y' }}{% if ev.time %} · {{ ev.time|date:'H:i' }}{% endif %}</span>
+      </div>
+      <h3 class="mt-2 font-semibold text-white">
+        {% if ev.talk %}<a href="{{ ev.talk.get_absolute_url }}" class="hover:text-indigo-300">{{ ev.title }}</a>
+        {% else %}{{ ev.title }}{% endif %}
+      </h3>
+      {% if ev.text %}<p class="mt-1 text-sm text-slate-400 whitespace-pre-line">{{ ev.text }}</p>{% endif %}
+      {% if ev.links %}
+        <div class="mt-3 flex flex-wrap gap-2">
+          {% for url, label in ev.links %}
+            <a href="{{ url }}" target="_blank" rel="noopener" class="btn-warm ghost text-sm">
+              <svg class="icon"><use href="{% static 'img/icons.svg' %}#external"/></svg> {{ label }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% else %}
+<div class="empty-state mt-8" style="border:1px dashed var(--border2);border-radius:14px;padding:34px;text-align:center">
+  <p class="hint">В этом месяце событий нет. Загляните в соседние или подпишитесь на iCal.</p>
+</div>
+{% endif %}
+
+{# ── Ближайшие ── #}
+{% if upcoming %}
+<section class="mt-10">
+  <h2 class="font-display text-xl font-semibold text-white mb-4">Ближайшие</h2>
+  <div class="space-y-2">
+    {% for ev in upcoming %}
+    <a href="?y={{ ev.date.year }}&m={{ ev.date.month }}" class="card-warm p-3 flex items-center gap-3 text-sm">
+      <span class="rounded-lg px-2 py-1 text-xs font-semibold"
+            style="background:var(--accent-dim);color:var(--accent-lighter)">{{ ev.date|date:'d.m' }}</span>
+      <span class="text-white">{{ ev.title }}</span>
+      <span class="ml-auto text-slate-500">{{ ev.get_kind_display }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

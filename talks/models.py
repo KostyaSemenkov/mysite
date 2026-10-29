@@ -52,3 +52,35 @@ class Talk(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class CalendarEvent(models.Model):
+    """Событие в календаре выступлений: доклад, участие, CFP-дедлайн, личное."""
+
+    KINDS = [
+        ('talk', 'Доклад'),
+        ('attend', 'Участие'),
+        ('cfp', 'CFP-дедлайн'),
+        ('personal', 'Личное'),
+    ]
+
+    date = models.DateField('Дата')
+    time = models.TimeField('Время', null=True, blank=True)
+    kind = models.CharField('Тип', max_length=10, choices=KINDS, default='talk')
+    title = models.CharField('Заголовок', max_length=200)
+    text = models.TextField('Описание', blank=True, help_text='Несколько строк текста')
+    link1_url = models.URLField('Ссылка 1', blank=True)
+    link1_label = models.CharField('Подпись ссылки 1', max_length=120, blank=True)
+    link2_url = models.URLField('Ссылка 2', blank=True)
+    link2_label = models.CharField('Подпись ссылки 2', max_length=120, blank=True)
+    talk = models.ForeignKey(Talk, verbose_name='Выступление', null=True, blank=True,
+                             on_delete=models.SET_NULL, related_name='calendar_events')
+    is_published = models.BooleanField('Опубликовано', default=True)
+
+    class Meta:
+        verbose_name = 'Событие календаря'
+        verbose_name_plural = 'Календарь'
+        ordering = ['date', 'time']
+
+    def __str__(self):
+        return f'{self.date} · {self.title}'
