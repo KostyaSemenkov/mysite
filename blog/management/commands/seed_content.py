@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand
 from blog.models import Post
 from projects.models import Project
 
+from ._path_seed import INTERVIEW_QUESTIONS, PATH
 from ._quiz_data import FILES_CONTENT, QUIZ, USEFUL
 
 POSTS = [
@@ -277,6 +278,26 @@ class Command(BaseCommand):
             uf = UsefulFile(title=title, description=desc, order=i)
             uf.file.save(fname, ContentFile(FILES_CONTENT[fname].encode('utf-8')), save=True)
             created_files += 1
+        from pages.models import PathItem, PathStep
+        created_steps = created_items_c = created_q = 0
+        PathStep.objects.all().delete()
+        for i, (title, desc, items) in enumerate(PATH, 1):
+            step = PathStep.objects.create(order=i, title=title, description=desc)
+            created_steps += 1
+            for j, (it_title, kind, url) in enumerate(items, 1):
+                PathItem.objects.create(step=step, order=j, title=it_title,
+                                        kind=kind, url=url)
+                created_items_c += 1
+        for i, (q, a, b, c, d, correct, expl) in enumerate(INTERVIEW_QUESTIONS, 1):
+            _, is_new = QuizQuestion.objects.get_or_create(
+                question=q,
+                defaults={'order': i, 'mode': 'interview', 'option_a': a,
+                          'option_b': b, 'option_c': c, 'option_d': d,
+                          'correct': correct, 'explanation': expl})
+            created_q += int(is_new)
+        self.stdout.write(self.style.SUCCESS(
+            f'Путь: ступеней {created_steps}, пунктов {created_items_c}, '
+            f'вопросов симулятора: {created_q}. '))
         self.stdout.write(self.style.SUCCESS(
             f'Статей: {created_posts}, проектов: {created_projects}, '
             f'вопросов квиза: {created_quiz}, полезных файлов: {created_files}. '

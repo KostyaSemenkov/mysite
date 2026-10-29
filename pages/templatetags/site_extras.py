@@ -71,3 +71,13 @@ def lookup(d, key):
         return d.get(key) or []
     except AttributeError:
         return []
+
+
+@register.filter
+def score_color(score):
+    score = int(score or 0)
+    if score >= 80:
+        return 'text-emerald-400'
+    if score >= 50:
+        return 'text-indigo-300'
+    return 'text-amber-500'

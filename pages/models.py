@@ -108,6 +108,9 @@ class QuizQuestion(models.Model):
     """Вопрос мини-тренажёра тестирования."""
 
     order = models.PositiveSmallIntegerField('Порядок', default=0)
+    mode = models.CharField('Режим', max_length=10,
+                            choices=[('base', 'База'), ('interview', 'Симулятор')],
+                            default='base')
     question = models.CharField('Вопрос', max_length=400)
     option_a = models.CharField('Вариант A', max_length=250)
     option_b = models.CharField('Вариант B', max_length=250)
@@ -124,3 +127,87 @@ class QuizQuestion(models.Model):
 
     def __str__(self):
         return self.question[:60]
+
+
+class PathStep(models.Model):
+    """Ступень «Пути тестировщика»."""
+
+    order = models.PositiveSmallIntegerField('Порядок', default=0)
+    title = models.CharField('Название', max_length=120)
+    description = models.CharField('Описание', max_length=300, blank=True)
+
+    class Meta:
+        verbose_name = 'Ступень пути'
+        verbose_name_plural = 'Путь тестировщика'
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return self.title
+
+
+class PathItem(models.Model):
+    """Пункт ступени: ссылка на материал сайта (статья/квиз/чек-лист/...)."""
+
+    KINDS = [
+        ('post', 'Статья'),
+        ('quiz', 'Квиз'),
+        ('checklist', 'Чек-лист'),
+        ('forum', 'Форум'),
+        ('talk', 'Выступление'),
+        ('external', 'Внешняя ссылка'),
+    ]
+
+    step = models.ForeignKey(PathStep, verbose_name='Ступень',
+                             on_delete=models.CASCADE, related_name='items')
+    order = models.PositiveSmallIntegerField('Порядок', default=0)
+    title = models.CharField('Заголовок', max_length=200)
+    kind = models.CharField('Тип', max_length=10, choices=KINDS, default='post')
+    url = models.CharField('Ссылка', max_length=500,
+                           help_text='Внутренний путь (/blog/...) или внешний URL')
+
+    class Meta:
+        verbose_name = 'Пункт пути'
+        verbose_name_plural = 'Пункты пути'
+        ordering = ['step__order', 'order', 'id']
+
+    def __str__(self):
+        return self.title
+
+
+class UserPathProgress(models.Model):
+    """Отметка «пройдено» у пункта пути."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='path_progress')
+    item = models.ForeignKey(PathItem, on_delete=models.CASCADE,
+                             related_name='progress')
+    done_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Прогресс пути'
+        verbose_name_plural = 'Прогресс пути'
+        unique_together = ('user', 'item')
+
+    def __str__(self):
+        return f'{self.user} · {self.item}'
+
+
+class QuizAttempt(models.Model):
+    """Попытка прохождения квиза/симулятора."""
+
+    MODES = [('base', 'База'), ('interview', 'Симулятор собеседования')]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                             on_delete=models.SET_NULL, related_name='quiz_attempts')
+    mode = models.CharField('Режим', max_length=10, choices=MODES, default='base')
+    score = models.PositiveSmallIntegerField('Результат, %')
+    total = models.PositiveSmallIntegerField('Вопросов', default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Попытка квиза'
+        verbose_name_plural = 'Попытки квиза'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.get_mode_display()} · {self.score}%'

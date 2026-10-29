@@ -8,7 +8,8 @@ from forum.models import Comment, Topic
 from projects.models import Project
 from talks.models import Talk
 
-from .models import FaqItem, Favorite, Profile, QuizQuestion, Testimonial, UsefulFile
+from .models import (FaqItem, Favorite, PathItem, PathStep, Profile, QuizAttempt,
+                     QuizQuestion, Testimonial, UsefulFile, UserPathProgress)
 
 
 def home(request):
@@ -167,7 +168,15 @@ def profile(request):
                 'title': str(obj),
                 'url': getattr(obj, 'get_absolute_url', lambda: '/')(),
             })
+    from .models import PathItem
+    total_items = PathItem.objects.count()
+    done_items = UserPathProgress.objects.filter(user=request.user).count()
+    percent = round(done_items * 100 / total_items) if total_items else 0
+    stage = lemur_stage(percent)
     return render(request, 'pages/profile.html', {
+        'lemur_percent': percent, 'lemur_stage': stage,
+        'quiz_attempts': (request.user.quiz_attempts.all()[:8]
+                          if hasattr(request.user, 'quiz_attempts') else []),
         'my_topics': Topic.objects.filter(created_by=request.user)[:10],
         'my_comments': Comment.objects.filter(author=request.user,
                                               is_approved=True).select_related('topic')[:15],
@@ -195,14 +204,14 @@ def services(request):
 
 
 def quiz(request):
-    questions = list(QuizQuestion.objects.all())
+    mode = 'interview' if request.GET.get('mode') == 'interview' else 'base'
+    questions = list(QuizQuestion.objects.filter(mode=mode))
     score = None
     answers = {}
     explanations = []
     if request.method == 'POST' and questions:
-        for i, question in enumerate(questions):
-            picked = request.POST.get(f'q{question.id}', '')
-            answers[question.id] = picked
+        for question in questions:
+            answers[question.id] = request.POST.get(f'q{question.id}', '')
         correct_count = sum(1 for question in questions
                             if answers.get(question.id) == question.correct)
         score = round(correct_count * 100 / max(1, len(questions)))
@@ -211,6 +220,8 @@ def quiz(request):
              'is_right': answers.get(question.id) == question.correct}
             for question in questions
         ]
+        QuizAttempt.objects.create(user=request.user if request.user.is_authenticated else None,
+                                   mode=mode, score=score, total=len(questions))
         # подписка «получить разбор на почту» — тем же механизмом
         email = request.POST.get('email', '').strip().lower()
         if email and score is not None:
@@ -220,5 +231,56 @@ def quiz(request):
             messages.success(request, 'Разбор отправлен в ближайший дайджест — вы в списке!')
     return render(request, 'pages/quiz.html', {
         'questions': questions, 'score': score, 'answers': answers,
-        'explanations': explanations,
+        'explanations': explanations, 'mode': mode,
     })
+
+
+LEMUR_STAGES = [
+    (0, 'Голодный джун', '🐓'),
+    (25, 'Начинающий лемур', '🐒'),
+    (50, 'Упитанный мидл', '🐵'),
+    (75, 'Плотный сеньор', '🦍'),
+    (100, 'Дородный гуру QA', '🦧'),
+]
+
+
+def lemur_stage(percent):
+    current = LEMUR_STAGES[0]
+    for stage in LEMUR_STAGES:
+        if percent >= stage[0]:
+            current = stage
+    return current
+
+
+def path_page(request):
+    steps = PathStep.objects.prefetch_related('items').all()
+    done_ids = set()
+    if request.user.is_authenticated:
+        done_ids = set(UserPathProgress.objects.filter(
+            user=request.user).values_list('item_id', flat=True))
+    total = sum(st.items.count() for st in steps)
+    percent = round(len(done_ids) * 100 / total) if total else 0
+    return render(request, 'pages/path.html', {
+        'steps': steps, 'done_ids': done_ids,
+        'total': total, 'done': len(done_ids), 'percent': percent,
+    })
+
+
+@login_required
+@require_POST
+def path_toggle(request, item_id):
+    from django.http import JsonResponse
+    item = PathItem.objects.filter(pk=item_id).first()
+    if item is None:
+        return JsonResponse({'ok': False}, status=404)
+    progress = UserPathProgress.objects.filter(user=request.user, item=item).first()
+    if progress:
+        progress.delete()
+        done = False
+    else:
+        UserPathProgress.objects.create(user=request.user, item=item)
+        done = True
+    total = PathItem.objects.count()
+    done_count = UserPathProgress.objects.filter(user=request.user).count()
+    return JsonResponse({'ok': True, 'done': done,
+                         'percent': round(done_count * 100 / total) if total else 0})

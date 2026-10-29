@@ -539,3 +539,22 @@ html[data-theme="light"] .cal-cta {
   color: #6f4718;
   background: #fffdf8;
 }
+
+
+/* чекбоксы «пройдено» на пути */
+.path-check {
+  width: 38px; height: 38px; flex-shrink: 0;
+  border-radius: 999px;
+  border: 2px solid var(--border2);
+  background: var(--panel2);
+  color: var(--muted);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .15s;
+}
+.path-check.done {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.path-check:not(.done):hover { border-color: var(--accent); color: var(--accent-light); }
+.path-check.ghost { cursor: default; opacity: .5; }

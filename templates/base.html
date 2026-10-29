@@ -154,6 +154,7 @@
           <a href="{% url 'forum:topic_list' %}" class="hover:text-white">Форум</a>
           <a href="{% url 'useful' %}" class="hover:text-white">Полезности</a>
           <a href="{% url 'quiz' %}" class="hover:text-white">Тренажёр</a>
+          <a href="{% url 'path' %}" class="hover:text-white">Путь</a>
           <a href="{% url 'services' %}" class="hover:text-white">Услуги</a>
           <a href="{% url 'waiting_list' %}" class="hover:text-white">Скоро: курс</a>
         </div>
@@ -223,5 +224,6 @@
       onScroll();
     })();
   </script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

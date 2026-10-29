@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load site_extras %}
 {% block title %}Мой профиль — {{ profile.name|default:'' }}{% endblock %}
 
 {% block content %}
@@ -7,6 +8,31 @@
   <a href="/boardapp/sso/" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Открыть Доски</a>
 </div>
 <p class="mt-2 text-slate-400">{{ user.username }} · {{ fav_count }} в избранном</p>
+
+<div class="card-warm mt-4 p-5 flex items-center gap-5">
+  <span class="text-5xl">{{ lemur_stage.2 }}</span>
+  <div class="flex-1">
+    <div class="font-semibold text-white">Упитанность лемура: {{ lemur_percent }}%</div>
+    <div class="text-sm text-slate-400">{{ lemur_stage.1 }}</div>
+    <div class="mt-2 h-2.5 rounded-full overflow-hidden" style="background: var(--accent-dim)">
+      <div class="h-full" style="width: {{ lemur_percent }}%; background: var(--accent)"></div>
+    </div>
+    <a href="{% url 'path' %}" class="text-xs text-indigo-400 hover:text-indigo-300 mt-1 inline-block">Продолжить путь →</a>
+  </div>
+</div>
+
+{% if quiz_attempts %}
+<h2 class="mt-8 text-lg font-semibold text-white">Попытки квиза</h2>
+<div class="mt-3 space-y-2">
+  {% for a in quiz_attempts %}
+  <div class="card-warm p-3 flex items-center gap-3 text-sm">
+    <span class="font-semibold {{ a.score|score_color }}">{{ a.score }}%</span>
+    <span class="text-slate-400">{{ a.get_mode_display }}</span>
+    <span class="ml-auto text-xs text-slate-500">{{ a.created_at|date:'d.m.Y H:i' }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
 <div class="mt-8 grid gap-8 grid-cols-1 lg:grid-cols-2">
   <section>
