@@ -89,11 +89,6 @@ def new_topic(request):
 
 def register(request):
     if request.method == 'POST':
-        # honeypot: боты заполняют все поля
-        if request.POST.get('company_website', ''):
-            from django.contrib import messages
-            messages.success(request, 'Аккаунт создан. Добро пожаловать!')
-            return redirect('forum:topic_list')
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
