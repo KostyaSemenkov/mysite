@@ -214,6 +214,7 @@ def quiz(request):
     score = None
     answers = {}
     explanations = []
+    certificate = None
     if request.method == 'POST' and questions:
         for question in questions:
             answers[question.id] = request.POST.get(f'q{question.id}', '')
