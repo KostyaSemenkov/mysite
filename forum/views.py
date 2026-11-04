@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm  # noqa: F401
+from .forms import RegisterForm
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -89,14 +90,14 @@ def new_topic(request):
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             messages.success(request, 'Аккаунт создан. Добро пожаловать!')
             return redirect('forum:topic_list')
     else:
-        form = UserCreationForm()
+        form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
 

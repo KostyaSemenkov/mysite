@@ -1,6 +1,9 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
+import re
 
 from .models import Comment, Topic
 
@@ -41,6 +44,94 @@ def rate_limited(user, kind: str) -> bool:
     return count >= limit
 
 
+class RegisterForm(UserCreationForm):
+    """Регистрация с понятными русскими подсказками и ошибками."""
+
+    username = forms.CharField(
+        label='Имя пользователя',
+        max_length=150,
+        help_text='3–150 символов: буквы, цифры, точка, @, +, -, _',
+        error_messages={
+            'required': 'Введите имя пользователя — это обязательное поле.',
+            'max_length': 'Имя не может быть длиннее 150 символов.',
+        },
+        widget=forms.TextInput(attrs={
+            'class': INPUT_CLASS, 'placeholder': 'Например: ivan_petrov'}))
+
+    password1 = forms.CharField(
+        label='Пароль',
+        help_text='Минимум 8 символов, не только цифры, не только одинаковые символы',
+        error_messages={'required': 'Введите пароль.'},
+        widget=forms.PasswordInput(attrs={'class': INPUT_CLASS}))
+
+    def _post_clean(self):
+        # пропускаем Django-валидаторы пароля: наш clean_password1 уже
+        # проверяет всё то же самое с понятными русскими сообщениями
+        # (иначе получаем дубль: английский от Django + русский от нас)
+        old = self.cleaned_data.pop('password1', None)
+        old2 = self.cleaned_data.pop('password2', None)
+        super()._post_clean()
+        # возвращаем если валидно — иначе Django перезатрёт английскими
+        if 'password1' not in self._errors:
+            if old is not None:
+                self.cleaned_data['password1'] = old
+            if old2 is not None:
+                self.cleaned_data['password2'] = old2
+
+    password2 = forms.CharField(
+        label='Повторите пароль',
+        help_text='Тот же пароль ещё раз, для проверки',
+        error_messages={
+            'required': 'Повторите пароль.',
+            'password_mismatch': 'Пароли не совпадают — перепроверьте оба поля.',
+        },
+        widget=forms.PasswordInput(attrs={'class': INPUT_CLASS}))
+
+    class Meta:
+        model = User
+        fields = ('username', 'password1', 'password2')
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '').strip()
+        if len(username) < 3:
+            raise forms.ValidationError(
+                f'Имя слишком короткое: {len(username)} симв. — нужно минимум 3.')
+        if not re.match(r'^[\w.@+-]+$', username):
+            bad = re.sub(r'[\w.@+-]', '', username)
+            raise forms.ValidationError(
+                'В имени разрешены только буквы, цифры и символы: точка ., @, +, -, _. '
+                f'Уберите: {bad.strip() or "пробелы"}')
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError(
+                f'Имя «{username}» уже занято. Попробуйте добавить цифру или дефис.')
+        return username
+
+    def clean_password1(self):
+        password = self.cleaned_data.get('password1', '')
+        if len(password) < 8:
+            raise forms.ValidationError(
+                f'Пароль слишком короткий: {len(password)} симв. — нужно минимум 8.')
+        if password.isdigit():
+            raise forms.ValidationError(
+                'Пароль не может состоять только из цифр — добавьте буквы или символы.')
+        if len(set(password)) == 1:
+            raise forms.ValidationError(
+                'Пароль не может состоять из одного повторяющегося символа.')
+        username = self.data.get('username', '')
+        if username and username.lower() in password.lower():
+            raise forms.ValidationError(
+                'Пароль не должен содержать ваше имя пользователя.')
+        return password
+
+    def clean_password2(self):
+        p1 = self.cleaned_data.get('password1', '')
+        p2 = self.cleaned_data.get('password2', '')
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError(
+                'Пароли не совпадают — перепроверьте оба поля.')
+        return p2
+
+
 class CommentForm(HoneypotMixin, forms.ModelForm):
     class Meta:
         model = Comment
@@ -64,7 +155,8 @@ class CommentForm(HoneypotMixin, forms.ModelForm):
         cleaned = super().clean()
         if self.honeypot_triggered():
             raise forms.ValidationError('')
-        if self._user is not None and self._user.is_authenticated                 and rate_limited(self._user, 'comment'):
+        if self._user is not None and self._user.is_authenticated \
+                and rate_limited(self._user, 'comment'):
             raise forms.ValidationError('Слишком много комментариев за час — чуть позже.')
         return cleaned
 
@@ -90,7 +182,6 @@ class TopicForm(HoneypotMixin, forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         if self.honeypot_triggered():
-            # боту отвечаем «успехом» во вьюхе, но ничего не создаём
             pass
         elif self._user is not None and rate_limited(self._user, 'topic'):
             raise forms.ValidationError('Слишком много тем за час — попробуйте позже.')
