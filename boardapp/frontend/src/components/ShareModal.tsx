@@ -82,7 +82,7 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
       display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
     }}>
       <div onClick={(e) => e.stopPropagation()} style={{
-        width: 420, background: 'var(--panel)', border: '1px solid var(--border)',
+        width: 'min(580px, 94vw)', background: 'var(--panel)', border: '1px solid var(--border)',
         borderRadius: 12, padding: 22,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -90,7 +90,7 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
           <button className="btn ghost" onClick={onClose}>×</button>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, position: 'relative' }}>
+        <div style={{ position: 'relative' }}>
           <input
             placeholder="Начните вводить имя…"
             list="user-hints"
@@ -98,14 +98,14 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onBlur={() => setTimeout(() => setHints([]), 200)}
-            style={{ flex: 1, background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text)' }}
+            style={{ width: '100%', background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', color: 'var(--text)', boxSizing: 'border-box' }}
           />
           <datalist id="user-hints">
             {hints.map((h) => <option key={h} value={h} />)}
           </datalist>
           {hints.length > 0 && username.trim().length >= 2 && (
             <div style={{
-              position: 'absolute', top: '100%', left: 0, width: '60%', zIndex: 50,
+              position: 'absolute', top: '100%', left: 0, width: '100%', zIndex: 50,
               background: 'var(--panel2)', border: '1px solid var(--border)',
               borderRadius: 8, marginTop: 4, overflow: 'hidden',
             }}>
@@ -113,7 +113,7 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
                 <div
                   key={h}
                   onClick={() => { setUsername(h); setHints([]) }}
-                  style={{ padding: '7px 10px', cursor: 'pointer', fontSize: 21 }}
+                  style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 21 }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
@@ -122,15 +122,18 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
               ))}
             </div>
           )}
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value as 'editor' | 'viewer')}
-            style={{ background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px', color: 'var(--text)' }}
-          >
-            <option value="editor">редактор</option>
-            <option value="viewer">наблюдатель</option>
-          </select>
-          <button className="btn" onClick={invite} disabled={busy}>Пригласить</button>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as 'editor' | 'viewer')}
+              style={{ flex: 1, background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 8px', color: 'var(--text)' }}
+            >
+              <option value="editor">редактор</option>
+              <option value="viewer">наблюдатель</option>
+            </select>
+            <button className="btn" onClick={invite} disabled={busy}
+                    style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>Пригласить</button>
+          </div>
         </div>
         {error && <div className="error" style={{ marginTop: 8 }}>{error}</div>}
 
