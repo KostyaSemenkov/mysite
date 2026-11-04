@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}ИИ-курсы — {{ profile.name|default:'' }}{% endblock %}
+{% block meta_description %}Каталог курсов по искусственному интеллекту: от бесплатных вводных до продвинутых программ.{% endblock %}
+
+{% block content %}
+<nav class="text-xs text-slate-500 mb-4">
+  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
+  <a href="{% url 'ainews:index' %}" class="hover:text-white">ИИ-новости</a> ·
+  <span class="text-slate-400">Курсы</span>
+</nav>
+
+<h1 class="font-display text-3xl font-bold text-white">Курсы по ИИ</h1>
+<p class="mt-2 text-slate-400">От бесплатных вводных до продвинутых программ.</p>
+
+{# фильтры #}
+<div class="mt-5 flex flex-wrap gap-2 text-sm">
+  <a href="{% url 'ainews:courses' %}" class="rounded-full px-3 py-1 border {% if not level and not direction and not price %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Все</a>
+  <a href="?level=beginner" class="rounded-full px-3 py-1 border {% if level == 'beginner' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Начинающим</a>
+  <a href="?level=intermediate" class="rounded-full px-3 py-1 border {% if level == 'intermediate' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Средний</a>
+  <a href="?price=free" class="rounded-full px-3 py-1 border {% if price == 'free' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Бесплатные</a>
+  <a href="?price=paid" class="rounded-full px-3 py-1 border {% if price == 'paid' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Платные</a>
+</div>
+
+{# сетка курсов #}
+<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+  {% for c in courses %}
+  <a href="{{ c.get_absolute_url }}" class="card-warm p-5 flex flex-col gap-3">
+    <div class="flex items-start justify-between gap-2">
+      <span class="hero-badge">{{ c.get_level_display }}</span>
+      {% if c.price == 0 %}
+      <span class="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs text-emerald-300">Бесплатно</span>
+      {% else %}
+      <span class="font-display font-bold text-indigo-300">{{ c.price }} ₽</span>
+      {% endif %}
+    </div>
+    <div>
+      <h3 class="font-semibold text-white">{{ c.title }}</h3>
+      <p class="text-xs text-slate-500 mt-1">{{ c.provider }}</p>
+    </div>
+    <p class="text-sm text-slate-400 flex-1">{{ c.summary|truncatechars:140 }}</p>
+    {% if c.duration %}
+    <div class="text-xs text-slate-500 flex items-center gap-1.5">
+      <svg class="icon"><use href="{% static 'img/icons.svg' %}#clock"/></svg>
+      {{ c.duration }}
+    </div>
+    {% endif %}
+  </a>
+  {% empty %}
+  <div style="grid-column:1/-1;text-align:center;padding:34px;border:1px dashed var(--border2);border-radius:14px">
+    <p class="hint">Курсы по выбранным фильтрам не найдены.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

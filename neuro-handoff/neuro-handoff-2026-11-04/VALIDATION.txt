@@ -1,0 +1,28 @@
+Checked the packaged project with the original project Python environment. Fresh dependency installation was not tested.
+SQLite snapshots: integrity_check=ok; sessions removed from copies only.
+
+$ python manage.py check
+System check identified no issues (0 silenced).
+
+EXIT_CODE: 0
+
+$ python manage.py makemigrations --check --dry-run
+No changes detected
+
+EXIT_CODE: 0
+
+$ python manage.py test portal --noinput
+Found 23 test(s).
+System check identified no issues (0 silenced).
+Demo content is ready.
+Creating test database for alias 'default'...
+
+.......................
+----------------------------------------------------------------------
+Ran 23 tests in 4.061s
+
+OK
+Destroying test database for alias 'default'...
+
+
+EXIT_CODE: 0

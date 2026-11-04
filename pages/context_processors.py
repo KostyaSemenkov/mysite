@@ -11,6 +11,7 @@ FAVICON_BY_PREFIX = (
     ('/search', 'search'),
     ('/profile', 'profile'),
     ('/waiting', 'waiting'),
+    ('/ai', 'ainews'),
     ('/boardapp', 'boards'),
 )
 

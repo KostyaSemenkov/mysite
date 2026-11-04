@@ -1,0 +1,80 @@
+{
+  "captured_at_moscow": "2026-11-04T22:21:08.887793+03:00",
+  "source_path": "D:\\gpt\\ai_portal",
+  "local_url": "http://127.0.0.1:8002/",
+  "database": "ai_portal/db.sqlite3",
+  "users": [
+    {
+      "username": "fralmap",
+      "is_active": 1,
+      "is_staff": 1,
+      "is_superuser": 1,
+      "last_login": "2026-10-29 18:39:38.009920"
+    }
+  ],
+  "publications": 31,
+  "published_china": 16,
+  "courses": 6,
+  "incoming_by_status": [
+    {
+      "status": "changed",
+      "count": 1
+    },
+    {
+      "status": "published",
+      "count": 16
+    },
+    {
+      "status": "waiting",
+      "count": 1
+    }
+  ],
+  "pending_items": [
+    {
+      "id": 17,
+      "title_ru": "",
+      "original_title": "Opening up the in-house search API",
+      "status": "waiting",
+      "source_url": "https://api-docs.deepseek.com/updates/#date-2026-10-17"
+    },
+    {
+      "id": 18,
+      "title_ru": "",
+      "original_title": "Kimi K3.1 Pro",
+      "status": "changed",
+      "source_url": "https://www.kimi.com/en/blog/kimi-k3-1-pro"
+    }
+  ],
+  "sources": [
+    {
+      "company": "kimi",
+      "enabled": 1,
+      "last_checked": "2026-11-04 18:43:14.569464",
+      "last_success": "2026-11-04 18:43:23.484058",
+      "last_error": ""
+    },
+    {
+      "company": "zai",
+      "enabled": 1,
+      "last_checked": "2026-11-04 18:43:23.498953",
+      "last_success": "2026-11-04 18:43:24.271096",
+      "last_error": ""
+    },
+    {
+      "company": "qwen",
+      "enabled": 1,
+      "last_checked": "2026-11-04 18:43:24.281887",
+      "last_success": "2026-11-04 18:43:31.302177",
+      "last_error": ""
+    },
+    {
+      "company": "deepseek",
+      "enabled": 1,
+      "last_checked": "2026-11-04 18:43:31.314185",
+      "last_success": "2026-11-04 18:43:32.157229",
+      "last_error": ""
+    }
+  ],
+  "excluded_sensitive_files": [],
+  "sessions_removed_from_copies": true
+}

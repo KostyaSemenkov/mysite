@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static site_extras %}
+{% block title %}ИИ-новости — {{ profile.name|default:'' }}{% endblock %}
+{% block meta_description %}Новости китайских нейросетей: Kimi, Z.ai, Qwen, DeepSeek — официальные релизы, функции, API.{% endblock %}
+
+{% block content %}
+<nav class="text-xs text-slate-500 mb-4">
+  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
+  <span class="text-slate-400">ИИ-новости</span>
+</nav>
+
+<div class="flex flex-wrap items-end justify-between gap-4">
+  <div>
+    <h1 class="font-display text-3xl font-bold text-white">ИИ-новости</h1>
+    <p class="mt-2 text-slate-400">Официальные новости китайских нейросетей —
+      Kimi, Z.ai, Qwen, DeepSeek. {{ total }} публикаций.</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="{% url 'ainews:courses' %}" class="btn-warm ghost">Каталог курсов</a>
+    <a href="{% url 'ainews:rss' %}" class="btn-warm ghost" title="RSS">
+      <svg class="icon"><use href="{% static 'img/icons.svg' %}#rss"/></svg></a>
+  </div>
+</div>
+
+{# фильтры-чипы #}
+<div class="mt-5 flex flex-wrap gap-2 text-sm">
+  <a href="{% url 'ainews:index' %}" class="rounded-full px-3 py-1 border {% if not company %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Все</a>
+  {% for value, label in companies %}
+  <a href="?company={{ value }}" class="rounded-full px-3 py-1 border {% if company == value %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{# поиск #}
+<form method="get" class="mt-4 flex max-w-md gap-3 flex-wrap">
+  <input type="search" name="q" value="{{ query }}" placeholder="Поиск по публикациям…"
+         class="input" style="max-width:320px">
+  <button class="btn-warm">Найти</button>
+</form>
+
+{# hero-новость #}
+{% if hero %}
+<div class="reveal card-warm mt-8 overflow-hidden">
+  {% if hero.image_url %}
+  <img src="{{ hero.image_url }}" alt="{{ hero.title }}" class="h-56 w-full object-cover">
+  {% endif %}
+  <div class="p-6">
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      {% if hero.company %}<span class="rounded-full bg-indigo-950 px-2.5 py-0.5 text-indigo-300">{{ hero.get_company_display }}</span>{% endif %}
+      <time class="text-slate-500">{{ hero.published_at|date:'d.m.Y' }}</time>
+    </div>
+    <h2 class="font-display mt-2 text-2xl font-bold text-white">
+      <a href="{{ hero.get_absolute_url }}" class="hover:text-indigo-300">{{ hero.title }}</a>
+    </h2>
+    <p class="mt-2 text-slate-400">{{ hero.summary|truncatechars:200 }}</p>
+  </div>
+</div>
+{% endif %}
+
+{# сетка публикаций #}
+<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+  {% for pub in page_obj %}
+  <a href="{{ pub.get_absolute_url }}" class="card-warm overflow-hidden">
+    {% if pub.image_url %}
+    <img src="{{ pub.image_url }}" alt="{{ pub.title }}" class="h-36 w-full object-cover" loading="lazy">
+    {% else %}
+    <div class="cover-fallback" style="background: {{ pub.title|cover_gradient }}">
+      {% if pub.company == 'kimi' %}🌙{% elif pub.company == 'zai' %}⚡{% elif pub.company == 'qwen' %}🤖{% elif pub.company == 'deepseek' %}🐋{% else %}📰{% endif %}
+    </div>
+    {% endif %}
+    <div class="p-5">
+      <div class="flex items-center gap-2 text-xs">
+        {% if pub.company %}<span class="rounded-full bg-indigo-950 px-2 py-0.5 text-indigo-300">{{ pub.get_company_display }}</span>{% endif %}
+        <time class="text-slate-500">{{ pub.published_at|date:'d.m.Y' }}</time>
+      </div>
+      <h3 class="mt-2 font-semibold text-white">{{ pub.title|truncatechars:80 }}</h3>
+      {% if pub.summary %}<p class="mt-2 text-sm text-slate-400">{{ pub.summary|truncatechars:120 }}</p>{% endif %}
+    </div>
+  </a>
+  {% empty %}
+  <div class="empty-state" style="grid-column:1/-1;text-align:center;padding:34px;border:1px dashed var(--border2);border-radius:14px">
+    <p class="hint">Пока нет опубликованных ИИ-новостей — зайдите позже или подпишитесь на RSS.</p>
+  </div>
+  {% endfor %}
+</div>
+
+{# пагинация #}
+{% if page_obj.has_other_pages %}
+<div class="mt-8 flex gap-2">
+  {% if page_obj.has_previous %}
+  <a href="?page={{ page_obj.previous_page_number }}{% if company %}&company={{ company }}{% endif %}" class="btn-warm ghost">← Новее</a>
+  {% endif %}
+  {% if page_obj.has_next %}
+  <a href="?page={{ page_obj.next_page_number }}{% if company %}&company={{ company }}{% endif %}" class="btn-warm ghost">Старее →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -36,6 +36,7 @@ urlpatterns = [
     path('projects/', include('projects.urls')),
     path('contacts/', include('contacts.urls')),
     path('talks/', include('talks.urls')),
+    path('ai/', include('ainews.urls')),
     path('forum/', include('forum.urls')),
     path('boardapp/sso/', boards_sso, name='boards_sso'),
     path('accounts/login/', auth_views.LoginView.as_view(), name='login'),

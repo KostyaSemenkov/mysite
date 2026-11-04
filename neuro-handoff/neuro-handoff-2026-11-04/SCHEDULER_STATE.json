@@ -1,0 +1,15 @@
+{
+  "TaskName": "NEYRO-China-News-Hourly",
+  "State": "Ready",
+  "LastRunTime": "2026-11-04T21:43:13.0000000+03:00",
+  "LastTaskResult": 0,
+  "NextRunTime": "2026-11-04T22:43:12.0000000+03:00",
+  "Actions": [
+    {
+      "Execute": "D:\\gpt\\ai_portal\\.venv\\Scripts\\pythonw.exe",
+      "Arguments": "\"D:\\gpt\\ai_portal\\scripts\\run_news_job.py\"",
+      "WorkingDirectory": "D:\\gpt\\ai_portal"
+    }
+  ],
+  "Note": "Reference snapshot only. No task was created, changed, or disabled during packaging."
+}

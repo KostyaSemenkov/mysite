@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Проверка новости: {{ item }} — НЕЙРО{% endblock %}
+{% block content %}
+<div class="breadcrumb"><a href="{% url 'admin:portal_incomingnews_changelist' %}">Входящие новости</a> / {{ item.source }}</div>
+<article class="reading">
+  {% for message in messages %}<div role="status" class="notice review-message {{ message.tags }}">{{ message }}</div>{% endfor %}
+  <aside class="notice">ПРОВЕРКА НОВОСТИ · {{ item.get_status_display }}<br>Эта страница доступна только редактору.</aside>
+  <div class="meta"><span class="pill">{{ item.source }} · {{ item.get_event_display }}</span><time>{{ item.source_date|date:'d E Y' }}</time></div>
+  <h1>{{ item.title_ru|default:item.original_title }}</h1>
+  {% if item.body_ru %}<p class="lead">{{ item.summary_ru }}</p><div class="prose">{{ item.body_ru|linebreaks }}</div>
+  {% else %}<p class="lead">Русское изложение ещё не подготовлено. Заполните заголовок, краткое описание и текст через «Редактировать».</p>{% endif %}
+  <a class="source" href="{{ item.source_url }}" target="_blank" rel="noopener noreferrer">Официальный источник ↗</a>
+  <details class="original"><summary>Оригинал для сверки</summary><h2>{{ item.original_title }}</h2><div class="prose">{{ item.original_text|linebreaks }}</div></details>
+  {% if item.previous_text %}<details class="original"><summary>Предыдущая версия оригинала</summary><div class="prose">{{ item.previous_text|linebreaks }}</div></details>{% endif %}
+  {% if can_change %}
+  <section class="review-panel" aria-label="Решение редактора">
+    <h2>Решение редактора</h2>
+    {% if item.status == 'review' %}<p>Сверьте русский текст с источником. Кнопка публикации сделает новость доступной всем читателям.</p>
+    {% elif item.status == 'changed' %}<p>Источник изменился. Сравните версии, внесите правки в русский текст и отметьте его готовым.</p>
+    {% elif item.status == 'published' %}<p>Новость уже опубликована. Для исправлений отредактируйте текст и снова отправьте его на проверку.</p>
+    {% else %}<p>Подготовьте русский текст и отметьте его готовым к проверке. Затем появится кнопка публикации.</p>{% endif %}
+    <div class="review-actions">
+      <a class="button dark" href="{% url 'admin:portal_incomingnews_change' item.pk %}">Редактировать</a>
+      {% if item.status == 'review' %}
+        {% if can_publish %}<form method="post">{% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><button class="button" name="action" value="publish">Одобрить и опубликовать</button></form>
+        {% else %}<p>Для публикации нужны права на добавление и изменение публикаций.</p>{% endif %}
+      {% elif item.status != 'published' %}
+        <form method="post">{% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><button class="button" name="action" value="ready">Текст готов к проверке</button></form>
+      {% endif %}
+      {% if item.status != 'rejected' and item.status != 'published' %}<form method="post">{% csrf_token %}<input type="hidden" name="revision" value="{{ revision }}"><button class="button review-reject" name="action" value="reject">Отклонить черновик</button></form>{% endif %}
+    </div>
+    {% if item.publication_id %}<p class="review-footnote">Отклонение черновика не снимает прежнюю публикацию с сайта.</p>{% endif %}
+  </section>
+  {% endif %}
+</article>
+{% endblock %}

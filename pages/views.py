@@ -8,6 +8,7 @@ from blog.models import Post
 from forum.models import Comment, Topic
 from projects.models import Project
 from talks.models import Talk
+from ainews.models import Publication as AIPub, Course as AICourse
 
 from .models import (FaqItem, Favorite, PathItem, PathStep, Profile, QuizAttempt,
                      QuizQuestion, Testimonial, UsefulFile, UserPathProgress)
@@ -124,6 +125,8 @@ SITE_SECTIONS = [
     ('Обо мне', '/about/', 'автор биография манифест таймлайн кто'),
     ('Контакты', '/contacts/', 'связаться написать email письмо заявка'),
     ('Курс по автотестам', '/waiting/', 'курс обучение автотесты ожидание pytest'),
+    ('ИИ-новости', '/ai/', 'ии ai нейросети kimi qwen deepseek z.ai китайские новости'),
+    ('ИИ-курсы', '/ai/courses/', 'курсы ии обучение нейросети'),
     ('Путь тестировщика', '/path/', 'путь дорожка обучение рост ступени прогресс'),
     ('Песочница с багами', '/sandbox/', 'песочница баги практика магазин тренажер найти'),
 ]
@@ -148,6 +151,10 @@ def search(request):
                 | Q(event__icontains=q))),
             'forum': ('Темы форума', Topic.objects.filter(
                 Q(title__icontains=q) | Q(body__icontains=q))),
+            'ainews': ('ИИ-новости', AIPub.objects.filter(
+                published=True, title__icontains=q)),
+            'aicourses': ('ИИ-курсы', AICourse.objects.filter(
+                published=True, title__icontains=q)),
         }
         if section == 'sections':
             lookups = {}

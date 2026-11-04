@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'pages',
     'contacts',
     'talks',
+    'ainews',
     'forum',
 ]
 

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ course.title }} — ИИ-курсы{% endblock %}
+{% block meta_description %}{{ course.summary|truncatechars:200 }}{% endblock %}
+
+{% block content %}
+<nav class="text-xs text-slate-500 mb-4">
+  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
+  <a href="{% url 'ainews:courses' %}" class="hover:text-white">ИИ-курсы</a> ·
+  <span class="text-slate-400">{{ course.title|truncatechars:30 }}</span>
+</nav>
+
+<div class="flex flex-wrap items-center gap-3">
+  <span class="hero-badge">{{ course.get_level_display }}</span>
+  {% if course.price == 0 %}
+  <span class="rounded-full bg-emerald-900/40 px-3 py-1 text-sm text-emerald-300">Бесплатно</span>
+  {% else %}
+  <span class="font-display text-2xl font-bold text-indigo-300">{{ course.price }} ₽</span>
+  {% endif %}
+</div>
+
+<h1 class="font-display mt-4 text-3xl font-bold text-white">{{ course.title }}</h1>
+<p class="mt-2 text-slate-400">{{ course.provider }}{% if course.duration %} · {{ course.duration }}{% endif %}</p>
+
+<div class="prose-warm mt-8 leading-relaxed text-slate-300">
+  <h3 class="text-white font-semibold">Описание</h3>
+  <p>{{ course.summary|linebreaksbr }}</p>
+
+  {% if course.audience %}
+  <h3 class="mt-6 text-white font-semibold">Кому подходит</h3>
+  <p>{{ course.audience|linebreaksbr }}</p>
+  {% endif %}
+
+  {% if course.program %}
+  <h3 class="mt-6 text-white font-semibold">Программа</h3>
+  <ul class="mt-2 space-y-1.5">
+    {% for line in course.program_lines %}
+    <li class="flex gap-2">
+      <svg class="icon text-indigo-400 mt-0.5" style="width:1em;height:1em"><use href="{% static 'img/icons.svg' %}#check"/></svg>
+      <span>{{ line }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+
+<div class="mt-8 flex flex-wrap gap-4">
+  {% if course.external_url %}
+  <a href="{{ course.external_url }}" target="_blank" rel="noopener" class="btn-warm">
+    Начать обучение →</a>
+  {% endif %}
+  <a href="{% url 'ainews:courses' %}" class="btn-warm ghost">← Все курсы</a>
+</div>
+
+<p class="mt-4 text-xs text-slate-500">Условия проверены: {{ course.checked_at|date:'d.m.Y' }}</p>
+{% endblock %}

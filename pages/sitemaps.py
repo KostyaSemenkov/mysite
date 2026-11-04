@@ -5,6 +5,7 @@ from blog.models import Post
 from forum.models import Topic
 from projects.models import Project
 from talks.models import Talk
+from ainews.models import Course as AICourse, Publication as AIPub
 
 
 class StaticViewSitemap(Sitemap):
@@ -50,6 +51,25 @@ class TalkSitemap(Sitemap):
         return Talk.objects.published()
 
 
+class AIPublicationSitemap(Sitemap):
+    priority = 0.7
+    changefreq = 'daily'
+
+    def items(self):
+        return AIPub.objects.filter(published=True)
+
+    def lastmod(self, obj):
+        return obj.published_at
+
+
+class AICourseSitemap(Sitemap):
+    priority = 0.5
+    changefreq = 'monthly'
+
+    def items(self):
+        return AICourse.objects.filter(published=True)
+
+
 class TopicSitemap(Sitemap):
     priority = 0.4
     changefreq = 'daily'
@@ -67,4 +87,6 @@ sitemaps = {
     'projects': ProjectSitemap,
     'talks': TalkSitemap,
     'topics': TopicSitemap,
+    'ainews': AIPublicationSitemap,
+    'aicourses': AICourseSitemap,
 }
