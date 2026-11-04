@@ -11,6 +11,7 @@ const NAV = [
   { href: '/blog/', label: 'Блог' },
   { href: '/projects/', label: 'Проекты' },
   { href: '/talks/', label: 'Выступления' },
+  { href: '/ai/', label: 'ИИ-новости' },
   { href: '/forum/', label: 'Форум' },
   { href: '/useful/', label: 'Полезности' },
   { href: '/quiz/', label: 'Тренажёр' },
