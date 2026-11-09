@@ -4,11 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..access import get_board_or_404, get_role, get_user_by_username, require_editor
+from ..board_manager import manager
 from ..database import get_session
-from ..models import Board, BoardMember, Edge, Ticket, User
+from ..models import Board, BoardMember, Edge, Ticket, User, Zone
 from ..schemas import (
     BoardCreate, BoardOut, BoardPatch, BoardSnapshot, BoardWithRole, BoardsList,
-    EdgeOut, MemberIn, MemberOut, TicketOut, UserOut,
+    EdgeOut, MemberIn, MemberOut, TicketOut, UserOut, ZoneOut,
 )
 from ..security import get_current_user
 
@@ -48,25 +49,30 @@ async def create_board(body: BoardCreate,
 async def board_snapshot(board_id: str,
                          user: User = Depends(get_current_user),
                          session: AsyncSession = Depends(get_session)):
-    board = await get_board_or_404(session, user, board_id)
-    role = await get_role(session, user, board)
-    tickets = (await session.scalars(
-        select(Ticket).where(Ticket.board_id == board.id)
-    )).all()
-    edges = (await session.scalars(
-        select(Edge).where(Edge.board_id == board.id)
-    )).all()
-    member_rows = (await session.execute(
-        select(BoardMember, User)
-        .join(User, User.id == BoardMember.user_id)
-        .where(BoardMember.board_id == board.id)
-    )).all()
-    return BoardSnapshot(
-        board=BoardWithRole.of(board, role),
-        tickets=[TicketOut.of(t) for t in tickets],
-        edges=[EdgeOut.of(e) for e in edges],
-        members=[MemberOut(user=UserOut.of(u), role=m.role) for m, u in member_rows],
-    )
+    async with manager.lock_changes(board_id):
+        board = await get_board_or_404(session, user, board_id)
+        role = await get_role(session, user, board)
+        tickets = (await session.scalars(
+            select(Ticket).where(Ticket.board_id == board.id)
+        )).all()
+        edges = (await session.scalars(
+            select(Edge).where(Edge.board_id == board.id)
+        )).all()
+        zones = (await session.scalars(
+            select(Zone).where(Zone.board_id == board.id)
+        )).all()
+        member_rows = (await session.execute(
+            select(BoardMember, User)
+            .join(User, User.id == BoardMember.user_id)
+            .where(BoardMember.board_id == board.id)
+        )).all()
+        return BoardSnapshot(
+            board=BoardWithRole.of(board, role),
+            tickets=[TicketOut.of(t) for t in tickets],
+            edges=[EdgeOut.of(e) for e in edges],
+            zones=[ZoneOut.of(z) for z in zones],
+            members=[MemberOut(user=UserOut.of(u), role=m.role) for m, u in member_rows],
+        )
 
 
 @router.patch('/{board_id}', response_model=BoardOut)

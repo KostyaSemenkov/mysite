@@ -6,12 +6,14 @@ import { onStatus, type WsStatus } from '../ws'
 const STATUS_LABEL: Record<WsStatus, string> = {
   connecting: 'подключение…',
   online: 'онлайн',
+  saving: 'сохранение…',
   reconnecting: 'переподключение…',
 }
 
 export default function Toolbar({ onExport }: { onExport: () => void }) {
   const title = useBoard((s) => s.boardTitle)
   const role = useBoard((s) => s.role)
+  const syncError = useBoard((s) => s.syncError)
   const presence = useBoard((s) => s.presence)
   const canUndo = useBoard((s) => s.undoStack.length > 0)
   const canRedo = useBoard((s) => s.redoStack.length > 0)
@@ -41,10 +43,11 @@ export default function Toolbar({ onExport }: { onExport: () => void }) {
         Скачать PNG
       </button>
       <div className="sep" />
-      <div className="ws-status">
+      <div className="ws-status" role="status">
         <span className={`ws-dot ${status === 'online' ? 'online' : status === 'reconnecting' ? 'reconnecting' : ''}`} />
         {STATUS_LABEL[status]}
       </div>
+      {syncError && <span className="role-badge" role="alert">{syncError}</span>}
       <div className="presence-list">
         {presence.map((p) => (
           <span key={p.userId} className="presence-chip" style={{ ['--presence-color' as string]: p.color }}>

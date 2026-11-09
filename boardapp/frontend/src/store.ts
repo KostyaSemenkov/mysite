@@ -3,12 +3,14 @@ import type { Connection } from '@xyflow/react'
 import { send } from './ws'
 import {
   EV, edgeMsgToEdge, emit, ticketToNode, zoneToNode,
-  type EdgeMsg, type TicketMsg, type ZoneMsg,
+  type BoardChange, type BoardEvent, type BoardInitMsg, type BoardMutation,
+  type EdgeMsg, type Presence, type TicketMsg, type ZoneMsg,
 } from './boardEvents'
 
 export interface TicketData extends Record<string, unknown> {
   text: string
   color: string
+  zoneId: string | null
   editing?: boolean
 }
 
@@ -22,12 +24,6 @@ export const STICKER_COLORS = ['#FFF3B1', '#FFD6A5', '#CAFFBF', '#9BF6FF', '#BDB
 // плотные цвета зон — отличны от ярких стикеров
 export const ZONE_COLORS = ['#7a4a2b', '#5a5a2f', '#5d3a52']
 
-interface Presence {
-  userId: string
-  username: string
-  color: string
-}
-
 interface Cursor {
   userId: string
   x: number
@@ -38,12 +34,11 @@ interface Cursor {
 interface BoardState {
   boardTitle: string
   role: string
+  syncError: string
   presence: Presence[]
   cursors: Cursor[]
   undoStack: UndoEntry[]
   redoStack: UndoEntry[]
-  setTitle: (title: string) => void
-  setRole: (role: string) => void
   reset: () => void
   presenceJoin: (data: Presence) => void
   presenceLeave: (userId: string) => void
@@ -56,14 +51,13 @@ interface BoardState {
 export const useBoard = create<BoardState>((set, get) => ({
   boardTitle: '',
   role: 'viewer',
+  syncError: '',
   presence: [],
   cursors: [],
   undoStack: [],
   redoStack: [],
 
-  setTitle: (boardTitle) => set({ boardTitle }),
-  setRole: (role) => set({ role }),
-  reset: () => set({ boardTitle: '', role: 'viewer', presence: [], cursors: [],
+  reset: () => set({ boardTitle: '', role: 'viewer', syncError: '', presence: [], cursors: [],
                      undoStack: [], redoStack: [] }),
 
   presenceJoin: (p) =>
@@ -127,15 +121,10 @@ export function ticketAutoHeight(text: string): number {
   return Math.min(760, Math.max(130, 56 + lines * 32))
 }
 
-export function applyInit(data: {
-  board: { title: string }
-  tickets: TicketMsg[]
-  edges: EdgeMsg[]
-  zones: ZoneMsg[]
-  role: string
-}) {
-  useBoard.getState().setTitle(data.board.title)
-  useBoard.getState().setRole(data.role)
+export function applyInit(data: BoardInitMsg) {
+  useBoard.setState({
+    boardTitle: data.board.title, role: data.role, presence: data.presence, cursors: [],
+  })
   emit(EV.init, {
     nodes: [
       ...(data.zones ?? []).map(zoneToNode),
@@ -149,7 +138,7 @@ export function applyTicketCreated(t: TicketMsg) {
   emit(EV.ticketCreated, ticketToNode(t))
 }
 
-export function applyTicketUpdated(id: string, patch: Partial<TicketMsg>) {
+export function applyTicketUpdated(id: string, patch: Partial<TicketMsg> & { editing?: boolean }) {
   emit(EV.ticketUpdated, { id, patch })
 }
 
@@ -159,6 +148,10 @@ export function applyTicketDeleted(id: string) {
 
 export function applyEdgeCreated(e: EdgeMsg) {
   emit(EV.edgeCreated, edgeMsgToEdge(e))
+}
+
+function applyEdgeUpdated(id: string, label: string) {
+  emit(EV.edgeUpdated, { id, label })
 }
 
 export function applyEdgeDeleted(id: string) {
@@ -177,20 +170,63 @@ export function applyZoneDeleted(id: string) {
   emit(EV.zoneDeleted, { id })
 }
 
+export function applyBoardEvent(event: BoardEvent) {
+  switch (event.type) {
+    case 'ticket:created': applyTicketCreated(event.data); break
+    case 'ticket:updated': applyTicketUpdated(event.data.id, event.data.patch); break
+    case 'ticket:deleted': applyTicketDeleted(event.data.id); break
+    case 'edge:created': applyEdgeCreated(event.data); break
+    case 'edge:updated': applyEdgeUpdated(event.data.id, event.data.label); break
+    case 'edge:deleted': applyEdgeDeleted(event.data.id); break
+    case 'zone:created': applyZoneCreated(event.data); break
+    case 'zone:updated': applyZoneUpdated(event.data.id, event.data.patch); break
+    case 'zone:deleted': applyZoneDeleted(event.data.id); break
+  }
+}
+
+export function applyPendingMutation(mutation: BoardMutation) {
+  if (mutation.type === 'board:batch') {
+    mutation.data.changes.forEach(applyPendingMutation)
+    return
+  }
+  switch (mutation.type) {
+    case 'ticket:create': applyTicketCreated(mutation.data); break
+    case 'ticket:update': applyTicketUpdated(mutation.data.id, mutation.data.patch); break
+    case 'ticket:delete': applyTicketDeleted(mutation.data.id); break
+    case 'edge:create': applyEdgeCreated(mutation.data); break
+    case 'edge:update': applyEdgeUpdated(mutation.data.id, mutation.data.label); break
+    case 'edge:delete': applyEdgeDeleted(mutation.data.id); break
+    case 'zone:create': applyZoneCreated(mutation.data); break
+    case 'zone:update': applyZoneUpdated(mutation.data.id, mutation.data.patch); break
+    case 'zone:delete': applyZoneDeleted(mutation.data.id); break
+  }
+}
+
+export function commitBatch(changes: BoardChange[], inverse: BoardChange[]) {
+  if (changes.length === 0) return
+  const apply = (batch: BoardChange[]) => {
+    const mutation = { type: 'board:batch', data: { changes: batch } } as const
+    send(mutation)
+    applyPendingMutation(mutation)
+  }
+  apply(changes)
+  useBoard.getState().pushUndo({ undo: () => apply(inverse), redo: () => apply(changes) })
+}
+
 /** Запрос на удаление ноды (тикет/группа) — редактор найдёт снимок и удалит. */
 export function requestDeleteNode(id: string) {
   emit(EV.nodeDeleteRequest, { id })
 }
 
-// --- операции: локально (событием) + на сервер; эхо подавляется по actor в ws.ts ---
+// --- операции: локально (событием) + на сервер ---
 
-export function createTicket(x: number, y: number, color = STICKER_COLORS[0]) {
+export function createTicket(x: number, y: number, color = STICKER_COLORS[0], zoneId: string | null = null) {
   const id = crypto.randomUUID()
-  const msg: TicketMsg = { id, x, y, width: 200, height: 100, text: '', color }
+  const msg: TicketMsg = { id, x, y, width: 200, height: 130, text: '', color, zoneId }
   send({ type: 'ticket:create', data: msg })
   applyTicketCreated(msg)
   // новый тикет сразу в режиме редактирования
-  applyTicketUpdated(id, { editing: true } as never)
+  applyTicketUpdated(id, { editing: true })
   useBoard.getState().pushUndo({
     undo: () => {
       send({ type: 'ticket:delete', data: { id } })
@@ -235,41 +271,6 @@ export function updateTicket(id: string, patch: Partial<TicketMsg> & { editing?:
   }
 }
 
-// снять editing-флаг локально (после commit в TicketNode)
-export function stopEditing(id: string) {
-  emit(EV.ticketUpdated, { id, patch: { editing: false } as never })
-}
-
-export function deleteTicket(id: string) {
-  // снимок для undo берём из DOM-события редактора: упрощённо — редактор
-  // перед драгом/удалением сам держит данные; здесь только операции
-  send({ type: 'ticket:delete', data: { id } })
-  applyTicketDeleted(id)
-}
-
-export function deleteTicketWithSnapshot(node: {
-  id: string; position: { x: number; y: number };
-  width?: number; height?: number; data: TicketData;
-}) {
-  const msg: TicketMsg = {
-    id: node.id, x: node.position.x, y: node.position.y,
-    width: node.width ?? 200, height: node.height ?? 100,
-    text: node.data.text, color: node.data.color,
-  }
-  send({ type: 'ticket:delete', data: { id: node.id } })
-  applyTicketDeleted(node.id)
-  useBoard.getState().pushUndo({
-    undo: () => {
-      send({ type: 'ticket:create', data: msg })
-      applyTicketCreated(msg)
-    },
-    redo: () => {
-      send({ type: 'ticket:delete', data: { id: node.id } })
-      applyTicketDeleted(node.id)
-    },
-  })
-}
-
 export function createEdge(connection: Connection) {
   if (!connection.source || !connection.target || connection.source === connection.target) return
   const id = crypto.randomUUID()
@@ -284,27 +285,6 @@ export function createEdge(connection: Connection) {
     redo: () => {
       send({ type: 'edge:create', data: msg })
       applyEdgeCreated(msg)
-    },
-  })
-}
-
-export function deleteEdge(id: string) {
-  send({ type: 'edge:delete', data: { id } })
-  applyEdgeDeleted(id)
-}
-
-export function deleteEdgeWithSnapshot(edge: { id: string; source: string; target: string }) {
-  const msg: EdgeMsg = { id: edge.id, source: edge.source, target: edge.target }
-  send({ type: 'edge:delete', data: { id: edge.id } })
-  applyEdgeDeleted(edge.id)
-  useBoard.getState().pushUndo({
-    undo: () => {
-      send({ type: 'edge:create', data: msg })
-      applyEdgeCreated(msg)
-    },
-    redo: () => {
-      send({ type: 'edge:delete', data: { id: edge.id } })
-      applyEdgeDeleted(edge.id)
     },
   })
 }
@@ -344,27 +324,4 @@ export function updateZone(id: string, patch: Partial<ZoneMsg>, undoPatch?: Part
       },
     })
   }
-}
-
-export function deleteZoneWithSnapshot(node: {
-  id: string; position: { x: number; y: number };
-  width?: number; height?: number; data: { title: string };
-}) {
-  const msg: ZoneMsg = {
-    id: node.id, title: node.data.title,
-    x: node.position.x, y: node.position.y,
-    width: node.width ?? 420, height: node.height ?? 280,
-  }
-  send({ type: 'zone:delete', data: { id: node.id } })
-  applyZoneDeleted(node.id)
-  useBoard.getState().pushUndo({
-    undo: () => {
-      send({ type: 'zone:create', data: msg })
-      applyZoneCreated(msg)
-    },
-    redo: () => {
-      send({ type: 'zone:delete', data: { id: node.id } })
-      applyZoneDeleted(node.id)
-    },
-  })
 }

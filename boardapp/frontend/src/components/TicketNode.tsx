@@ -30,7 +30,8 @@ export default function TicketNode({ id, data, selected }: NodeProps<TicketNodeT
       onDoubleClick={() => editable && updateTicket(id, { editing: true })}
       title={editable ? 'Двойной клик — редактировать текст' : undefined}
     >
-      {editable && <Handle type="source" position={Position.Right} />}
+      <Handle type="source" position={Position.Right} isConnectable={editable}
+        style={{ visibility: editable ? 'visible' : 'hidden' }} />
       {data.editing ? (
         <>
           <textarea
@@ -80,7 +81,8 @@ export default function TicketNode({ id, data, selected }: NodeProps<TicketNodeT
           ))}
         </div>
       )}
-      {editable && <Handle type="target" position={Position.Left} />}
+      <Handle type="target" position={Position.Left} isConnectable={editable}
+        style={{ visibility: editable ? 'visible' : 'hidden' }} />
     </div>
   )
 }

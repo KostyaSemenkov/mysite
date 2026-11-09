@@ -257,27 +257,52 @@ a { color: var(--accent-light); text-decoration: none; }
   cursor: pointer;
 }
 
-/* Кнопка удаления связи */
-.edge-delete {
+.editor-wrap .react-flow__edgelabel-renderer { z-index: 4; }
+.board-edge-label {
   position: absolute;
-  transform: translate(-50%, -50%);
-  width: 22px; height: 22px;
-  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+.edge-label-text,
+.edge-label-edit input {
+  max-width: 220px;
+  padding: 3px 7px;
   border: 1px solid var(--border2);
+  border-radius: 5px;
   background: var(--panel);
   color: var(--text);
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  z-index: 30;
+  font-size: 15px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
 }
-.edge-delete:hover { background: #a03e2e; border-color: #c9503c; color: #fff; }
-.react-flow__edge:hover .edge-delete,
-.react-flow__edge.selected .edge-delete { display: flex; }
+.edge-label-edit, .edge-label-tools {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  pointer-events: auto;
+}
+.edge-label-tools {
+  position: absolute;
+  left: calc(100% + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+.edge-label-edit button, .edge-label-tools button {
+  min-width: 25px;
+  height: 25px;
+  padding: 0 4px;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+.edge-label-edit button:hover, .edge-label-tools button:hover {
+  border-color: var(--accent);
+}
 
 .zone-resize-line { border-color: var(--accent) !important; }
 .zone-resize-handle {
@@ -325,6 +350,23 @@ a { color: var(--accent-light); text-decoration: none; }
   color: var(--text);
   box-shadow: 0 4px 14px rgba(0,0,0,0.35);
 }
+.board-tools {
+  position: absolute;
+  left: 56px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 6px;
+  pointer-events: none;
+}
+.board-tools .toolbar { position: static; pointer-events: auto; }
+.board-tools .btn { padding: 6px 10px; font-size: 15px; }
+.board-tool-select option { background: var(--panel); color: var(--text); }
+.selection-toolbar { border-color: var(--border2); }
+
 .toolbar .sep { width: 1px; height: 20px; background: var(--border2); }
 .toolbar strong { color: var(--title); }
 .ws-status { display: flex; align-items: center; gap: 5px; color: var(--muted); }

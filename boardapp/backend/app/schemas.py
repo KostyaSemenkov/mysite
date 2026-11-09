@@ -89,13 +89,14 @@ class TicketOut(BaseModel):
     height: float
     text: str
     color: str
+    zoneId: str | None
     updated_at: datetime
 
     @classmethod
     def of(cls, t) -> 'TicketOut':
         return cls(
             id=t.id, x=t.x, y=t.y, width=t.width, height=t.height,
-            text=t.text, color=t.color, updated_at=t.updated_at,
+            text=t.text, color=t.color, zoneId=t.zone_id, updated_at=t.updated_at,
         )
 
 
@@ -103,18 +104,35 @@ class EdgeOut(BaseModel):
     id: str
     source: str
     target: str
+    label: str
     updated_at: datetime
 
     @classmethod
     def of(cls, e) -> 'EdgeOut':
         return cls(
             id=e.id, source=e.source_ticket_id, target=e.target_ticket_id,
-            updated_at=e.updated_at,
+            label=e.label, updated_at=e.updated_at,
         )
+
+
+class ZoneOut(BaseModel):
+    id: str
+    title: str
+    color: str
+    x: float
+    y: float
+    width: float
+    height: float
+
+    @classmethod
+    def of(cls, zone) -> 'ZoneOut':
+        return cls(id=zone.id, title=zone.title, color=zone.color, x=zone.x, y=zone.y,
+                   width=zone.width, height=zone.height)
 
 
 class BoardSnapshot(BaseModel):
     board: BoardWithRole
     tickets: list[TicketOut]
     edges: list[EdgeOut]
+    zones: list[ZoneOut]
     members: list[MemberOut]

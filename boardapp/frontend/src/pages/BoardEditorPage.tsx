@@ -7,42 +7,40 @@ import {
   MiniMap,
   ReactFlow,
   ReactFlowProvider,
-  addEdge,
   getNodesBounds,
-  getViewportForBounds,
   useEdgesState,
   useNodesState,
   useReactFlow,
   type Connection,
   type Edge,
-  type EdgeChange,
   type Node,
-  type OnSelectionChangeParams,
   type XYPosition,
 } from '@xyflow/react'
-import { toPng } from 'html-to-image'
 import '@xyflow/react/dist/style.css'
 
 import { ensureUser } from '../api'
+import {
+  deleteBoardElements, duplicateBoardSelection, insertBoardElements, isTicket, isZone,
+  selectedFragment, zoneForTicket,
+} from '../boardActions'
+import { downloadBoardPng } from '../boardExport'
+import { BOARD_TEMPLATES, insertBoardTemplate, type BoardTemplate } from '../boardTemplates'
 import DeletableEdge from '../components/DeletableEdge'
 import TicketNode from '../components/TicketNode'
 import ZoneNode from '../components/ZoneNode'
 import ShareModal from '../components/ShareModal'
 import Toolbar from '../components/Toolbar'
 import SiteStrip from '../components/SiteStrip'
-import { EV, on, type TicketMsg, type ZoneMsg } from '../boardEvents'
+import { EV, on, type BoardChange, type TicketMsg, type ZoneMsg } from '../boardEvents'
 import {
   STICKER_COLORS,
   ZONE_COLORS,
+  applyTicketUpdated,
+  commitBatch,
   createEdge,
   createTicket,
   createZone,
-  deleteEdgeWithSnapshot,
-  deleteTicketWithSnapshot,
-  deleteZoneWithSnapshot,
   ticketAutoHeight,
-  updateTicket,
-  updateZone,
   useBoard,
   type TicketData,
 } from '../store'
@@ -76,10 +74,10 @@ function BoardEditorInner() {
   const redo = useBoard((s) => s.redo)
 
   const [shareOpen, setShareOpen] = useState(false)
+  const [actionError, setActionError] = useState('')
   const [colorIdx, setColorIdx] = useState(0)
   const zoneColorIdx = useRef(0)
-  const dragStart = useRef<Record<string, { x: number; y: number }>>({})
-  const zoneContents = useRef<Record<string, { id: string; x: number; y: number }[]>>({})
+  const dragStart = useRef(new Map<string, Node>())
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const nodesRef = useRef(nodes)
   nodesRef.current = nodes
@@ -92,6 +90,7 @@ function BoardEditorInner() {
     if (!id) return
     ensureUser().then((me) => { if (me) setMyUserId(me.id) })
     resetBoard()
+    setActionError('')
     setNodes([])
     setEdges([])
     connectBoard(id)
@@ -117,6 +116,7 @@ function BoardEditorInner() {
           const data = { ...n.data } as TicketData
           if (patch.text !== undefined) data.text = patch.text
           if (patch.color !== undefined) data.color = patch.color
+          if (patch.zoneId !== undefined) data.zoneId = patch.zoneId
           if (patch.editing !== undefined) data.editing = patch.editing
           const position = (patch.x !== undefined || patch.y !== undefined)
             ? {
@@ -137,6 +137,9 @@ function BoardEditorInner() {
       }),
       on(EV.edgeCreated, (edge: Edge) => {
         setEdges((es) => (es.some((x) => x.id === edge.id) ? es : [...es, edge]))
+      }),
+      on(EV.edgeUpdated, ({ id, label }: { id: string; label: string }) => {
+        setEdges((es) => es.map((edge) => edge.id === id ? { ...edge, data: { ...edge.data, label } } : edge))
       }),
       on(EV.edgeDeleted, ({ id: eid }: { id: string }) => {
         setEdges((es) => es.filter((e) => e.id !== eid))
@@ -163,22 +166,13 @@ function BoardEditorInner() {
         }))
       }),
       on(EV.zoneDeleted, ({ id: zid }: { id: string }) => {
-        setNodes((ns) => ns.filter((n) => n.id !== zid))
+        setNodes((ns) => ns.filter((n) => n.id !== zid).map((n) =>
+          isTicket(n) && n.data.zoneId === zid ? { ...n, data: { ...n.data, zoneId: null } } : n,
+        ))
       }),
       on(EV.nodeDeleteRequest, ({ id: rid }: { id: string }) => {
-        const n = nodesRef.current.find((x) => x.id === rid)
-        if (!n) return
-        if (n.type === 'zone') {
-          deleteZoneWithSnapshot(n as unknown as {
-            id: string; position: { x: number; y: number };
-            width?: number; height?: number; data: { title: string };
-          })
-        } else {
-          deleteTicketWithSnapshot(n as unknown as {
-            id: string; position: { x: number; y: number };
-            width?: number; height?: number; data: TicketData;
-          })
-        }
+        const node = nodesRef.current.find((item) => item.id === rid)
+        if (node) deleteBoardElements([node], [], nodesRef.current, edgesRef.current)
       }),
     ]
     return () => offs.forEach((off) => off())
@@ -188,155 +182,206 @@ function BoardEditorInner() {
     (c: Connection) => {
       if (!editable) return
       createEdge(c)
-      setEdges((eds) => addEdge(c, eds))
     },
-    [editable, setEdges],
+    [editable],
   )
 
-  const onEdgesDelete = useCallback((changes: EdgeChange[]) => {
-    if (!editable) return
-    changes.forEach((c) => {
-      if (c.type === 'remove') {
-        const snap = edgesRef.current.find((e) => e.id === c.id)
-        if (snap) deleteEdgeWithSnapshot({ id: snap.id, source: snap.source, target: snap.target })
-      }
-    })
-  }, [editable])
-
-  const onNodeDragStart = useCallback(
-    (_: MouseEvent | TouchEvent, node: Node) => {
-      dragStart.current[node.id] = { ...node.position }
-      if (node.type === 'zone') {
-        // запоминаем тикеты, чей центр внутри зоны, — поедут вместе с ней
-        const zw = node.width ?? 420
-        const zh = node.height ?? 280
-        zoneContents.current[node.id] = nodesRef.current
-          .filter((n) => n.type === 'ticket')
-          .filter((n) => {
-            const cx = n.position.x + (n.width ?? 200) / 2
-            const cy = n.position.y + (n.height ?? 100) / 2
-            return cx >= node.position.x && cx <= node.position.x + zw
-              && cy >= node.position.y && cy <= node.position.y + zh
-          })
-          .map((n) => ({ id: n.id, x: n.position.x, y: n.position.y }))
-      }
-    }, [])
-
-  const onNodeDragStop = useCallback(
-    (_: MouseEvent | TouchEvent, node: Node) => {
-      const start = dragStart.current[node.id]
-      if (!start) return
-      const dx = node.position.x - start.x
-      const dy = node.position.y - start.y
-      if (node.type === 'zone') {
-        if (dx !== 0 || dy !== 0) {
-          updateZone(node.id, { x: node.position.x, y: node.position.y },
-            { x: start.x, y: start.y })
-          // вложенные тикеты переезжают вместе с зоной (без отдельных undo-точек)
-          const contents = zoneContents.current[node.id] ?? []
-          for (const t of contents) {
-            updateTicket(t.id, { x: t.x + dx, y: t.y + dy })
-          }
-        }
-        delete zoneContents.current[node.id]
-        delete dragStart.current[node.id]
-        return
-      }
-      if (start.x === node.position.x && start.y === node.position.y) return
-      // одна undo-операция на весь drag
-      updateTicket(node.id, { x: node.position.x, y: node.position.y },
-        { x: start.x, y: start.y })
-      delete dragStart.current[node.id]
-    }, [])
-
-  const onSelectionChange = useCallback(({ nodes: selNodes, edges: selEdges }: OnSelectionChangeParams) => {
-    void selNodes
-    void selEdges
+  const startDrag = useCallback((dragged: Node[]) => {
+    dragStart.current = new Map(dragged.map((node) => [node.id, { ...node, position: { ...node.position } }]))
   }, [])
 
-  const onNodesDelete = useCallback((deleted: Node[]) => {
-    if (!editable) return
-    deleted.forEach((n) => {
-      if (n.type === 'zone') {
-        deleteZoneWithSnapshot(n as unknown as {
-          id: string; position: { x: number; y: number };
-          width?: number; height?: number; data: { title: string };
-        })
-      } else {
-        deleteTicketWithSnapshot(n as unknown as {
-          id: string; position: { x: number; y: number };
-          width?: number; height?: number; data: TicketData;
-        })
+  const stopDrag = useCallback((dragged: Node[]) => {
+    const changes: BoardChange[] = []
+    const inverse: BoardChange[] = []
+    const positions = new Map(dragged.map((node) => [node.id, node.position]))
+    const zones = nodesRef.current.filter(isZone).map((zone) => ({
+      ...zone, position: positions.get(zone.id) ?? zone.position,
+    }))
+    function moveTicket(ticket: Node<TicketData>, position: XYPosition, zoneId = ticket.data.zoneId) {
+      if (ticket.position.x === position.x && ticket.position.y === position.y) return
+      const patch: Partial<TicketMsg> = { ...position }
+      const before: Partial<TicketMsg> = { ...ticket.position }
+      if (zoneId !== ticket.data.zoneId) {
+        patch.zoneId = zoneId
+        before.zoneId = ticket.data.zoneId
       }
+      changes.push({ type: 'ticket:update', data: { id: ticket.id, patch } })
+      inverse.push({ type: 'ticket:update', data: { id: ticket.id, patch: before } })
+    }
+    for (const node of dragged) {
+      const start = dragStart.current.get(node.id)
+      if (!start || (start.position.x === node.position.x && start.position.y === node.position.y)) continue
+      if (isTicket(start) && isTicket(node)) {
+        const zoneId = zoneForTicket(zones, node.position, node.width, node.height, node.data.zoneId)
+        moveTicket({ ...start, data: node.data }, node.position, zoneId)
+      }
+      if (isZone(start)) {
+        changes.push({ type: 'zone:update', data: { id: node.id, patch: node.position } })
+        inverse.push({ type: 'zone:update', data: { id: node.id, patch: start.position } })
+        const dx = node.position.x - start.position.x
+        const dy = node.position.y - start.position.y
+        for (const ticket of nodesRef.current.filter(isTicket)) {
+          if (ticket.data.zoneId === node.id && !positions.has(ticket.id)) {
+            moveTicket(ticket, { x: ticket.position.x + dx, y: ticket.position.y + dy })
+          }
+        }
+      }
+    }
+    dragStart.current.clear()
+    commitBatch(changes, inverse)
+  }, [])
+
+  const selectNodes = useCallback((ids: string[]) => {
+    const selected = new Set(ids)
+    setNodes((all) => all.map((node) =>
+      Boolean(node.selected) === selected.has(node.id) ? node : { ...node, selected: selected.has(node.id) },
+    ))
+    setEdges((all) => all.map((edge) => edge.selected ? { ...edge, selected: false } : edge))
+  }, [setNodes, setEdges])
+
+  const duplicateSelection = useCallback(() => {
+    if (!editable || !nodesRef.current.some((node) => node.selected)) return false
+    selectNodes(duplicateBoardSelection(nodesRef.current, edgesRef.current))
+    return true
+  }, [editable, selectNodes])
+
+  const createLinkedTicket = useCallback(() => {
+    const selected = nodesRef.current.filter((node) => node.selected)
+    const source = selected[0]
+    if (!editable || selected.length !== 1 || !isTicket(source)) return false
+    const id = crypto.randomUUID()
+    const position = { x: source.position.x + (source.width ?? 200) + 100, y: source.position.y }
+    const zoneId = zoneForTicket(nodesRef.current, position, 200, 130, source.data.zoneId)
+    insertBoardElements({
+      tickets: [{ id, ...position, text: '', width: 200, height: 130, color: source.data.color, zoneId }],
+      edges: [{ id: crypto.randomUUID(), source: source.id, target: id }],
     })
-  }, [editable])
+    selectNodes([id])
+    applyTicketUpdated(id, { editing: true })
+    return true
+  }, [editable, selectNodes])
+
+  function updateSelectedTickets(
+    patchFor: (node: Node<TicketData>) => Partial<Pick<TicketMsg, 'x' | 'y' | 'color' | 'zoneId'>>,
+  ) {
+    const changes: BoardChange[] = []
+    const inverse: BoardChange[] = []
+    for (const node of nodesRef.current.filter(isTicket).filter((node) => node.selected)) {
+      const patch = patchFor(node)
+      if (Object.keys(patch).length === 0) continue
+      const before = { ...node.position, color: node.data.color, zoneId: node.data.zoneId }
+      changes.push({ type: 'ticket:update', data: { id: node.id, patch } })
+      const undoPatch = Object.fromEntries(
+        (Object.keys(patch) as (keyof typeof before)[]).map((key) => [key, before[key]]),
+      )
+      inverse.push({ type: 'ticket:update', data: { id: node.id, patch: undoPatch } })
+    }
+    commitBatch(changes, inverse)
+  }
+
+  function alignTickets(axis: 'x' | 'y') {
+    const tickets = nodesRef.current.filter(isTicket).filter((node) => node.selected)
+    const coordinate = Math.min(...tickets.map((node) => node.position[axis]))
+    updateSelectedTickets((node) => {
+      if (node.position[axis] === coordinate) return {}
+      const position = { ...node.position, [axis]: coordinate }
+      const zoneId = zoneForTicket(nodesRef.current, position, node.width, node.height, node.data.zoneId)
+      return zoneId === node.data.zoneId ? { [axis]: coordinate } : { [axis]: coordinate, zoneId }
+    })
+  }
+
+  function createZoneFromSelection() {
+    const tickets = nodesRef.current.filter(isTicket).filter((node) => node.selected)
+    if (tickets.length === 0) return
+    const bounds = getNodesBounds(tickets)
+    const width = Math.max(240, bounds.width + 80)
+    const height = Math.max(140, bounds.height + 100)
+    if (width > 8000 || height > 8000) {
+      setActionError('Карточки расположены слишком далеко друг от друга для одной группы.')
+      return
+    }
+    const id = crypto.randomUUID()
+    const zone: ZoneMsg = {
+      id, title: '', color: ZONE_COLORS[zoneColorIdx.current % ZONE_COLORS.length],
+      x: bounds.x - 40, y: bounds.y - 60, width, height,
+    }
+    zoneColorIdx.current += 1
+    const changes: BoardChange[] = [{ type: 'zone:create', data: zone }]
+    const inverse: BoardChange[] = []
+    for (const ticket of tickets) {
+      changes.push({ type: 'ticket:update', data: { id: ticket.id, patch: { zoneId: id } } })
+      inverse.push({ type: 'ticket:update', data: { id: ticket.id, patch: { zoneId: ticket.data.zoneId } } })
+    }
+    inverse.push({ type: 'zone:delete', data: { id } })
+    setActionError('')
+    commitBatch(changes, inverse)
+    selectNodes([id])
+  }
 
   const onMove = useCallback((_: unknown, pos: XYPosition) => {
     sendCursorThrottled(pos.x, pos.y)
   }, [])
 
-  const addTicketToCenter = useCallback(() => {
-    if (!editable) return
-    const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
-    createTicket(center.x - 100, center.y - 50, STICKER_COLORS[colorIdx % STICKER_COLORS.length])
-    setColorIdx((i) => i + 1)
-  }, [editable, screenToFlowPosition, colorIdx])
+  const canvasCenter = useCallback(() => {
+    const rect = viewportRef.current?.getBoundingClientRect()
+    return screenToFlowPosition({
+      x: rect ? rect.left + rect.width / 2 : window.innerWidth / 2,
+      y: rect ? rect.top + rect.height / 2 : window.innerHeight / 2,
+    })
+  }, [screenToFlowPosition])
 
-  const addZoneToCenter = useCallback(() => {
-    if (!editable) return
-    const center = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 })
+  function addTicketAt(center: XYPosition) {
+    const position = { x: center.x - 100, y: center.y - 65 }
+    const zoneId = zoneForTicket(nodesRef.current, position)
+    createTicket(position.x, position.y, STICKER_COLORS[colorIdx % STICKER_COLORS.length], zoneId)
+    setColorIdx((i) => i + 1)
+  }
+
+  function addZoneToCenter() {
+    const center = canvasCenter()
     createZone(center.x - 210, center.y - 140, '',
       ZONE_COLORS[zoneColorIdx.current % ZONE_COLORS.length])
     zoneColorIdx.current += 1
-  }, [editable, screenToFlowPosition])
+  }
 
-  const onWrapperDoubleClick = useCallback((event: React.MouseEvent) => {
-    if (!editable) return
-    // двойной клик по пустой канве (не по ноде)
-    const target = event.target as HTMLElement
-    if (!target.classList.contains('react-flow__pane')) return
-    const position = screenToFlowPosition({ x: event.clientX, y: event.clientY })
-    createTicket(position.x - 100, position.y - 50, STICKER_COLORS[colorIdx % STICKER_COLORS.length])
-    setColorIdx((i) => i + 1)
-  }, [editable, screenToFlowPosition, colorIdx])
+  function onWrapperDoubleClick(event: React.MouseEvent) {
+    if (!editable || !(event.target instanceof Element) || !event.target.matches('.react-flow__pane')) return
+    addTicketAt(screenToFlowPosition({ x: event.clientX, y: event.clientY }))
+  }
 
-  const exportPng = useCallback(async () => {
-    const viewport = viewportRef.current?.querySelector('.react-flow__viewport') as HTMLElement | null
-    if (!viewport) return
-    const currentNodes = nodesRef.current
-    if (currentNodes.length === 0) return
-    const bounds = getNodesBounds(currentNodes)
-    const width = Math.ceil(bounds.width) + 200
-    const height = Math.ceil(bounds.height) + 200
-    const vp = getViewportForBounds(bounds, width, height, 0.4, 2, 100)
-    const dataUrl = await toPng(viewport, {
-      backgroundColor: '#ffffff',
-      width,
-      height,
-      style: {
-        width: `${width}px`,
-        height: `${height}px`,
-        transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})`,
-      },
-    })
-    const a = document.createElement('a')
-    a.download = `${useBoard.getState().boardTitle || 'board'}.png`
-    a.href = dataUrl
-    a.click()
-  }, [])
+  async function exportPng(selection = false) {
+    const viewport = viewportRef.current?.querySelector<HTMLElement>('.react-flow__viewport')
+    const fragment = selection ? selectedFragment(nodesRef.current) : nodesRef.current
+    if (!viewport || fragment.length === 0) return
+    setActionError('')
+    try {
+      const title = useBoard.getState().boardTitle || 'board'
+      await downloadBoardPng(viewport, fragment, edgesRef.current, title + (selection ? '-фрагмент.png' : '.png'))
+    } catch {
+      setActionError('Не удалось скачать PNG.')
+    }
+  }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (!(e.ctrlKey || e.metaKey)) return
-      if (e.key.toLowerCase() === 'z') {
+      if (!editable || !(e.ctrlKey || e.metaKey) || e.defaultPrevented) return
+      if (e.target instanceof HTMLElement && e.target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])')) return
+      const key = e.key.toLowerCase()
+      if (!e.shiftKey && !e.repeat && (
+        (key === 'd' && duplicateSelection()) || (key === 'arrowright' && createLinkedTicket())
+      )) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      if (key === 'z') {
         e.preventDefault()
         if (e.shiftKey) redo()
         else undo()
       }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [undo, redo])
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [editable, duplicateSelection, createLinkedTicket, undo, redo])
 
   const cursorLabels = useMemo(
     () =>
@@ -352,6 +397,10 @@ function BoardEditorInner() {
     [cursors, presence],
   )
 
+  const selection = nodes.filter((node) => node.selected)
+  const selectedTickets = selection.filter(isTicket)
+  const canLink = selection.length === 1 && selectedTickets.length === 1
+
   if (!id) {
     nav('/')
     return null
@@ -361,7 +410,7 @@ function BoardEditorInner() {
     <div className="editor-with-strip">
     <SiteStrip title={boardTitle} />
     <div className="editor-wrap" ref={viewportRef} onDoubleClick={onWrapperDoubleClick}>
-      <Toolbar onExport={exportPng} />
+      <Toolbar onExport={() => { void exportPng() }} />
       {role === 'owner' && (
         <div className="toolbar" style={{ left: 'auto', right: 12 }}>
           <button className="btn" onClick={() => setShareOpen(true)}>Поделиться</button>
@@ -373,15 +422,14 @@ function BoardEditorInner() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
-        onEdgesChange={(changes) => {
-          onEdgesDelete(changes)
-          onEdgesChange(changes)
+        onEdgesChange={onEdgesChange}
+        onBeforeDelete={async ({ nodes: deleted, edges: links }) => {
+          if (editable) deleteBoardElements(deleted, links, nodesRef.current, edgesRef.current)
+          return false
         }}
         onConnect={onConnect}
-        onNodeDragStart={onNodeDragStart}
-        onNodeDragStop={onNodeDragStop}
-        onNodesDelete={onNodesDelete}
-        onSelectionChange={onSelectionChange}
+        onNodeDragStart={(_, _node, dragged) => startDrag(dragged)}
+        onNodeDragStop={(_, _node, dragged) => stopDrag(dragged)}
         onMove={onMove}
         nodesDraggable={editable}
         nodesConnectable={editable}
@@ -389,9 +437,12 @@ function BoardEditorInner() {
         snapToGrid
         snapGrid={[20, 20]}
         elevateNodesOnSelect={false}
+        elevateEdgesOnSelect={false}
         panOnScroll
         zoomOnScroll
-        selectionOnDrag={false}
+        selectionOnDrag={editable}
+        panOnDrag={editable ? [1, 2] : true}
+        deleteKeyCode={editable ? ['Backspace', 'Delete'] : null}
         fitView
         proOptions={{ hideAttribution: true }}
       >
@@ -399,12 +450,57 @@ function BoardEditorInner() {
         <MiniMap />
         <Controls />
       </ReactFlow>
-      {editable && (
-        <div className="toolbar" style={{ top: 'auto', bottom: 12 }}>
-          <button className="btn" onClick={addTicketToCenter}>+ Тикет</button>
-          <button className="btn ghost" onClick={addZoneToCenter}>+ Группа</button>
-        </div>
-      )}
+      <div className="board-tools">
+        {editable && (
+          <div className="toolbar" aria-label="Добавить на доску">
+            <button className="btn" onClick={() => addTicketAt(canvasCenter())}>+ Тикет</button>
+            <button className="btn ghost" onClick={addZoneToCenter}>+ Группа</button>
+            <select className="btn ghost board-tool-select" aria-label="Вставить шаблон" value=""
+              onChange={(event) => {
+                const template = event.target.value as BoardTemplate
+                if (template) selectNodes(insertBoardTemplate(template, canvasCenter()))
+              }}>
+              <option value="" disabled>Вставить шаблон…</option>
+              {BOARD_TEMPLATES.map(({ id, name }) => <option key={id} value={id}>{name}</option>)}
+            </select>
+          </div>
+        )}
+        {selection.length > 0 && (
+          <div className="toolbar selection-toolbar" aria-label="Действия с выделением">
+            {editable && (
+              <>
+                <button className="btn ghost" title="Ctrl+D" onClick={duplicateSelection}>Дублировать</button>
+                {canLink && (
+                  <button className="btn ghost" title="Ctrl+→" onClick={createLinkedTicket}>+ Связанный тикет</button>
+                )}
+                {selectedTickets.length > 1 && (
+                  <>
+                    <button className="btn ghost" onClick={() => alignTickets('x')}>По левому краю</button>
+                    <button className="btn ghost" onClick={() => alignTickets('y')}>По верхнему краю</button>
+                  </>
+                )}
+                {selectedTickets.length > 0 && (
+                  <>
+                    <select className="btn ghost board-tool-select" aria-label="Цвет выделенных тикетов" value=""
+                      onChange={(event) => {
+                        const color = event.target.value
+                        if (color) updateSelectedTickets((ticket) => ticket.data.color === color ? {} : { color })
+                      }}>
+                      <option value="" disabled>Цвет тикетов…</option>
+                      {['Жёлтый', 'Оранжевый', 'Зелёный', 'Голубой', 'Сиреневый', 'Розовый'].map((name, index) =>
+                        <option key={name} value={STICKER_COLORS[index]}>{name}</option>,
+                      )}
+                    </select>
+                    <button className="btn ghost" onClick={createZoneFromSelection}>Создать группу</button>
+                  </>
+                )}
+              </>
+            )}
+            <button className="btn ghost" onClick={() => { void exportPng(true) }}>Скачать PNG выделения</button>
+          </div>
+        )}
+        {actionError && <div className="toolbar" role="alert">{actionError}</div>}
+      </div>
       {cursorLabels}
       {shareOpen && <ShareModal boardId={id} onClose={() => setShareOpen(false)} />}
     </div>

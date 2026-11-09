@@ -62,12 +62,28 @@ class BoardMember(Base):
     __table_args__ = (UniqueConstraint('board_id', 'user_id'),)
 
 
+class BoardClient(Base):
+    __tablename__ = 'board_clients'
+
+    board_id: Mapped[str] = mapped_column(
+        ForeignKey('boards.id', ondelete='CASCADE'), primary_key=True
+    )
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey('users.id', ondelete='CASCADE'), primary_key=True
+    )
+    client_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    last_sequence: Mapped[int] = mapped_column(nullable=False)
+
+
 class Ticket(Base):
     __tablename__ = 'tickets'
 
     id: Mapped[str] = uuid_pk()  # генерирует клиент
     board_id: Mapped[str] = mapped_column(
         ForeignKey('boards.id', ondelete='CASCADE'), nullable=False
+    )
+    zone_id: Mapped[str | None] = mapped_column(
+        ForeignKey('zones.id', name='fk_tickets_zone_id', ondelete='SET NULL'), index=True
     )
     x: Mapped[float] = mapped_column(Float, nullable=False, default=0)
     y: Mapped[float] = mapped_column(Float, nullable=False, default=0)
@@ -121,6 +137,7 @@ class Edge(Base):
     target_ticket_id: Mapped[str] = mapped_column(
         ForeignKey('tickets.id', ondelete='CASCADE'), nullable=False
     )
+    label: Mapped[str] = mapped_column(String(100), nullable=False, default='', server_default='')
     updated_by: Mapped[str] = mapped_column(
         ForeignKey('users.id', ondelete='SET NULL'), nullable=True
     )

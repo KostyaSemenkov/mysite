@@ -24,7 +24,7 @@ export default function ZoneNode({ id, data, selected }: NodeProps<ZoneNodeType>
           handleClassName="zone-resize-handle"
           onResizeEnd={(_, params) => {
             if (params.width && params.height) {
-              updateZone(id, { width: params.width, height: params.height })
+              updateZone(id, { x: params.x, y: params.y, width: params.width, height: params.height })
             }
           }}
         />

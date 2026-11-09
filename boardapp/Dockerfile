@@ -17,4 +17,5 @@ COPY backend/ .
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
 
 EXPOSE 8000
-CMD ["sh", "-c", "python -m alembic upgrade head && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"]
+# The WebSocket rooms and their change locks are shared within one process.
+CMD ["sh", "-c", "python -m alembic upgrade head && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"]

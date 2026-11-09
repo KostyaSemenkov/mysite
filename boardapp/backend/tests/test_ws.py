@@ -115,3 +115,57 @@ def test_bad_token_rejected(ws_setup):
         with pytest.raises(Exception):
             with tc.websocket_connect(f'/ws/boards/{bid}?token=invalid'):
                 pass
+
+
+def test_batch_is_atomic_and_can_be_retried_after_reconnect(ws_setup):
+    owner, bid = ws_setup['owner'], ws_setup['board_id']
+    client_id = str(uuid.uuid4())
+    first, second, edge = (str(uuid.uuid4()) for _ in range(3))
+    url = f'/ws/boards/{bid}?token={owner["token"]}&clientId={client_id}'
+    duplicate = {
+        'type': 'board:batch',
+        'operation': {'clientId': client_id, 'sequence': 1},
+        'data': {'changes': [
+            {'type': 'ticket:create', 'data': {'id': first, 'x': 10}},
+            {'type': 'ticket:create', 'data': {'id': second}},
+            {'type': 'edge:create', 'data': {'id': edge, 'source': first, 'target': second}},
+        ]},
+    }
+
+    def receive(sock, kind):
+        for _ in range(5):
+            message = sock.receive_json()
+            if message['type'] == kind:
+                return message
+        pytest.fail(f'{kind} was not received')
+
+    with TestClient(app) as tc:
+        with tc.websocket_connect(url) as ws:
+            receive(ws, 'init')
+            ws.send_json(duplicate)
+            result = receive(ws, 'board:batch')
+            assert result['operation'] == duplicate['operation']
+            assert len(result['data']['events']) == 3
+
+        with tc.websocket_connect(url) as ws:
+            init = receive(ws, 'init')['data']
+            assert init['lastSequence'] == 1
+            assert {t['id'] for t in init['tickets']} == {first, second}
+            assert [e['id'] for e in init['edges']] == [edge]
+            ws.send_json(duplicate)
+            assert receive(ws, 'op:ack')['operation'] == duplicate['operation']
+
+            operation = {'clientId': client_id, 'sequence': 2}
+            ws.send_json({
+                'type': 'board:batch', 'operation': operation,
+                'data': {'changes': [
+                    {'type': 'ticket:update', 'data': {'id': first, 'patch': {'x': 500}}},
+                    {'type': 'zone:delete', 'data': {'id': str(uuid.uuid4())}},
+                ]},
+            })
+            assert receive(ws, 'error')['operation'] == operation
+
+        with tc.websocket_connect(url) as ws:
+            init = receive(ws, 'init')['data']
+            assert init['lastSequence'] == 1
+            assert next(t for t in init['tickets'] if t['id'] == first)['x'] == 10

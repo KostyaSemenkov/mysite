@@ -101,3 +101,41 @@ def test_ticket_text_autogrows_height(ws_setup):
             # текст обрезается лимитом тикета (100), высота растёт под него
             assert m['data']['patch']['height'] > short_height
             assert m['data']['patch']['height'] >= 300  # ~8 строк по 32px под крупный шрифт
+
+
+def test_zone_membership_and_arrow_label_survive_reconnect(ws_setup):
+    owner, bid = ws_setup['owner'], ws_setup['board_id']
+    headers = auth(owner['token'])
+    url = f'/ws/boards/{bid}?token={owner["token"]}'
+    zone, foreign_zone, first, second, edge = (str(uuid.uuid4()) for _ in range(5))
+    with TestClient(app) as tc:
+        other = tc.post('/api/boards', json={'title': 'Other board'}, headers=headers).json()['id']
+        with tc.websocket_connect(f'/ws/boards/{other}?token={owner["token"]}') as other_ws:
+            _recv_until(other_ws, 'init')
+            other_ws.send_json({'type': 'zone:create', 'data': {'id': foreign_zone}})
+            _recv_until(other_ws, 'zone:created')
+        with tc.websocket_connect(url) as ws:
+            _recv_until(ws, 'init')
+            ws.send_json({'type': 'board:batch', 'data': {'changes': [
+                {'type': 'zone:create', 'data': {'id': zone, 'title': 'В работе'}},
+                {'type': 'ticket:create', 'data': {'id': first, 'zoneId': zone}},
+                {'type': 'ticket:create', 'data': {'id': second}},
+                {'type': 'edge:create', 'data': {'id': edge, 'source': first, 'target': second}},
+            ]}})
+            _recv_until(ws, 'board:batch')
+            ws.send_json({'type': 'ticket:update', 'data': {'id': second, 'patch': {'zoneId': foreign_zone}}})
+            assert 'на этой доске' in _recv_until(ws, 'error')['data']['message']
+            ws.send_json({'type': 'edge:update', 'data': {'id': edge, 'label': ' блокирует '}})
+            assert _recv_until(ws, 'edge:updated')['data']['label'] == 'блокирует'
+
+        with tc.websocket_connect(url) as ws:
+            init = _recv_until(ws, 'init')['data']
+            assert {t['id']: t['zoneId'] for t in init['tickets']} == {first: zone, second: None}
+            assert init['edges'][0]['label'] == 'блокирует'
+            ws.send_json({'type': 'zone:delete', 'data': {'id': zone}})
+            _recv_until(ws, 'zone:deleted')
+
+        snapshot = tc.get(f'/api/boards/{bid}', headers=headers).json()
+        assert snapshot['zones'] == []
+        assert {t['id']: t['zoneId'] for t in snapshot['tickets']} == {first: None, second: None}
+        assert snapshot['edges'][0]['label'] == 'блокирует'

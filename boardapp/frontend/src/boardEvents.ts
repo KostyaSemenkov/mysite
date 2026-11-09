@@ -14,12 +14,14 @@ export interface TicketMsg {
   height: number
   text: string
   color: string
+  zoneId?: string | null
 }
 
 export interface EdgeMsg {
   id: string
   source: string
   target: string
+  label?: string
 }
 
 export interface ZoneMsg {
@@ -38,7 +40,39 @@ export interface BoardInitMsg {
   edges: EdgeMsg[]
   zones: ZoneMsg[]
   role: string
+  presence: Presence[]
+  lastSequence?: number
 }
+
+export interface Presence {
+  userId: string
+  username: string
+  color: string
+}
+
+export type BoardChange =
+  | { type: 'ticket:create'; data: TicketMsg }
+  | { type: 'ticket:update'; data: { id: string; patch: Partial<TicketMsg> } }
+  | { type: 'ticket:delete'; data: { id: string } }
+  | { type: 'edge:create'; data: EdgeMsg }
+  | { type: 'edge:update'; data: { id: string; label: string } }
+  | { type: 'edge:delete'; data: { id: string } }
+  | { type: 'zone:create'; data: ZoneMsg }
+  | { type: 'zone:update'; data: { id: string; patch: Partial<ZoneMsg> } }
+  | { type: 'zone:delete'; data: { id: string } }
+
+export type BoardMutation = BoardChange | { type: 'board:batch'; data: { changes: BoardChange[] } }
+
+export type BoardEvent =
+  | { type: 'ticket:created'; data: TicketMsg }
+  | { type: 'ticket:updated'; data: { id: string; patch: Partial<TicketMsg> } }
+  | { type: 'ticket:deleted'; data: { id: string } }
+  | { type: 'edge:created'; data: EdgeMsg }
+  | { type: 'edge:updated'; data: { id: string; label: string } }
+  | { type: 'edge:deleted'; data: { id: string } }
+  | { type: 'zone:created'; data: ZoneMsg }
+  | { type: 'zone:updated'; data: { id: string; patch: Partial<ZoneMsg> } }
+  | { type: 'zone:deleted'; data: { id: string } }
 
 export const EV = {
   init: 'rf:init',
@@ -46,6 +80,7 @@ export const EV = {
   ticketUpdated: 'rf:ticket-updated',
   ticketDeleted: 'rf:ticket-deleted',
   edgeCreated: 'rf:edge-created',
+  edgeUpdated: 'rf:edge-updated',
   edgeDeleted: 'rf:edge-deleted',
   zoneCreated: 'rf:zone-created',
   zoneUpdated: 'rf:zone-updated',
@@ -58,12 +93,16 @@ export interface ZoneData extends Record<string, unknown> {
   color?: string
 }
 
+export interface EdgeData extends Record<string, unknown> {
+  label: string
+}
+
 export function ticketToNode(t: TicketMsg): Node<TicketData> {
   return {
     id: t.id,
     type: 'ticket',
     position: { x: t.x, y: t.y },
-    data: { text: t.text, color: t.color },
+    data: { text: t.text, color: t.color, zoneId: t.zoneId ?? null },
     width: t.width,
     height: t.height,
     zIndex: 5, // тикеты всегда поверх зон
@@ -82,12 +121,14 @@ export function zoneToNode(z: ZoneMsg): Node<ZoneData> {
   }
 }
 
-export function edgeMsgToEdge(e: EdgeMsg): Edge {
+export function edgeMsgToEdge(e: EdgeMsg): Edge<EdgeData> {
   return {
     id: e.id,
     source: e.source,
     target: e.target,
     type: 'deletable',
+    zIndex: 2,
+    data: { label: e.label ?? '' },
     markerEnd: { type: 'arrowclosed' },
   }
 }
