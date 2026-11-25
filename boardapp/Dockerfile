@@ -1,10 +1,13 @@
 FROM node:22-alpine AS frontend
-# В контейнере сборки IPv6 может не маршрутизироваться: Node первым пробует AAAA-адрес
-# реестра и ловит ETIMEDOUT на части пакетов. Сначала IPv4 — сборка стабильна.
-ENV NODE_OPTIONS=--dns-result-order=ipv4first
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm ci --silent
+# Кэш npm живёт между сборками (cache mount BuildKit): реестр периодически отвечает
+# серверу 403 или таймаутом на часть файлов, и тогда очередная попытка догружает
+# только недостающее вместо полной загрузки. Без --silent, чтобы причина падения
+# была видна в логе сборки.
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --no-audit --no-fund --loglevel=error \
+      --fetch-retries=5 --fetch-retry-mintimeout=2000 --fetch-retry-maxtimeout=30000
 COPY frontend/ ./
 RUN npm run build
 
