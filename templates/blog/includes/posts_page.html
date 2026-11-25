@@ -1,7 +1,7 @@
 {% for post in page_obj %}
   <article class="post-card card-warm p-6">
     <div class="flex items-center gap-2 text-xs text-slate-500">
-      <time>{{ post.created_at|date:'d.m.Y' }}</time>
+      <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:'d.m.Y' }}</time>
       <span>·</span>
       <span>{{ post.reading_minutes }} мин чтения</span>
     </div>

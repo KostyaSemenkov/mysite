@@ -62,15 +62,14 @@ def _sanitize_username(raw: str, fallback: str) -> str:
     return cleaned
 
 
+# Страница без inline-скрипта (проходит строгий CSP): данные лежат в блоке
+# application/json, их читает внешний /boards/sso-bridge.js.
 _SSO_PAGE = """<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Вход…</title></head>
+<html lang="ru"><head><meta charset="utf-8"><title>Вход в «Доски»…</title></head>
 <body style="background:#140d07;color:#cfae7c;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
 <p>Входим в «Доски»…</p>
-<script>
-localStorage.setItem('boardapp_token', {token_json});
-localStorage.setItem('boardapp_user', {user_json_string});
-location.replace({next_json});
-</script>
+<script type="application/json" id="sso-data">{payload_json}</script>
+<script src="/boards/sso-bridge.js"></script>
 </body></html>"""
 
 
@@ -116,9 +115,11 @@ async def sso(token: str = Query(''), next: str = Query('/boards/'),
 
     import json
     next_url = next if next.startswith('/boards') else '/boards/'
-    return HTMLResponse(_SSO_PAGE.format(
-        token_json=json.dumps(create_token(user.id)),
-        # двойной dumps: снаружи — JS-строковый литерал, внутри — JSON-текст
-        user_json_string=json.dumps(json.dumps({'id': user.id, 'username': user.username})),
-        next_json=json.dumps(next_url),
-    ))
+    payload = json.dumps({
+        'token': create_token(user.id),
+        'user': {'id': user.id, 'username': user.username},
+        'next': next_url,
+    })
+    # внутри <script> недопустимы "</script" и ему подобные последовательности
+    payload = payload.replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+    return HTMLResponse(_SSO_PAGE.format(payload_json=payload))

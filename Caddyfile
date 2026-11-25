@@ -1,8 +1,13 @@
 {$DOMAIN} {
 	encode gzip
 
+	# браузер всегда ходит на сайт по HTTPS. Срок сначала сутки: если с сертификатом
+	# что-то случится, доступ по http вернётся сам. Позже можно поднять до года.
+	header Strict-Transport-Security "max-age=86400"
+
 	# приложение «Доски»: всё под /boards уходит в boards-сервис,
-	# префикс срезается (handle_path) — WS, API и статику обслуживает FastAPI
+	# префикс срезается (handle_path) — WS, API и статику обслуживает FastAPI.
+	# Заголовки безопасности сайт отдаёт из Django, «Доски» — из своего main.py.
 	handle_path /boards/* {
 		reverse_proxy boards:8000
 	}

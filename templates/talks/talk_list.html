@@ -7,9 +7,9 @@
 <div class="mt-3 flex flex-wrap items-center gap-4">
   <p class="text-slate-400">Доклады, вебинары и записи с конференций.</p>
   <a href="{% url 'talks:calendar' %}" class="cal-cta">
-    <svg class="icon"><use href="{% static 'img/icons.svg' %}#calendar"/></svg>
+    <svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#calendar"/></svg>
     Календарь событий
-    <svg class="icon"><use href="{% static 'img/icons.svg' %}#arrow-right"/></svg>
+    <svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#arrow-right"/></svg>
   </a>
 </div>
 <div class="mt-8 grid gap-6 sm:grid-cols-2">
@@ -17,24 +17,24 @@
     <a href="{{ talk.get_absolute_url }}"
        class="card-warm overflow-hidden">
       {% if talk.thumbnail %}
-        <img src="{{ talk.thumbnail.url }}" alt="{{ talk.title }}" class="h-44 w-full object-cover">
+        <img src="{{ talk.thumbnail.url }}" alt="{{ talk.title }}" width="352" height="176" loading="lazy" decoding="async" class="h-44 w-full object-cover">
       {% else %}
         <div class="cover-fallback" style="background: {{ talk.title|cover_gradient }}">
-          <svg class="icon" style="width:44px;height:44px;opacity:.8"><use href="{% static 'img/icons.svg' %}#mic"/></svg>
+          <svg class="icon" style="width:44px;height:44px;opacity:.8" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#mic"/></svg>
         </div>
       {% endif %}
       <div class="p-6">
         <div class="flex items-center gap-2">
           {% if talk.status == 'upcoming' %}
-            <span class="rounded-full bg-indigo-600/20 px-2 py-0.5 text-[11px] text-indigo-300">Анонс</span>
+            <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">Анонс</span>
           {% endif %}
-          {% if talk.spoke_at %}<time class="text-xs text-slate-500">{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
+          {% if talk.spoke_at %}<time datetime="{{ talk.spoke_at|date:'c' }}" class="text-xs text-slate-500">{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
         </div>
         <h2 class="mt-1 font-semibold text-white">{{ talk.title }}</h2>
         {% if talk.event %}<p class="mt-1 text-xs text-indigo-400">{{ talk.event }}</p>{% endif %}
         <p class="mt-2 line-clamp-2 text-sm text-slate-400">{{ talk.description|truncatechars:160 }}</p>
         {% if talk.status == 'upcoming' and talk.registration_url %}
-          <span class="mt-3 inline-block rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white">Зарегистрироваться</span>
+          <span class="btn-warm sm mt-3">Зарегистрироваться</span>
         {% endif %}
       </div>
     </a>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api, apiError } from '../api'
 
 interface MemberRow {
@@ -6,13 +6,36 @@ interface MemberRow {
   role: string
 }
 
+/**
+ * Доступ к доске — настоящий модальный <dialog>: фокус запирается внутри,
+ * Esc и клик по фону закрывают (closedby="any"), после закрытия фокус
+ * возвращается на кнопку «Поделиться».
+ *
+ * О закрытии сообщаем родителю из каждого пути отдельно (cancel, клик по фону,
+ * кнопка): браузер не гарантирует событие close для закрытия по запросу —
+ * без этого окно нельзя было бы открыть второй раз.
+ */
 export default function ShareModal({ boardId, onClose }: { boardId: string; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const [members, setMembers] = useState<MemberRow[]>([])
   const [username, setUsername] = useState('')
   const [role, setRole] = useState<'editor' | 'viewer'>('editor')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [hints, setHints] = useState<string[]>([])
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (!dialog.open) dialog.showModal()
+    // клик по фону: ловим в capture-фазе на document. Браузер с closedby="any"
+    // закрывает окно до всплытия click, и тогда событие досталось бы канвасу
+    // под окном, а родитель не узнал бы о закрытии; старый браузер закроем сами.
+    const onPointerDown = (e: PointerEvent) => { if (e.target === dialog) close() }
+    document.addEventListener('pointerdown', onPointerDown, true)
+    return () => document.removeEventListener('pointerdown', onPointerDown, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function load() {
     try {
@@ -27,7 +50,7 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
     load()
   }, [boardId])
 
-  // подсказки имён по первым символам (>= 2)
+  // подсказки имён по первым символам (>= 2) — в выпадающем списке поля
   useEffect(() => {
     const q = username.trim()
     if (q.length < 2) {
@@ -59,6 +82,7 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
         role,
       })
       setUsername('')
+      setHints([])
       await load()
     } catch (err) {
       setError(apiError(err))
@@ -76,81 +100,65 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
     }
   }
 
+  function close() {
+    dialogRef.current?.close()
+    onClose()
+  }
+
   return (
-    <dialog open onClick={(e) => e.target === e.currentTarget && onClose()} style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
-    }}>
-      <div onClick={(e) => e.stopPropagation()} style={{
-        width: 'min(580px, 94vw)', background: 'var(--panel)', border: '1px solid var(--border)',
-        borderRadius: 12, padding: 22,
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-          <h3 style={{ margin: 0 }}>Доступ к доске</h3>
-          <button className="btn ghost" onClick={onClose}>×</button>
+    <dialog
+      ref={dialogRef}
+      className="share-dialog"
+      aria-labelledby="share-title"
+      closedby="any"
+      onCancel={onClose}
+      onClose={onClose}
+    >
+      <form className="share-panel" onSubmit={(e) => { e.preventDefault(); void invite() }}>
+        <div className="share-head">
+          <h2 id="share-title">Доступ к доске</h2>
+          <button type="button" className="btn ghost" aria-label="Закрыть" onClick={close}>×</button>
         </div>
 
-        <div style={{ position: 'relative' }}>
-          <input
-            placeholder="Начните вводить имя…"
-            list="user-hints"
-            autoComplete="off"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            onBlur={() => setTimeout(() => setHints([]), 200)}
-            style={{ width: '100%', background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 12px', color: 'var(--text)', boxSizing: 'border-box' }}
-          />
-          <datalist id="user-hints">
-            {hints.map((h) => <option key={h} value={h} />)}
-          </datalist>
-          {hints.length > 0 && username.trim().length >= 2 && (
-            <div style={{
-              position: 'absolute', top: '100%', left: 0, width: '100%', zIndex: 50,
-              background: 'var(--panel2)', border: '1px solid var(--border)',
-              borderRadius: 8, marginTop: 4, overflow: 'hidden',
-            }}>
-              {hints.map((h) => (
-                <div
-                  key={h}
-                  onClick={() => { setUsername(h); setHints([]) }}
-                  style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 21 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--border)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
-                  {h}
-                </div>
-              ))}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as 'editor' | 'viewer')}
-              style={{ flex: 1, background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 8px', color: 'var(--text)' }}
-            >
-              <option value="editor">редактор</option>
-              <option value="viewer">наблюдатель</option>
-            </select>
-            <button className="btn" onClick={invite} disabled={busy}
-                    style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>Пригласить</button>
-          </div>
-        </div>
-        {error && <div className="error" style={{ marginTop: 8 }}>{error}</div>}
+        <label htmlFor="share-username">Кого пригласить</label>
+        <input
+          id="share-username"
+          name="username"
+          list="user-hints"
+          autoComplete="off"
+          placeholder="Начните вводить имя…"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <datalist id="user-hints">
+          {hints.map((h) => <option key={h} value={h} />)}
+        </datalist>
 
-        <div style={{ marginTop: 16 }}>
-          {members.length === 0 && <p className="hint">Участников пока нет.</p>}
+        <label htmlFor="share-role">Права</label>
+        <div className="share-invite">
+          <select id="share-role" name="role" value={role}
+                  onChange={(e) => setRole(e.target.value as 'editor' | 'viewer')}>
+            <option value="editor">редактор — может менять доску</option>
+            <option value="viewer">наблюдатель — только смотрит</option>
+          </select>
+          <button type="submit" className="btn" disabled={busy || !username.trim()}>
+            {busy ? 'Добавляем…' : 'Пригласить'}
+          </button>
+        </div>
+        {error && <div className="error" role="alert">{error}</div>}
+
+        <ul className="share-members" aria-label="Участники доски">
+          {members.length === 0 && <li className="hint">Участников пока нет.</li>}
           {members.map((m) => (
-            <div key={m.user.id} style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 10px',
-              background: 'var(--panel2)', borderRadius: 8, marginTop: 6,
-            }}>
-              <span style={{ flex: 1 }}>{m.user.username}</span>
+            <li key={m.user.id}>
+              <span className="share-member-name">{m.user.username}</span>
               <span className="role-badge">{m.role}</span>
-              <button className="btn ghost" onClick={() => kick(m.user.id)}>Убрать</button>
-            </div>
+              <button type="button" className="btn ghost" aria-label={`Убрать ${m.user.username}`}
+                      onClick={() => kick(m.user.id)}>Убрать</button>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </form>
     </dialog>
   )
 }

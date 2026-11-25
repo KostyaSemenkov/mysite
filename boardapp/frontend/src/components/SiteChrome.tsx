@@ -15,19 +15,22 @@ const NAV = [
   { href: '/forum/', label: 'Форум' },
   { href: '/useful/', label: 'Полезности' },
   { href: '/quiz/', label: 'Тренажёр' },
+  { href: '/path/', label: 'Путь' },
   { href: '/about/', label: 'Обо мне' },
 ]
 
-export function ThemeToggle({ className = 'site-theme-toggle' }: { className?: string }) {
-  const toggle = () => {
-    const h = document.documentElement
-    h.dataset.theme = h.dataset.theme === 'light' ? 'dark' : 'light'
-    localStorage.setItem('theme', h.dataset.theme)
-  }
+/**
+ * Переключатель темы общий с сайтом: тему меняет /static/js/theme.js,
+ * слушающий кнопки [data-theme-toggle]. Иконка и подпись («в тёмную» / «в светлую»)
+ * следуют за темой через tokens.css.
+ */
+export function ThemeToggle({ className = 'theme-toggle' }: { className?: string }) {
   return (
-    <button className={className} title="Переключить тему" aria-label="Переключить тему" onClick={toggle}>
-      <svg className="icon ico-sun"><use href={`${ICONS}#sun`} /></svg>
-      <svg className="icon ico-moon"><use href={`${ICONS}#moon`} /></svg>
+    <button type="button" className={className} data-theme-toggle>
+      <svg className="icon ico-sun" aria-hidden="true"><use href={`${ICONS}#sun`} /></svg>
+      <svg className="icon ico-moon" aria-hidden="true"><use href={`${ICONS}#moon`} /></svg>
+      <span className="visually-hidden theme-to-dark">Включить тёмную тему</span>
+      <span className="visually-hidden theme-to-light">Включить светлую тему</span>
     </button>
   )
 }
@@ -41,12 +44,12 @@ export function SiteHeader() {
           <span className="site-logo-title">Лемурзильня тестировщика</span>
           <span className="site-logo-tag">уголок в меру упитанного тестировщика</span>
         </a>
-        <nav className="site-nav">
+        <nav className="site-nav" aria-label="Основное меню">
           {NAV.map((n) => (
-            <a key={n.href} href={n.href} className={n.href === '/boards/' ? 'active' : ''}>{n.label}</a>
+            <a key={n.href} href={n.href} className="site-nav-link">{n.label}</a>
           ))}
-          <a href="/search/" title="Поиск по сайту" aria-label="Поиск">
-            <svg className="icon"><use href={`${ICONS}#search`} /></svg>
+          <a href="/search/" className="site-nav-link" aria-label="Поиск по сайту">
+            <svg className="icon" aria-hidden="true"><use href={`${ICONS}#search`} /></svg>
           </a>
           <ThemeToggle />
           {me ? (
@@ -69,7 +72,7 @@ export function SiteFooter() {
           <div className="site-logo-title">Лемурзильня тестировщика</div>
           <p className="site-footer-about">уголок в меру упитанного тестировщика</p>
         </div>
-        <div>
+        <nav aria-label="Разделы сайта">
           <div className="site-footer-cap">Разделы</div>
           <div className="site-footer-links">
             <a href="/blog/">Блог</a>
@@ -79,15 +82,15 @@ export function SiteFooter() {
             <a href="/useful/">Полезности</a>
             <a href="/quiz/">Тренажёр</a>
           </div>
-        </div>
-        <div>
+        </nav>
+        <nav aria-label="Документы">
           <div className="site-footer-cap">Документы</div>
           <div className="site-footer-links">
             <a href="/offer/">Оферта</a>
             <a href="/privacy/">Конфиденциальность</a>
             <a href="/blog/rss/">RSS</a>
           </div>
-        </div>
+        </nav>
       </div>
       <div className="site-footer-bottom">© {new Date().getFullYear()} Лемурзильня тестировщика</div>
     </footer>

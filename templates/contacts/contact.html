@@ -7,12 +7,21 @@
 <form action="{% url 'contacts:contact_submit' %}" method="post"
       class="card-warm mt-8 max-w-lg space-y-4 p-6">
   {% csrf_token %}
-  <input type="text" name="name" required placeholder="Ваше имя"
-         class="input">
-  <input type="email" name="email" required placeholder="Email"
-         class="input">
-  <textarea name="message" required rows="5" placeholder="Сообщение"
-            class="input"></textarea>
-  <button class="btn-warm">Отправить</button>
+  <div>
+    <label for="id_name" class="visually-hidden">Ваше имя</label>
+    <input type="text" id="id_name" name="name" required placeholder="Ваше имя"
+           autocomplete="name" class="input">
+  </div>
+  <div>
+    <label for="id_email" class="visually-hidden">Email для ответа</label>
+    <input type="email" id="id_email" name="email" required placeholder="Email"
+           autocomplete="email" class="input">
+  </div>
+  <div>
+    <label for="id_message" class="visually-hidden">Сообщение</label>
+    <textarea id="id_message" name="message" required rows="5" placeholder="Сообщение"
+              autocomplete="off" class="input"></textarea>
+  </div>
+  <button type="submit" class="btn-warm">Отправить</button>
 </form>
 {% endblock %}

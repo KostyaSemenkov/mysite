@@ -1,10 +1,14 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, HashRouter as Router, Routes } from 'react-router-dom'
 import { getToken } from './api'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import BoardsPage from './pages/BoardsPage'
-import BoardEditorPage from './pages/BoardEditorPage'
 import SiteChrome from './components/SiteChrome'
+
+// Редактор с канвасом — самая тяжёлая часть приложения; грузим только тем,
+// кто открыл доску, а не всем, кто заходит на страницу входа
+const BoardEditorPage = lazy(() => import('./pages/BoardEditorPage'))
 
 function RequireAuth({ children }: { children: React.ReactElement }) {
   // пускаем по токену; пользователя при необходимости подтянет ensureUser,
@@ -31,7 +35,9 @@ export default function App() {
           path="/board/:id"
           element={
             <RequireAuth>
-              <BoardEditorPage />
+              <Suspense fallback={<div className="page hint">Открываем доску…</div>}>
+                <BoardEditorPage />
+              </Suspense>
             </RequireAuth>
           }
         />

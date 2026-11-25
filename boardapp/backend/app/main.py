@@ -1,8 +1,11 @@
+import logging
+import re
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.datastructures import MutableHeaders
 
 from .config import settings
 from .routers import auth, boards, ws
@@ -21,6 +24,70 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
+# ── Заголовки безопасности ──
+# SPA не содержит inline-скриптов, поэтому CSP здесь строже, чем на сайте:
+# только свои источники. До проверки на реальных пользователях политика идёт
+# в режиме Report-Only (отчёты принимает сайт на /csp-report/); включить
+# принудительный режим — переменная CSP_ENFORCE=1.
+SECURITY_HEADERS = (
+    ('X-Content-Type-Options', 'nosniff'),
+    ('X-Frame-Options', 'DENY'),
+    ('Referrer-Policy', 'strict-origin-when-cross-origin'),
+    ('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()'),
+    # same-origin разорвал бы связь с вкладками, которые открывает встроенный контент
+    ('Cross-Origin-Opener-Policy', 'same-origin-allow-popups'),
+    ('Cross-Origin-Resource-Policy', 'cross-origin'),
+)
+CSP_POLICY = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; "
+    "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; "
+    "report-uri /csp-report/"
+)
+
+
+class SecurityHeadersMiddleware:
+    """Добавляет заголовки безопасности ко всем HTTP-ответам: SPA, API, SSO-страница."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope['type'] != 'http':
+            await self.app(scope, receive, send)
+            return
+
+        async def send_with_headers(message):
+            if message['type'] == 'http.response.start':
+                headers = MutableHeaders(scope=message)
+                for name, value in SECURITY_HEADERS:
+                    headers[name] = value
+                csp_header = ('Content-Security-Policy' if settings.csp_enforce
+                              else 'Content-Security-Policy-Report-Only')
+                headers[csp_header] = CSP_POLICY
+            await send(message)
+
+        await self.app(scope, receive, send_with_headers)
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+
+class RedactTokenFilter(logging.Filter):
+    """Токен в query-строке WebSocket-запроса не должен попадать в access-лог."""
+
+    _pattern = re.compile(r'token=[^&\s"]+')
+
+    def filter(self, record):
+        if isinstance(record.args, tuple):
+            record.args = tuple(
+                self._pattern.sub('token=***', arg) if isinstance(arg, str) else arg
+                for arg in record.args)
+        return True
+
+
+logging.getLogger('uvicorn.access').addFilter(RedactTokenFilter())
 
 
 @app.get('/api/health')

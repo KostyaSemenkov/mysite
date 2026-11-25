@@ -1,4 +1,4 @@
-import { getToken } from './api'
+import { clearAuth, getToken } from './api'
 import type { BoardEvent, BoardInitMsg, BoardMutation, Presence } from './boardEvents'
 import { applyBoardEvent, applyInit, applyPendingMutation, useBoard } from './store'
 
@@ -125,9 +125,14 @@ function open(channel: Channel) {
   }
   channel.retryTimer = undefined
   const protocol = location.protocol === 'https:' ? 'wss' : 'ws'
-  const params = new URLSearchParams({ token: channel.token, clientId: channel.clientId })
-  const socket = new WebSocket(`${protocol}://${location.host}/boards/ws/boards/${channel.boardId}?${params}`)
+  // Токен уходит первым сообщением: адрес сокета без него не попадает
+  // в логи прокси и историю вкладки
+  const socket = new WebSocket(`${protocol}://${location.host}/boards/ws/boards/${channel.boardId}`)
   channel.socket = socket
+
+  socket.onopen = () => {
+    socket.send(JSON.stringify({ type: 'auth', token: channel.token, clientId: channel.clientId }))
+  }
 
   socket.onmessage = (ev) => {
     if (channel.socket !== socket) return
@@ -189,9 +194,15 @@ function open(channel: Channel) {
     if (confirmed) pump(channel)
   }
 
-  socket.onclose = () => {
+  socket.onclose = (event) => {
     if (channel.socket !== socket) return
     closeSocket(channel)
+    if (event.code === 4401 || event.code === 4400) {
+      // токен не принят (истёк или некорректен) — вход заново через сайт
+      clearAuth()
+      if (channel === active) window.location.assign('/boardapp/sso/')
+      return
+    }
     if (channel !== active && channel.pending.length === 0) {
       if (!channel.error) stop(channel)
       return

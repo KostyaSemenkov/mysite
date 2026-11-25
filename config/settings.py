@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'config.middleware.CspNonceMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -60,6 +61,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'pages.context_processors.profile',
+                'config.middleware.csp_nonce',
             ],
         },
     },
@@ -102,6 +104,34 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = 'home'
+
+# ── Безопасность: cookie, прокси и Content Security Policy ──
+# на проде (за HTTPS-прокси) cookie помечаются Secure; префикс __Host- запрещает
+# подменять сессионную cookie с поддоменов. Для него обязателен Secure, поэтому
+# в DEBUG (обычный http) имя остаётся стандартным.
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_NAME = 'sessionid' if DEBUG else '__Host-session'
+# Caddy передаёт реальную схему — иначе абсолютные ссылки (og:url, sitemap, RSS) получали http://
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+# same-origin разорвал бы связь с вкладками встроенного плеера (YouTube/VK)
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+SECURE_CROSS_ORIGIN_RESOURCE_POLICY = 'cross-origin'
+SECURE_PERMISSIONS_POLICY_DENY = ['camera', 'microphone', 'geolocation', 'payment', 'usb']
+
+# CSP: сначала Report-Only (только отчёты на /csp-report/), затем DJANGO_CSP_ENFORCE=1
+CSP_ENFORCE = os.environ.get('DJANGO_CSP_ENFORCE', '0') == '1'
+CSP_REPORT_URI = '/csp-report/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'loggers': {
+        'csp': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
+    },
+}
 
 # Email: рассылка подписчикам (включается заданием EMAIL_HOST в окружении)
 EMAIL_HOST = os.environ.get('EMAIL_HOST', '')

@@ -1,7 +1,8 @@
 import { getNodesBounds, getViewportForBounds, type Edge, type Node } from '@xyflow/react'
-import { toPng } from 'html-to-image'
 
 export async function downloadBoardPng(viewport: HTMLElement, nodes: Node[], edges: Edge[], filename: string) {
+  // библиотека тяжёлая и нужна только для экспорта — грузим в момент скачивания
+  const { toPng } = await import('html-to-image')
   const nodeIds = new Set(nodes.map(({ id }) => id))
   const edgeIds = new Set(edges.filter(({ source, target }) =>
     nodeIds.has(source) && nodeIds.has(target),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, apiError, clearAuth, ensureUser, type CurrentUser } from '../api'
+import { useDocumentTitle } from '../useDocumentTitle'
 import type { BoardsList } from './BoardsPageTypes'
 
 export default function BoardsPage() {
@@ -11,6 +12,7 @@ export default function BoardsPage() {
   const [renaming, setRenaming] = useState<string | null>(null)
   const [renameTitle, setRenameTitle] = useState('')
   const [error, setError] = useState('')
+  useDocumentTitle('Мои доски — Доски')
 
   async function load() {
     try {
@@ -62,9 +64,10 @@ export default function BoardsPage() {
     <div className="page">
       <div className="page-head">
         <h1>Мои доски</h1>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div className="page-head-user">
           <span className="hint">{me?.username}</span>
           <button
+            type="button"
             className="btn ghost"
             onClick={() => {
               clearAuth()
@@ -76,19 +79,27 @@ export default function BoardsPage() {
         </div>
       </div>
 
-      <div className="create-row">
+      {/* обычная форма: Enter в поле создаёт доску, а Enter при наборе IME — нет */}
+      <form
+        className="create-row"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void createBoard()
+        }}
+      >
+        <label htmlFor="new-board-title" className="visually-hidden">Название новой доски</label>
         <input
+          id="new-board-title"
+          name="title"
+          autoComplete="off"
           placeholder="Название новой доски"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && createBoard()}
         />
-        <button className="btn" onClick={createBoard}>
-          Создать
-        </button>
-      </div>
+        <button type="submit" className="btn" disabled={!newTitle.trim()}>Создать</button>
+      </form>
 
-      {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
+      {error && <div className="error" role="alert" style={{ marginTop: 12 }}>{error}</div>}
 
       <div className="boards-section">
         <h2>Мои доски</h2>
@@ -99,16 +110,22 @@ export default function BoardsPage() {
               <>
                 <input
                   autoFocus
+                  aria-label="Новое название доски"
                   value={renameTitle}
                   onChange={(e) => setRenameTitle(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') renameBoard(b.id)
+                    // Enter при наборе раскладкой IME подтверждает ввод, а не название
+                    if (e.nativeEvent.isComposing || e.keyCode === 229) {
+                      e.preventDefault()
+                      return
+                    }
+                    if (e.key === 'Enter') void renameBoard(b.id)
                     if (e.key === 'Escape') setRenaming(null)
                   }}
                   style={{ flex: 1, background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 6, padding: '6px 10px', color: 'var(--text)' }}
                 />
-                <button className="btn" onClick={() => renameBoard(b.id)}>ОК</button>
-                <button className="btn ghost" onClick={() => setRenaming(null)}>Отмена</button>
+                <button type="button" className="btn" onClick={() => void renameBoard(b.id)}>ОК</button>
+                <button type="button" className="btn ghost" onClick={() => setRenaming(null)}>Отмена</button>
               </>
             ) : (
               <>
@@ -116,8 +133,10 @@ export default function BoardsPage() {
                 <div className="board-card-actions">
                   <span className="role-badge">owner</span>
                   <button
+                    type="button"
                     className="btn ghost"
                     title="Переименовать"
+                    aria-label={`Переименовать доску «${b.title}»`}
                     onClick={() => {
                       setRenaming(b.id)
                       setRenameTitle(b.title)
@@ -125,7 +144,13 @@ export default function BoardsPage() {
                   >
                     ✎
                   </button>
-                  <button className="btn ghost" title="Удалить доску" onClick={() => removeBoard(b.id, b.title)}>
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    title="Удалить доску"
+                    aria-label={`Удалить доску «${b.title}»`}
+                    onClick={() => void removeBoard(b.id, b.title)}
+                  >
                     🗑
                   </button>
                 </div>

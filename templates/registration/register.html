@@ -10,27 +10,30 @@
   {% csrf_token %}
 
   {% if form.non_field_errors %}
-  <div class="rounded-lg border border-red-700 bg-red-900/30 px-4 py-3 text-sm text-red-200">
-    {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-  </div>
+  <div class="notice error" role="alert">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
   {% endif %}
 
   {% for field in form %}
   <div>
     <label for="{{ field.id_for_label }}" class="text-sm text-slate-400">{{ field.label }}</label>
     {{ field }}
-    {% if field.help_text and not field.errors %}
-    <p class="text-xs text-slate-500 mt-1">{{ field.help_text }}</p>
+    {% if field.errors %}
+    {# id совпадают с aria-describedby, который Django ставит полю сам #}
+    <ul class="errorlist" role="alert" id="{{ field.id_for_label }}_error">
+      {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
     {% endif %}
-    {% for error in field.errors %}
-    <div class="mt-2 rounded-lg border border-red-700 bg-red-900/30 px-3 py-2 text-sm text-red-200">
-      {{ error }}
-    </div>
-    {% endfor %}
+    {% if field.help_text %}
+    <p class="helptext mt-1" id="{{ field.id_for_label }}_helptext">{{ field.help_text }}</p>
+    {% endif %}
+    {% if field.name == 'password1' %}
+    <button type="button" class="btn-warm ghost sm mt-2" aria-pressed="false"
+            data-password-toggle="{{ form.password1.id_for_label }} {{ form.password2.id_for_label }}">Показать пароль</button>
+    {% endif %}
   </div>
   {% endfor %}
 
-  <button class="btn-warm w-full">Создать аккаунт</button>
+  <button type="submit" class="btn-warm w-full">Создать аккаунт</button>
 </form>
 
 <p class="mt-4 text-xs text-slate-500">Уже есть аккаунт?

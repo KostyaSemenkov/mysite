@@ -4,9 +4,11 @@
 {% block meta_description %}Новости китайских нейросетей: Kimi, Z.ai, Qwen, DeepSeek — официальные релизы, функции, API.{% endblock %}
 
 {% block content %}
-<nav class="text-xs text-slate-500 mb-4">
-  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
-  <span class="text-slate-400">ИИ-новости</span>
+<nav aria-label="Хлебные крошки">
+  <ol class="crumbs">
+    <li><a href="{% url 'home' %}">Главная</a></li>
+    <li aria-current="page">ИИ-новости</li>
+  </ol>
 </nav>
 
 <div class="flex flex-wrap items-end justify-between gap-4">
@@ -17,8 +19,8 @@
   </div>
   <div class="flex gap-2">
     <a href="{% url 'ainews:courses' %}" class="btn-warm ghost">Каталог курсов</a>
-    <a href="{% url 'ainews:rss' %}" class="btn-warm ghost" title="RSS">
-      <svg class="icon"><use href="{% static 'img/icons.svg' %}#rss"/></svg></a>
+    <a href="{% url 'ainews:rss' %}" class="btn-warm ghost" title="RSS" aria-label="RSS-лента раздела">
+      <svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#rss"/></svg></a>
   </div>
 </div>
 
@@ -31,22 +33,25 @@
 </div>
 
 {# поиск #}
-<form method="get" class="mt-4 flex max-w-md gap-3 flex-wrap">
-  <input type="search" name="q" value="{{ query }}" placeholder="Поиск по публикациям…"
-         class="input" style="max-width:320px">
-  <button class="btn-warm">Найти</button>
-</form>
+<search>
+  <form method="get" role="search" class="mt-4 flex max-w-md gap-3 flex-wrap">
+    <label for="id_ai-q" class="visually-hidden">Поиск по публикациям</label>
+    <input type="search" id="id_ai-q" name="q" value="{{ query }}" placeholder="Поиск по публикациям…"
+           class="input" style="max-width:320px">
+    <button type="submit" class="btn-warm">Найти</button>
+  </form>
+</search>
 
 {# hero-новость #}
 {% if hero %}
 <div class="reveal card-warm mt-8 overflow-hidden">
   {% if hero.image_url %}
-  <img src="{{ hero.image_url }}" alt="{{ hero.title }}" class="h-56 w-full object-cover">
+  <img src="{{ hero.image_url }}" alt="{{ hero.title }}" width="448" height="224" decoding="async" class="h-56 w-full object-cover">
   {% endif %}
   <div class="p-6">
     <div class="flex flex-wrap items-center gap-2 text-xs">
       {% if hero.company %}<span class="rounded-full bg-indigo-950 px-2.5 py-0.5 text-indigo-300">{{ hero.get_company_display }}</span>{% endif %}
-      <time class="text-slate-500">{{ hero.published_at|date:'d.m.Y' }}</time>
+      <time datetime="{{ hero.published_at|date:'c' }}" class="text-slate-500">{{ hero.published_at|date:'d.m.Y' }}</time>
     </div>
     <h2 class="font-display mt-2 text-2xl font-bold text-white">
       <a href="{{ hero.get_absolute_url }}" class="hover:text-indigo-300">{{ hero.title }}</a>
@@ -61,7 +66,7 @@
   {% for pub in page_obj %}
   <a href="{{ pub.get_absolute_url }}" class="card-warm overflow-hidden">
     {% if pub.image_url %}
-    <img src="{{ pub.image_url }}" alt="{{ pub.title }}" class="h-36 w-full object-cover" loading="lazy">
+    <img src="{{ pub.image_url }}" alt="{{ pub.title }}" width="288" height="144" loading="lazy" decoding="async" class="h-36 w-full object-cover">
     {% else %}
     <div class="cover-fallback" style="background: {{ pub.title|cover_gradient }}">
       {% if pub.company == 'kimi' %}🌙{% elif pub.company == 'zai' %}⚡{% elif pub.company == 'qwen' %}🤖{% elif pub.company == 'deepseek' %}🐋{% else %}📰{% endif %}
@@ -70,7 +75,7 @@
     <div class="p-5">
       <div class="flex items-center gap-2 text-xs">
         {% if pub.company %}<span class="rounded-full bg-indigo-950 px-2 py-0.5 text-indigo-300">{{ pub.get_company_display }}</span>{% endif %}
-        <time class="text-slate-500">{{ pub.published_at|date:'d.m.Y' }}</time>
+        <time datetime="{{ pub.published_at|date:'c' }}" class="text-slate-500">{{ pub.published_at|date:'d.m.Y' }}</time>
       </div>
       <h3 class="mt-2 font-semibold text-white">{{ pub.title|truncatechars:80 }}</h3>
       {% if pub.summary %}<p class="mt-2 text-sm text-slate-400">{{ pub.summary|truncatechars:120 }}</p>{% endif %}

@@ -3,6 +3,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm  # noqa: F401
 from .forms import RegisterForm
+from django.http import QueryDict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -12,17 +13,18 @@ from .forms import CommentForm, TopicForm
 from .models import TopicReaction
 from .models import Topic
 
+# ключ черновика комментария в сессии: набранный текст переживает ошибку ввода
+COMMENT_DRAFT = 'comment_draft'
+
 
 def topic_list(request):
     topics = Topic.objects.all()
     return render(request, 'forum/topic_list.html', {'topics': topics})
 
 
-def topic_detail(request, slug):
-    topic = get_object_or_404(Topic, slug=slug)
+def _topic_context(request, topic, form=None):
     comments = topic.visible_comments()
-    form = None if topic.is_closed else CommentForm(user=request.user)
-    return render(request, 'forum/topic_detail.html', {
+    return {
         'topic': topic,
         'comments': comments,
         'form': form,
@@ -33,7 +35,21 @@ def topic_detail(request, slug):
         ) if request.user.is_authenticated else set(),
         'can_resolve': request.user.is_authenticated and (
             request.user.is_staff or topic.created_by_id == request.user.id),
-    })
+    }
+
+
+def topic_detail(request, slug):
+    topic = get_object_or_404(Topic, slug=slug)
+    form = None if topic.is_closed else CommentForm(user=request.user)
+    draft = request.session.pop(COMMENT_DRAFT, None)
+    if draft and form is not None:
+        # после ошибки ввода возвращаем в форму уже набранный текст и подсказки об ошибках
+        data = QueryDict(mutable=True)
+        for name, values in draft.items():
+            data.setlist(name, values)
+        form = CommentForm(data, user=request.user)
+        form.is_valid()
+    return render(request, 'forum/topic_detail.html', _topic_context(request, topic, form))
 
 
 @require_POST
@@ -64,7 +80,12 @@ def add_comment(request, slug):
                       f'{comment.body[:500]}\n'
                       f'https://lemurqa.ru/admin/forum/comment/')
             messages.success(request, 'Комментарий отправлен и появится после проверки модератором.')
+        return redirect(topic.get_absolute_url())
     else:
+        # набранный текст не теряем: черновик лежит в сессии, и страница темы
+        # вернёт его в форму. Ответ как прежде — перенаправление на тему.
+        if not form.honeypot_triggered():
+            request.session[COMMENT_DRAFT] = dict(form.data.lists())
         messages.error(request, 'Проверьте имя и текст комментария.')
     return redirect(topic.get_absolute_url())
 
@@ -72,6 +93,8 @@ def add_comment(request, slug):
 @login_required
 def new_topic(request):
     if request.method == 'POST':
+        # без user= лимит «5 тем в час» не применяется (см. RATE_LIMITS) — так
+        # задумано, чтобы не мешать автотестам; темы защищает только honeypot
         form = TopicForm(request.POST)
         if form.is_valid():
             if form.honeypot_triggered():

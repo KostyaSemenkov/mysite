@@ -1,253 +1,295 @@
+/* ═══ Шрифты Лемурзильни (self-host) ═══
+   Файлы вариативные: Manrope 200–800, Unbounded 200–900 — одно правило
+   на сабсет вместо отдельного файла на каждое начертание. */
+
 @font-face {
   font-family: 'Manrope';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 200 800;
   font-display: swap;
-  src: url('../fonts/manrope-400-cyrillic-ext.woff2') format('woff2');
+  src: url('../fonts/manrope-cyrillic-ext.woff2') format('woff2');
   unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 @font-face {
   font-family: 'Manrope';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 200 800;
   font-display: swap;
-  src: url('../fonts/manrope-400-cyrillic.woff2') format('woff2');
+  src: url('../fonts/manrope-cyrillic.woff2') format('woff2');
   unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: 'Manrope';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 200 800;
   font-display: swap;
-  src: url('../fonts/manrope-400-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url('../fonts/manrope-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
   font-family: 'Manrope';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 200 800;
   font-display: swap;
-  src: url('../fonts/manrope-400-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('../fonts/manrope-600-cyrillic-ext.woff2') format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('../fonts/manrope-600-cyrillic.woff2') format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('../fonts/manrope-600-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('../fonts/manrope-600-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/manrope-700-cyrillic-ext.woff2') format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/manrope-700-cyrillic.woff2') format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/manrope-700-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/manrope-700-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url('../fonts/manrope-800-cyrillic-ext.woff2') format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url('../fonts/manrope-800-cyrillic.woff2') format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url('../fonts/manrope-800-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Manrope';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url('../fonts/manrope-800-latin.woff2') format('woff2');
+  src: url('../fonts/manrope-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: 'Unbounded';
   font-style: normal;
-  font-weight: 500;
+  font-weight: 200 900;
   font-display: swap;
-  src: url('../fonts/unbounded-500-cyrillic-ext.woff2') format('woff2');
+  src: url('../fonts/unbounded-cyrillic-ext.woff2') format('woff2');
   unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
 }
 @font-face {
   font-family: 'Unbounded';
   font-style: normal;
-  font-weight: 500;
+  font-weight: 200 900;
   font-display: swap;
-  src: url('../fonts/unbounded-500-cyrillic.woff2') format('woff2');
+  src: url('../fonts/unbounded-cyrillic.woff2') format('woff2');
   unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: 'Unbounded';
   font-style: normal;
-  font-weight: 500;
+  font-weight: 200 900;
   font-display: swap;
-  src: url('../fonts/unbounded-500-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url('../fonts/unbounded-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
   font-family: 'Unbounded';
   font-style: normal;
-  font-weight: 500;
+  font-weight: 200 900;
   font-display: swap;
-  src: url('../fonts/unbounded-500-latin.woff2') format('woff2');
+  src: url('../fonts/unbounded-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-@font-face {
-  font-family: 'Unbounded';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/unbounded-700-cyrillic-ext.woff2') format('woff2');
-  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
-}
-@font-face {
-  font-family: 'Unbounded';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/unbounded-700-cyrillic.woff2') format('woff2');
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
-}
-@font-face {
-  font-family: 'Unbounded';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/unbounded-700-latin-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Unbounded';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/unbounded-700-latin.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}/* ═══ Дизайн-токены Лемурзильни: тёмная «Карамель» + светлая «Пустыня» ═══
+
+/* ═══ Дизайн-токены Лемурзильни: светлая «Пустыня» + тёмная «Карамель» ═══
    Единый источник палитры для сайта и Досок.
-   Тема: html[data-theme="light"], по умолчанию — тёмная. */
 
+   Тему задаёт <meta name="color-scheme"> в <head>:
+     'light dark' — следуем системе, 'light' | 'dark' — выбор пользователя.
+   Цвета лежат парами (--x-l / --x-d). Браузеры с light-dark() вычисляют
+   итоговый токен из color-scheme; остальные получают светлую базу и тёмную
+   тему от системы, пока пользователь не выбрал светлую. */
 :root {
-  --bg: #140d07;
-  --panel: #241809;
-  --panel2: #1a1108;
-  --border: #3d2b12;
-  --border2: #5c4119;
-  --text: #cfae7c;
-  --muted: #b08a55;
-  --title: #ffffff;
-  --accent: #b9853c;
-  --accent-hov: #a3742f;
-  --accent-light: #dfb265;
-  --accent-lighter: #ecc57f;
-  --accent-dim: #33200a;
-  --accent-text: #1a1108;
-  --input-bg: #140d07;
-  --glow-top: rgba(223, 178, 101, 0.22);
-  --glow-bottom: rgba(217, 153, 76, 0.10);
-  --photo-opacity: 0.5;
-  --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-  --header-glass: rgba(20, 13, 7, 0.72);
+  color-scheme: light dark;
+
+  --bg-l: #efe3cf;             --bg-d: #140d07;
+  --panel-l: #faf3e6;          --panel-d: #241809;
+  --panel2-l: #fffdf8;         --panel2-d: #1a1108;
+  --border-l: #d9c4a0;         --border-d: #3d2b12;
+  --border2-l: #b59d73;        --border2-d: #5c4119;
+  --text-l: #3f2f1a;           --text-d: #cfae7c;
+  --muted-l: #5a4a34;          --muted-d: #b08a55;
+  --title-l: #241a0e;          --title-d: #ffffff;
+  --accent-l: #96622f;         --accent-d: #b9853c;
+  --accent-hov-l: #7d511f;     --accent-hov-d: #a3742f;
+  --accent-light-l: #6f4718;   --accent-light-d: #dfb265;
+  --accent-lighter-l: #7d511f; --accent-lighter-d: #ecc57f;
+  --accent-dim-l: #ecdfc8;     --accent-dim-d: #33200a;
+  --accent-text-l: #fff8ec;    --accent-text-d: #1a1108;
+  --accent-soft-l: #ecd9bd;    --accent-soft-d: #33200a;
+  --input-bg-l: #fffdf8;       --input-bg-d: #140d07;
+  --glow-top-l: rgba(165, 113, 60, 0.10);  --glow-top-d: rgba(223, 178, 101, 0.22);
+  --glow-bottom-l: rgba(165, 113, 60, 0.06); --glow-bottom-d: rgba(217, 153, 76, 0.10);
+  --header-glass-l: rgba(239, 227, 207, 0.78); --header-glass-d: rgba(20, 13, 7, 0.72);
+  /* смысловые цвета: текст и мягкая подложка под него (контраст ≥ 4.5 в обеих темах) */
+  --ok-l: #1f6b3a;             --ok-d: #7fd6a0;
+  --err-l: #a3271b;            --err-d: #ff9f8a;
+  --warn-l: #7a4a10;           --warn-d: #f3c969;
+  --cfp-l: #8f2a4a;            --cfp-d: #ff9fb8;
+  --ok-bg-l: #dcefdc;          --ok-bg-d: #14301f;
+  --err-bg-l: #f8ddd6;         --err-bg-d: #3a1812;
+  --warn-bg-l: #f3e6c8;        --warn-bg-d: #33280f;
+  --cfp-bg-l: #f5dbe4;         --cfp-bg-d: #361622;
+  --attend-bg-l: #e3e4c8;      --attend-bg-d: rgba(90, 90, 47, 0.45);
+
+  /* иконка/подпись переключателя темы для текущей темы */
+  --show-sun: none;
+  --show-moon: inline-block;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --show-sun: inline-block; --show-moon: none; }
+}
+:root:has(> head > meta[name="color-scheme"][content="light"]) {
+  color-scheme: light;
+  --show-sun: none;
+  --show-moon: inline-block;
+}
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  color-scheme: dark;
+  --show-sun: inline-block;
+  --show-moon: none;
 }
 
-html[data-theme="light"] {
-  --bg: #efe3cf;
-  --panel: #faf3e6;
-  --panel2: #fffdf8;
-  --border: #d9c4a0;
-  --border2: #b59d73;
-  --text: #3f2f1a;
-  --muted: #5a4a34;
-  --title: #241a0e;
-  --accent: #96622f;
-  --accent-hov: #7d511f;
-  --accent-light: #6f4718;
-  --accent-lighter: #7d511f;
-  --accent-dim: #ecdfc8;
-  --accent-text: #fff8ec;
-  --input-bg: #fffdf8;
-  --glow-top: rgba(165, 113, 60, 0.10);
-  --glow-bottom: rgba(165, 113, 60, 0.06);
+/* ── запасной путь без light-dark(): светлая база ── */
+:root {
+  --bg: var(--bg-l);
+  --panel: var(--panel-l);
+  --panel2: var(--panel2-l);
+  --border: var(--border-l);
+  --border2: var(--border2-l);
+  --text: var(--text-l);
+  --muted: var(--muted-l);
+  --title: var(--title-l);
+  --accent: var(--accent-l);
+  --accent-hov: var(--accent-hov-l);
+  --accent-light: var(--accent-light-l);
+  --accent-lighter: var(--accent-lighter-l);
+  --accent-dim: var(--accent-dim-l);
+  --accent-text: var(--accent-text-l);
+  --accent-soft: var(--accent-soft-l);
+  --input-bg: var(--input-bg-l);
+  --glow-top: var(--glow-top-l);
+  --glow-bottom: var(--glow-bottom-l);
+  --header-glass: var(--header-glass-l);
+  --ok: var(--ok-l);
+  --err: var(--err-l);
+  --warn: var(--warn-l);
+  --cfp: var(--cfp-l);
+  --ok-bg: var(--ok-bg-l);
+  --err-bg: var(--err-bg-l);
+  --warn-bg: var(--warn-bg-l);
+  --cfp-bg: var(--cfp-bg-l);
+  --attend-bg: var(--attend-bg-l);
   --photo-opacity: 0.18;
   --card-shadow: 0 6px 18px rgba(107, 82, 54, 0.10);
-  --header-glass: rgba(239, 227, 207, 0.78);
 }
-
-/* фото-подложка со слайдов презентации (размытая, с приглушением в светлой теме) */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: url('../img/bg.webp') center/cover no-repeat;
-  filter: blur(36px) saturate(1.1) brightness(0.55);
-  opacity: var(--photo-opacity);
-  z-index: -1;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: var(--bg-d);
+    --panel: var(--panel-d);
+    --panel2: var(--panel2-d);
+    --border: var(--border-d);
+    --border2: var(--border2-d);
+    --text: var(--text-d);
+    --muted: var(--muted-d);
+    --title: var(--title-d);
+    --accent: var(--accent-d);
+    --accent-hov: var(--accent-hov-d);
+    --accent-light: var(--accent-light-d);
+    --accent-lighter: var(--accent-lighter-d);
+    --accent-dim: var(--accent-dim-d);
+    --accent-text: var(--accent-text-d);
+    --accent-soft: var(--accent-soft-d);
+    --input-bg: var(--input-bg-d);
+    --glow-top: var(--glow-top-d);
+    --glow-bottom: var(--glow-bottom-d);
+    --header-glass: var(--header-glass-d);
+    --ok: var(--ok-d);
+    --err: var(--err-d);
+    --warn: var(--warn-d);
+    --cfp: var(--cfp-d);
+    --ok-bg: var(--ok-bg-d);
+    --err-bg: var(--err-bg-d);
+    --warn-bg: var(--warn-bg-d);
+    --cfp-bg: var(--cfp-bg-d);
+    --attend-bg: var(--attend-bg-d);
+    --photo-opacity: 0.5;
+    --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  }
+}
+/* явный выбор пользователя перекрывает системную тему */
+:root:has(> head > meta[name="color-scheme"][content="light"]) {
+  --bg: var(--bg-l);
+  --panel: var(--panel-l);
+  --panel2: var(--panel2-l);
+  --border: var(--border-l);
+  --border2: var(--border2-l);
+  --text: var(--text-l);
+  --muted: var(--muted-l);
+  --title: var(--title-l);
+  --accent: var(--accent-l);
+  --accent-hov: var(--accent-hov-l);
+  --accent-light: var(--accent-light-l);
+  --accent-lighter: var(--accent-lighter-l);
+  --accent-dim: var(--accent-dim-l);
+  --accent-text: var(--accent-text-l);
+  --accent-soft: var(--accent-soft-l);
+  --input-bg: var(--input-bg-l);
+  --glow-top: var(--glow-top-l);
+  --glow-bottom: var(--glow-bottom-l);
+  --header-glass: var(--header-glass-l);
+  --ok: var(--ok-l);
+  --err: var(--err-l);
+  --warn: var(--warn-l);
+  --cfp: var(--cfp-l);
+  --ok-bg: var(--ok-bg-l);
+  --err-bg: var(--err-bg-l);
+  --warn-bg: var(--warn-bg-l);
+  --cfp-bg: var(--cfp-bg-l);
+  --attend-bg: var(--attend-bg-l);
+  --photo-opacity: 0.18;
+  --card-shadow: 0 6px 18px rgba(107, 82, 54, 0.10);
+}
+:root:has(> head > meta[name="color-scheme"][content="dark"]) {
+  --bg: var(--bg-d);
+  --panel: var(--panel-d);
+  --panel2: var(--panel2-d);
+  --border: var(--border-d);
+  --border2: var(--border2-d);
+  --text: var(--text-d);
+  --muted: var(--muted-d);
+  --title: var(--title-d);
+  --accent: var(--accent-d);
+  --accent-hov: var(--accent-hov-d);
+  --accent-light: var(--accent-light-d);
+  --accent-lighter: var(--accent-lighter-d);
+  --accent-dim: var(--accent-dim-d);
+  --accent-text: var(--accent-text-d);
+  --accent-soft: var(--accent-soft-d);
+  --input-bg: var(--input-bg-d);
+  --glow-top: var(--glow-top-d);
+  --glow-bottom: var(--glow-bottom-d);
+  --header-glass: var(--header-glass-d);
+  --ok: var(--ok-d);
+  --err: var(--err-d);
+  --warn: var(--warn-d);
+  --cfp: var(--cfp-d);
+  --ok-bg: var(--ok-bg-d);
+  --err-bg: var(--err-bg-d);
+  --warn-bg: var(--warn-bg-d);
+  --cfp-bg: var(--cfp-bg-d);
+  --attend-bg: var(--attend-bg-d);
+  --photo-opacity: 0.5;
+  --card-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+/* браузеры с light-dark(): цвета берутся прямо из color-scheme */
+@supports (color: light-dark(white, black)) {
+  :root {
+    --bg: light-dark(var(--bg-l), var(--bg-d));
+    --panel: light-dark(var(--panel-l), var(--panel-d));
+    --panel2: light-dark(var(--panel2-l), var(--panel2-d));
+    --border: light-dark(var(--border-l), var(--border-d));
+    --border2: light-dark(var(--border2-l), var(--border2-d));
+    --text: light-dark(var(--text-l), var(--text-d));
+    --muted: light-dark(var(--muted-l), var(--muted-d));
+    --title: light-dark(var(--title-l), var(--title-d));
+    --accent: light-dark(var(--accent-l), var(--accent-d));
+    --accent-hov: light-dark(var(--accent-hov-l), var(--accent-hov-d));
+    --accent-light: light-dark(var(--accent-light-l), var(--accent-light-d));
+    --accent-lighter: light-dark(var(--accent-lighter-l), var(--accent-lighter-d));
+    --accent-dim: light-dark(var(--accent-dim-l), var(--accent-dim-d));
+    --accent-text: light-dark(var(--accent-text-l), var(--accent-text-d));
+    --accent-soft: light-dark(var(--accent-soft-l), var(--accent-soft-d));
+    --input-bg: light-dark(var(--input-bg-l), var(--input-bg-d));
+    --glow-top: light-dark(var(--glow-top-l), var(--glow-top-d));
+    --glow-bottom: light-dark(var(--glow-bottom-l), var(--glow-bottom-d));
+    --header-glass: light-dark(var(--header-glass-l), var(--header-glass-d));
+    --ok: light-dark(var(--ok-l), var(--ok-d));
+    --err: light-dark(var(--err-l), var(--err-d));
+    --warn: light-dark(var(--warn-l), var(--warn-d));
+    --cfp: light-dark(var(--cfp-l), var(--cfp-d));
+    --ok-bg: light-dark(var(--ok-bg-l), var(--ok-bg-d));
+    --err-bg: light-dark(var(--err-bg-l), var(--err-bg-d));
+    --warn-bg: light-dark(var(--warn-bg-l), var(--warn-bg-d));
+    --cfp-bg: light-dark(var(--cfp-bg-l), var(--cfp-bg-d));
+    --attend-bg: light-dark(var(--attend-bg-l), var(--attend-bg-d));
+  }
 }
 
 /* ─── базовая типографика ─── */
@@ -257,16 +299,28 @@ html {
     radial-gradient(ellipse 90% 55% at 50% -5%, var(--glow-top), transparent 70%),
     radial-gradient(ellipse 70% 45% at 50% 110%, var(--glow-bottom), transparent 70%);
   background-attachment: fixed;
+  accent-color: var(--accent);
+  scrollbar-color: var(--border2) var(--bg);
+  /*sticky-шапка не должна закрывать цель якоря*/
+  scroll-padding-block-start: 5.5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
 }
 
 body {
   font-family: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  /* запасной шрифт масштабируется под x-height Manrope — без скачка при загрузке */
+  font-size-adjust: from-font;
 }
 
-h1, h2, h3, .font-display {
+h1, h2, h3, h4, h5, h6, .font-display {
   font-family: 'Unbounded', 'Manrope', sans-serif;
   letter-spacing: -0.01em;
+  text-wrap: balance;
 }
+p, blockquote, li, dd, dt, .prose-warm { text-wrap: pretty; }
+mark { background: var(--accent-dim); color: var(--title); }
 
 /* длинные тексты статей — комфортная мера строки */
 .prose-warm {
@@ -274,9 +328,95 @@ h1, h2, h3, .font-display {
   line-height: 1.7;
 }
 
+main:focus { outline: none; }
+
+/* уведомления Django messages */
+.notice {
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+}
+.notice.ok, .notice.info, .notice.success { background: var(--ok-bg); color: var(--ok); border-color: var(--ok); }
+.notice.error, .notice.warning { background: var(--err-bg); color: var(--err); border-color: var(--err); }
+
+/* ─── доступность ─── */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: absolute;
+  left: 1rem; top: -100%;
+  z-index: 100;
+  padding: 0.6rem 1rem;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: 0 0 8px 8px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.skip-link:focus { top: 0; }
+:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
+}
+.btn-warm:focus-visible, .path-check.done:focus-visible, .cal-cta:focus-visible {
+  outline: 2px solid var(--accent-lighter);
+  outline-offset: 3px;
+}
+progress { accent-color: var(--accent); }
+
+/* отрисовка больших блоков вне вьюпорта откладывается */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--cv-size, 200px);
+}
+
+/* хлебные крошки */
+.crumbs {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 1rem; padding: 0;
+  list-style: none;
+  font-size: 0.85rem; color: var(--muted);
+}
+.crumbs li { display: flex; align-items: center; gap: 0.35rem; }
+.crumbs li + li::before { content: '/'; color: var(--border2); }
+.crumbs a { color: inherit; text-decoration: none; }
+.crumbs a:hover { color: var(--title); text-decoration: underline; }
+.crumbs [aria-current="page"] { color: var(--text); font-weight: 600; }
+
+/* фильтр-чип: выбранное состояние отличается не только цветом */
+.chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.85rem; font-weight: 600;
+  text-decoration: none;
+}
+.chip:hover { border-color: var(--accent); color: var(--text); }
+.chip[aria-pressed="true"], .chip[aria-current="true"], .chip.active {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent-light);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.text-ok { color: var(--ok); }
+.text-err { color: var(--err); }
+.text-warn { color: var(--warn); }
+
 /* ─── единые элементы форм ─── */
 .input {
   width: 100%;
+  min-inline-size: 0;
   background: var(--input-bg);
   color: var(--title);
   border: 1px solid var(--border2);
@@ -285,8 +425,21 @@ h1, h2, h3, .font-display {
   margin-top: 0.25rem;
   font: inherit;
 }
-.input:focus { outline: none; border-color: var(--accent); }
 .input::placeholder { color: var(--muted); }
+.input:focus,
+form p input:focus, form p textarea:focus, form p select:focus {
+  border-color: var(--accent);
+}
+.input:focus-visible,
+form p input:focus-visible, form p textarea:focus-visible, form p select:focus-visible {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 1px;
+}
+/* поле с ошибкой подсвечивается после правки, а не до первого ввода */
+.input:user-invalid,
+form p input:user-invalid, form p textarea:user-invalid, form p select:user-invalid {
+  border-color: var(--err);
+}
 
 .btn-warm {
   display: inline-block;
@@ -297,20 +450,25 @@ h1, h2, h3, .font-display {
   color: var(--accent-text);
   font: inherit;
   font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
   transition: background 0.15s, transform 0.15s;
 }
 .btn-warm:hover { background: var(--accent-hov); }
 .btn-warm:disabled { opacity: 0.55; cursor: default; }
+.btn-warm.sm { padding: 0.3rem 0.8rem; font-size: 0.85rem; }
 .btn-warm.ghost {
   background: transparent;
   border: 1px solid var(--border2);
-  color: var(--muted);
+  color: var(--text);
 }
-.btn-warm.ghost:hover { border-color: var(--accent); color: var(--text); }
+.btn-warm.ghost:hover { border-color: var(--accent); background: var(--accent-dim); }
 
 /* Django-формы через as_p — приводим к тёплой палитре автоматически */
-form p label { display: block; font-size: 0.875rem; color: var(--muted); }
+form p { margin-bottom: 1rem; }
+form p label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text); }
 form p input, form p textarea, form p select {
   width: 100%;
   background: var(--input-bg);
@@ -321,10 +479,13 @@ form p input, form p textarea, form p select {
   margin-top: 0.25rem;
   font: inherit;
 }
-form p input:focus, form p textarea:focus {
-  outline: none; border-color: var(--accent);
+form p textarea {
+  field-sizing: content;
+  resize: vertical;
+  min-height: 6rem;
 }
-.errorlist { color: #e0705a; font-size: 0.875rem; list-style: none; padding: 0; }
+form p input[type="checkbox"], form p input[type="radio"] { width: auto; }
+.errorlist { color: var(--err); font-size: 0.875rem; list-style: none; padding: 0; margin: 0.25rem 0; }
 .helptext { color: var(--muted); font-size: 0.75rem; }
 
 /* ─── карточки ─── */
@@ -335,9 +496,9 @@ form p input:focus, form p textarea:focus {
   box-shadow: var(--card-shadow);
   transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
-.card-warm:hover {
-  border-color: var(--accent);
-  transform: translateY(-3px);
+.card-warm:hover { border-color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .card-warm:hover { transform: translateY(-3px); }
 }
 a.card-warm { display: block; }
 
@@ -367,27 +528,46 @@ a.card-warm { display: block; }
   vertical-align: -0.18em;
 }
 
-/* ─── переключатель темы ─── */
+/* ─── переключатель темы ───
+   Иконка и подпись следуют за темой из <meta name="color-scheme">:
+   в светлой показываем «в тёмную», в тёмной — «в светлую». */
+.ico-sun, .theme-to-light { display: var(--show-sun); }
+.ico-moon, .theme-to-dark { display: var(--show-moon); }
 .theme-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.1rem; height: 2.1rem;
+  width: 2.5rem; height: 2.5rem;
+  flex-shrink: 0;
   border-radius: 999px;
   border: 1px solid var(--border2);
+  background: transparent;
   color: var(--muted);
+  font: inherit;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s;
 }
 .theme-toggle:hover { color: var(--accent-light); border-color: var(--accent); }
-html[data-theme="light"] .theme-toggle .ico-moon { display: none; }
-html:not([data-theme="light"]) .theme-toggle .ico-sun { display: none; }
+.theme-toggle.small { width: 2.1rem; height: 2.1rem; }
+/* без JavaScript переключатель ничего не делает — не показываем */
+html:not(.js) [data-theme-toggle] { display: none; }
 
-/* появление секций при скролле */
-.reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s, transform 0.5s; }
-.reveal.is-visible { opacity: 1; transform: none; }
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; transition: none; }
+/* появление секций при скролле — только когда есть JS и без запрета анимаций */
+@media (prefers-reduced-motion: no-preference) {
+  .js .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.5s, transform 0.5s; }
+  .js .reveal.is-visible { opacity: 1; transform: none; }
+}
+
+/* фото-подложка со слайдов презентации (размытая, с приглушением в светлой теме);
+   источник 320px — под blur(36px) детализация не видна */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: url('../img/bg-blur.webp') center/cover no-repeat;
+  filter: blur(36px) saturate(1.1) brightness(0.55);
+  opacity: var(--photo-opacity);
+  z-index: -1;
 }
 
 
@@ -407,10 +587,12 @@ html:not([data-theme="light"]) .theme-toggle .ico-sun { display: none; }
   align-items: center; justify-content: center;
   cursor: pointer;
   box-shadow: var(--card-shadow);
-  transition: opacity .3s, color .15s;
+  transition: color .15s;
 }
 .scroll-top.visible { display: flex; }
 .scroll-top:hover { color: var(--accent-light); border-color: var(--accent); }
+/* пока открыт cookie-баннер — не наезжаем на него */
+body:has(> .cookie-banner.visible) .scroll-top { display: none; }
 
 /* скелетоны подгрузки */
 .skeleton {
@@ -455,7 +637,6 @@ html:not([data-theme="light"]) .theme-toggle .ico-sun { display: none; }
   scroll-snap-type: x mandatory;
   padding-bottom: 0.5rem;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
 }
 .hscroll > * { scroll-snap-align: start; }
 @media (min-width: 640px) {
@@ -504,14 +685,10 @@ input.hp-field { display: none; }
   text-decoration: none; overflow: hidden;
 }
 .cal-time { font-weight: 700; flex-shrink: 0; }
-.kind-talk { background: rgba(185, 133, 60, 0.25); color: var(--accent-lighter); }
-.kind-attend { background: rgba(90, 90, 47, 0.45); color: var(--text); }
-.kind-cfp { background: rgba(160, 62, 46, 0.35); color: #ffb59e; }
-.kind-personal { background: var(--accent-dim); color: var(--muted); }
-.kind-badge.kind-talk { background: rgba(185, 133, 60, 0.25); color: var(--accent-lighter); }
-.kind-badge.kind-attend { background: rgba(90, 90, 47, 0.45); color: var(--text); }
-.kind-badge.kind-cfp { background: rgba(160, 62, 46, 0.35); color: #ffb59e; }
-.kind-badge.kind-personal { background: var(--accent-dim); color: var(--muted); }
+.kind-talk, .kind-badge.kind-talk { background: var(--accent-dim); color: var(--accent-light); }
+.kind-attend, .kind-badge.kind-attend { background: var(--attend-bg); color: var(--text); }
+.kind-cfp, .kind-badge.kind-cfp { background: var(--cfp-bg); color: var(--cfp); }
+.kind-personal, .kind-badge.kind-personal { background: var(--accent-dim); color: var(--muted); }
 
 
 /* акцентная кнопка-ссылка на календарь */
@@ -524,20 +701,18 @@ input.hp-field { display: none; }
   font-weight: 700;
   font-size: 1rem;
   text-decoration: none;
-  color: var(--accent-lighter);
-  background: var(--panel);
+  color: var(--accent-light);
+  background: var(--panel2);
   border: 2px solid var(--accent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
   transition: transform .15s, box-shadow .15s, background .15s;
 }
 .cal-cta:hover {
-  transform: translateY(-2px);
   background: var(--accent-dim);
   box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 26%, transparent);
 }
-html[data-theme="light"] .cal-cta {
-  color: #6f4718;
-  background: #fffdf8;
+@media (prefers-reduced-motion: no-preference) {
+  .cal-cta:hover { transform: translateY(-2px); }
 }
 
 
@@ -562,7 +737,9 @@ html[data-theme="light"] .cal-cta {
 
 /* cookie-баннер */
 .cookie-banner {
-  position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+  position: fixed;
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  left: 50%; transform: translateX(-50%);
   z-index: 60; display: none; align-items: center; gap: 1rem;
   max-width: min(92vw, 640px);
   background: var(--panel);
@@ -573,3 +750,4 @@ html[data-theme="light"] .cal-cta {
   box-shadow: var(--card-shadow);
 }
 .cookie-banner.visible { display: flex; flex-wrap: wrap; }
+.cookie-banner a { color: var(--accent-light); text-decoration: underline; }

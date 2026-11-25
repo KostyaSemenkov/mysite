@@ -407,13 +407,13 @@ function BoardEditorInner() {
   }
 
   return (
-    <div className="editor-with-strip">
+    <main className="editor-with-strip">
     <SiteStrip title={boardTitle} />
     <div className="editor-wrap" ref={viewportRef} onDoubleClick={onWrapperDoubleClick}>
       <Toolbar onExport={() => { void exportPng() }} />
       {role === 'owner' && (
-        <div className="toolbar" style={{ left: 'auto', right: 12 }}>
-          <button className="btn" onClick={() => setShareOpen(true)}>Поделиться</button>
+        <div className="toolbar" role="toolbar" aria-label="Доступ к доске" style={{ left: 'auto', right: 12 }}>
+          <button type="button" className="btn" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>Поделиться</button>
         </div>
       )}
       <ReactFlow
@@ -504,6 +504,6 @@ function BoardEditorInner() {
       {cursorLabels}
       {shareOpen && <ShareModal boardId={id} onClose={() => setShareOpen(false)} />}
     </div>
-    </div>
+    </main>
   )
 }

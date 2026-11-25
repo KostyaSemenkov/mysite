@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     cors_origins: str = 'http://localhost:5173,https://lemurqa.ru'
     # общий секрет с сайтом Django для SSO-токенов
     sso_secret: str = 'dev-sso-secret-not-for-production'
+    # CSP в принудительном режиме (по умолчанию — только отчёты)
+    csp_enforce: bool = False
 
     @property
     def cors_origin_list(self) -> list[str]:

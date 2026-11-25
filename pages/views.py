@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import models as _djmodels
 from django.db.models import Avg, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from blog.models import Post
@@ -14,16 +15,27 @@ from .models import (FaqItem, Favorite, PathItem, PathStep, Profile, QuizAttempt
                      QuizQuestion, Testimonial, UsefulFile, UserPathProgress)
 
 
+def _safe_next(request, url):
+    """Адрес возврата — только страница этого сайта (защита от открытого редиректа)."""
+    if url and url_has_allowed_host_and_scheme(
+            url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return url
+    return '/'
+
+
 def home(request):
     if request.method == 'POST' and request.POST.get('next'):
         # форма листа ожидания с возвратом на исходную страницу
         from contacts.models import Subscriber
+        from contacts.views import normalize_email
         from django.contrib import messages
-        email = request.POST.get('email', '').strip().lower()
+        email = normalize_email(request.POST.get('email'))
         if email:
             Subscriber.objects.get_or_create(email=email)
             messages.success(request, 'Вы в списке ожидания — напишем, как только стартуем!')
-            return redirect(request.POST['next'])
+        elif request.POST.get('email', '').strip():
+            messages.error(request, 'Проверьте адрес email — он выглядит некорректно.')
+        return redirect(_safe_next(request, request.POST['next']))
 
     stats = {
         'posts': Post.objects.published().count(),
@@ -93,7 +105,7 @@ def favorite_toggle(request):
         user=request.user, content_type=ct, object_id=str(object_id))
     if not created:
         fav.delete()
-    return redirect(request.META.get('HTTP_REFERER') or '/')
+    return redirect(_safe_next(request, request.META.get('HTTP_REFERER')))
 
 
 
@@ -244,7 +256,8 @@ def quiz(request):
                 certificate = Certificate.objects.create(
                     user=request.user, attempt=attempt)
         # подписка «получить разбор на почту» — тем же механизмом
-        email = request.POST.get('email', '').strip().lower()
+        from contacts.views import normalize_email
+        email = normalize_email(request.POST.get('email'))
         if email and score is not None:
             from contacts.models import Subscriber
             from django.contrib import messages

@@ -14,12 +14,12 @@
   </div>
 {% endif %}
 {% if project.image %}
-  <img src="{{ project.image.url }}" alt="{{ project.title }}" class="mt-6 w-full rounded-xl">
+  <img src="{{ project.image.url }}" alt="{{ project.title }}" {% img_dims project.image %} decoding="async" class="mt-6 w-full rounded-xl">
 {% endif %}
 <div class="mt-8 leading-relaxed text-slate-300">{{ project.description|linebreaksbr }}</div>
 <div class="mt-8 flex gap-4">
   {% if project.url %}
-    <a href="{{ project.url }}" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Открыть проект</a>
+    <a href="{{ project.url }}" class="btn-warm">Открыть проект</a>
   {% endif %}
   {% if project.repo_url %}
     <a href="{{ project.repo_url }}" class="rounded-lg border border-slate-700 px-4 py-2 text-sm hover:border-slate-500">Репозиторий</a>

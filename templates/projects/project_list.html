@@ -9,10 +9,10 @@
     <a href="{{ project.get_absolute_url }}"
        class="card-warm overflow-hidden">
       {% if project.image %}
-        <img src="{{ project.image.url }}" alt="{{ project.title }}" class="h-44 w-full object-cover">
+        <img src="{{ project.image.url }}" alt="{{ project.title }}" width="352" height="176" loading="lazy" decoding="async" class="h-44 w-full object-cover">
       {% else %}
         <div class="cover-fallback" style="background: {{ project.title|cover_gradient }}">
-          <svg class="icon" style="width:44px;height:44px;opacity:.8"><use href="{% static 'img/icons.svg' %}#wrench"/></svg>
+          <svg class="icon" style="width:44px;height:44px;opacity:.8" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#wrench"/></svg>
         </div>
       {% endif %}
       <div class="p-6">

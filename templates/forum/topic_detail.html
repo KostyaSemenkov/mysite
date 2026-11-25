@@ -3,9 +3,18 @@
 {% block title %}{{ topic.title }} — Форум{% endblock %}
 
 {% block content %}
-<h1 class="text-2xl font-bold text-white">{% if topic.is_pinned %}{% endif %}{{ topic.title }}</h1>
+<nav aria-label="Хлебные крошки">
+  <ol class="crumbs">
+    <li><a href="{% url 'forum:topic_list' %}">Форум</a></li>
+    <li aria-current="page">{{ topic.title|truncatechars:60 }}</li>
+  </ol>
+</nav>
+
+<article class="prose-warm">
+<h1 class="text-2xl font-bold text-white">{{ topic.title }}</h1>
 <p class="mt-1 text-xs text-slate-500">
-  {{ topic.created_at|date:'d.m.Y H:i' }}{% if topic.created_by %} · {{ topic.created_by.username }}{% endif %}
+  <time datetime="{{ topic.created_at|date:'c' }}">{{ topic.created_at|date:'d.m.Y H:i' }}</time>{% if topic.created_by %} · {{ topic.created_by.username }}{% endif %}
+  {% if topic.is_resolved %}<span class="ml-2 rounded-full bg-emerald-900 px-2 py-0.5 text-emerald-300">решено</span>{% endif %}
 </p>
 
 {% if topic.body %}
@@ -13,77 +22,45 @@
     {{ topic.body|linebreaksbr }}
   </div>
 {% endif %}
+</article>
 
 <h2 class="mt-8 text-lg font-semibold text-white">Комментарии ({{ comments|length }})</h2>
 <div class="mt-4 space-y-4">
   {% for comment in comments %}
-    <div class="rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <article class="rounded-xl border border-slate-800 bg-slate-900 p-4">
       <div class="flex items-center gap-2 text-sm">
         <span class="font-medium {% if comment.author %}text-indigo-300{% else %}text-slate-300{% endif %}">
           {{ comment.display_name }}
         </span>
-        <span class="text-xs text-slate-500">{{ comment.created_at|date:'d.m.Y H:i' }}</span>
+        <time datetime="{{ comment.created_at|date:'c' }}" class="text-xs text-slate-500">{{ comment.created_at|date:'d.m.Y H:i' }}</time>
       </div>
       <p class="mt-2 text-slate-300">{{ comment.body|linebreaksbr }}</p>
-    </div>
+    </article>
   {% empty %}
     <p class="text-slate-500">Комментариев пока нет.</p>
   {% endfor %}
 </div>
 
-<div class="mt-8 flex flex-wrap items-center gap-3" id="reactions">
-  {% if not user.is_authenticated %}<span class="hint">Войдите, чтобы ставить реакции и отмечать решения.</span>{% endif %}
+<div class="mt-8 flex flex-wrap items-center gap-3" id="reactions"
+     data-url="{% url 'forum:toggle_reaction' topic.slug %}">
+  {% if not user.is_authenticated %}<span class="text-sm text-slate-500">Войдите, чтобы ставить реакции и отмечать решения.</span>{% endif %}
   {% if user.is_authenticated %}
-  <button class="btn-warm ghost" data-kind="fire"
+  <button type="button" class="btn-warm ghost" data-kind="fire" aria-pressed="{% if 'fire' in my_reactions %}true{% else %}false{% endif %}"
           data-on="{% if 'fire' in my_reactions %}1{% else %}0{% endif %}">
-    <span id="react-fire-ico">{% if "fire" in my_reactions %}🔥✓{% else %}🔥{% endif %}</span> Полезно · <span id="react-fire-n">{{ fire_count }}</span>
+    <span data-icon="fire">{% if "fire" in my_reactions %}🔥✓{% else %}🔥{% endif %}</span> Полезно · <span data-count="fire">{{ fire_count }}</span>
   </button>
-  <button class="btn-warm ghost" data-kind="like"
+  <button type="button" class="btn-warm ghost" data-kind="like" aria-pressed="{% if 'like' in my_reactions %}true{% else %}false{% endif %}"
           data-on="{% if 'like' in my_reactions %}1{% else %}0{% endif %}">
-    <span id="react-like-ico">{% if "like" in my_reactions %}👍✓{% else %}👍{% endif %}</span> Согласен · <span id="react-like-n">{{ like_count }}</span>
+    <span data-icon="like">{% if "like" in my_reactions %}👍✓{% else %}👍{% endif %}</span> Согласен · <span data-count="like">{{ like_count }}</span>
   </button>
   {% endif %}
   {% if can_resolve %}
-  <button class="btn-warm ghost" id="toggle-resolved"
-          data-resolved="{% if topic.is_resolved %}1{% else %}0{% endif %}">
-    {% if topic.is_resolved %}Снять «решено»{% else %}✓ Отметить решённой{% endif %}
-  </button>
+  <form method="post" action="{% url 'forum:toggle_resolved' topic.slug %}" class="inline">
+    {% csrf_token %}
+    <button type="submit" class="btn-warm ghost">{% if topic.is_resolved %}Снять «решено»{% else %}✓ Отметить решённой{% endif %}</button>
+  </form>
   {% endif %}
 </div>
-<script>
-(function () {
-  var csrf = '{{ csrf_token }}';
-  var url = "{% url 'forum:toggle_reaction' topic.slug %}";
-  var resolvedUrl = "{% url 'forum:toggle_resolved' topic.slug %}";
-  document.querySelectorAll('#reactions button[data-kind]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var kind = btn.dataset.kind;
-      fetch(url, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
-        credentials: 'same-origin',
-        body: 'kind=' + kind
-      }).then(function (r) { return r.json() }).then(function (data) {
-        var on = btn.dataset.on === '1';
-        btn.dataset.on = on ? '0' : '1';
-        document.getElementById('react-' + kind + '-n').textContent = data.counts[kind];
-        document.getElementById('react-' + kind + '-ico').textContent =
-          (kind === 'fire' ? '🔥' : '👍') + (on ? '' : '✓');
-      }).catch(function () { location.reload() });
-    });
-  });
-  var resBtn = document.getElementById('toggle-resolved');
-  if (resBtn) {
-    resBtn.addEventListener('click', function () {
-      fetch(resolvedUrl, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrf },
-        credentials: 'same-origin'
-      }).then(function () { location.reload() });
-    });
-  }
-})();
-</script>
 
 {% if form %}
   <form action="{% url 'forum:add_comment' topic.slug %}" method="post"
@@ -94,13 +71,18 @@
       <p class="text-xs text-slate-500">Вы вошли как {{ user.username }} — комментарий появится сразу.</p>
     {% else %}
       <p class="text-xs text-slate-500">Как гость: комментарий появится после проверки модератором.
-        Или <a href="{% url 'login' %}" class="text-indigo-400 hover:text-indigo-300">войдите</a> /
+        Или <a href="{% url 'login' %}?next={{ request.path }}" class="text-indigo-400 hover:text-indigo-300">войдите</a> /
         <a href="{% url 'register' %}" class="text-indigo-400 hover:text-indigo-300">зарегистрируйтесь</a>.</p>
     {% endif %}
+    {{ form.non_field_errors }}
     {{ form.as_p }}
-    <button class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Отправить</button>
+    <button type="submit" class="btn-warm">Отправить</button>
   </form>
 {% else %}
   <p class="mt-8 text-sm text-slate-500">Тема закрыта для комментариев.</p>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if user.is_authenticated %}<script defer src="{% static 'js/topic.js' %}" nonce="{{ csp_nonce }}"></script>{% endif %}
 {% endblock %}

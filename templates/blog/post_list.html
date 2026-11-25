@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Блог — {{ profile.name|default:'' }}{% endblock %}
 
 {% block content %}
@@ -8,35 +9,16 @@
     ✍️ Предложить гостевой пост →
   </a>
 {% endif %}
-<div id="posts-list" class="mt-8 space-y-6" data-next="{% if page_obj.has_next %}{{ page_obj.next_page_number }}{% endif %}">
+<div id="posts-list" class="mt-8 space-y-6">
   {% include 'blog/includes/posts_page.html' %}
 </div>
 {% if page_obj.has_next %}
-  <button id="load-more"
-          class="mt-6 rounded-lg border border-slate-700 px-5 py-2.5 text-sm hover:border-slate-500"
-          onclick="loadMore(this)">Показать ещё</button>
-  <span id="posts-loading" class="ml-3 hidden text-sm text-slate-500">Загружаем…</span>
+  <button type="button" id="load-more" data-next="{{ page_obj.next_page_number }}"
+          class="btn-warm ghost mt-6">Показать ещё</button>
+  <noscript><p class="mt-6"><a href="?page={{ page_obj.next_page_number }}" class="btn-warm ghost">Следующая страница →</a></p></noscript>
 {% endif %}
-<script>
-async function loadMore(btn) {
-  const list = document.getElementById('posts-list');
-  const page = list.dataset.next;
-  if (!page) { btn.remove(); return; }
-  btn.disabled = true;
-  document.getElementById('posts-loading').classList.remove('hidden');
-  document.getElementById('posts-skeleton').classList.remove('hidden');
-  btn.classList.add('hidden');
-  try {
-    const resp = await fetch(`?page=${page}`, { headers: { 'X-Load-More': '1' } });
-    const html = await resp.text();
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    doc.querySelectorAll('.post-card').forEach(el => list.appendChild(el));
-    list.dataset.next = doc.querySelector('#posts-list')?.dataset.next || '';
-    if (!list.dataset.next) btn.remove();
-  } catch (e) { console.error(e); }
-  btn.disabled = false;
-  btn.classList.remove('hidden');
-  document.getElementById('posts-skeleton').classList.add('hidden');
-}
-</script>
+{% endblock %}
+
+{% block extra_js %}
+{% if page_obj.has_next %}<script defer src="{% static 'js/blog-loadmore.js' %}" nonce="{{ csp_nonce }}"></script>{% endif %}
 {% endblock %}

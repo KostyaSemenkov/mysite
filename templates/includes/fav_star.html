@@ -6,15 +6,17 @@
     {% csrf_token %}
     <input type="hidden" name="ct" value="{% content_type_id obj %}">
     <input type="hidden" name="oid" value="{{ obj.pk }}">
-    <button title="{% if is_favorite %}Убрать из избранного{% else %}В избранное{% endif %}"
-            class="align-middle" style="color: {% if is_favorite %}#dfb265{% else %}#5c4119{% endif %}">
-      <svg class="icon" style="width:1.1em;height:1.1em;{% if is_favorite %}fill:currentColor{% endif %}">
+    <button type="submit" aria-pressed="{% if is_favorite %}true{% else %}false{% endif %}"
+            aria-label="{% if is_favorite %}Убрать из избранного{% else %}Добавить в избранное{% endif %}"
+            title="{% if is_favorite %}Убрать из избранного{% else %}В избранное{% endif %}"
+            class="align-middle" style="color: {% if is_favorite %}var(--accent-light){% else %}var(--border2){% endif %}">
+      <svg class="icon" style="width:1.1em;height:1.1em;{% if is_favorite %}fill:currentColor{% endif %}" aria-hidden="true">
         <use href="{% static 'img/icons.svg' %}#star"/></svg>
     </button>
   </form>
 {% else %}
   <a href="{% url 'login' %}" title="Войдите, чтобы добавлять в избранное"
-     class="align-middle" style="color:#5c4119">
-    <svg class="icon" style="width:1.1em;height:1.1em"><use href="{% static 'img/icons.svg' %}#star"/></svg>
+     aria-label="Войдите, чтобы добавлять в избранное" class="align-middle" style="color:var(--border2)">
+    <svg class="icon" style="width:1.1em;height:1.1em" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#star"/></svg>
   </a>
 {% endif %}

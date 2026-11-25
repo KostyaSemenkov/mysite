@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, apiError, setAuth, type CurrentUser } from '../api'
+import { useDocumentTitle } from '../useDocumentTitle'
 
 export default function LoginPage() {
   const nav = useNavigate()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  useDocumentTitle('Вход — Доски')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,20 +34,40 @@ export default function LoginPage() {
     <div className="auth-page">
       <form className="auth-card" onSubmit={submit}>
         <h1>Вход</h1>
+        <label htmlFor="login-username">Имя пользователя</label>
         <input
+          id="login-username"
+          name="username"
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck={false}
+          required
           autoFocus
           placeholder="Имя пользователя"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
+        <label htmlFor="login-password">Пароль</label>
         <input
-          type="password"
+          id="login-password"
+          name="password"
+          type={showPassword ? 'text' : 'password'}
+          autoComplete="current-password"
+          required
           placeholder="Пароль"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        {error && <div className="error">{error}</div>}
-        <button disabled={busy || !username || !password}>
+        <button
+          type="button"
+          className="password-toggle"
+          aria-pressed={showPassword}
+          onClick={() => setShowPassword(!showPassword)}
+        >
+          {showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+        </button>
+        {error && <div className="error" role="alert">{error}</div>}
+        <button type="submit" disabled={busy || !username || !password} aria-busy={busy}>
           {busy ? 'Входим…' : 'Войти'}
         </button>
         <p className="hint">

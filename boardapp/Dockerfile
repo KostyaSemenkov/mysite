@@ -18,4 +18,5 @@ COPY --from=frontend /app/frontend/dist /app/frontend/dist
 
 EXPOSE 8000
 # The WebSocket rooms and their change locks are shared within one process.
-CMD ["sh", "-c", "python -m alembic upgrade head && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1"]
+# --ws-max-size: лимит одного сообщения сокета (256 КБ) — защита от oversized-кадров.
+CMD ["sh", "-c", "python -m alembic upgrade head && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --ws-max-size 262144"]

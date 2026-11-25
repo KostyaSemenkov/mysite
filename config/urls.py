@@ -8,7 +8,10 @@ from django.views.generic import TemplateView
 
 from contacts import views as contact_views
 from forum import views as forum_views
+from forum.forms import LoginForm
 from pages import views as page_views
+from pages.auth_views import LogoutView as SiteLogoutView
+from pages.auth_views import csp_report
 from pages.sitemaps import sitemaps
 from pages.sso import boards_sso
 from blog.feeds import LatestPostsFeed
@@ -39,8 +42,9 @@ urlpatterns = [
     path('ai/', include('ainews.urls')),
     path('forum/', include('forum.urls')),
     path('boardapp/sso/', boards_sso, name='boards_sso'),
-    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('accounts/login/', auth_views.LoginView.as_view(form_class=LoginForm), name='login'),
+    path('accounts/logout/', SiteLogoutView.as_view(), name='logout'),
+    path('csp-report/', csp_report, name='csp-report'),
     path('accounts/register/', forum_views.register, name='register'),
     path('subscribe/', contact_views.subscribe, name='subscribe'),
     path('sitemap.xml', sitemap_view, {'sitemaps': sitemaps}, name='sitemap'),

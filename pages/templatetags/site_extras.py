@@ -1,5 +1,9 @@
 from django import template
 from django.contrib.contenttypes.models import ContentType
+from django.utils.html import escape, format_html
+from django.utils.safestring import mark_safe
+
+import re as _re
 
 register = template.Library()
 
@@ -47,16 +51,23 @@ def is_favorite(context, obj):
 
 @register.filter
 def highlight(text, q):
-    """Подсветка подстроки <mark>."""
+    """Подсветка подстроки <mark>; исходный текст всегда экранируется.
+
+    text может быть пользовательским (заголовок темы форума), поэтому
+    mark_safe допустим только поверх уже экранированных кусков.
+    """
     text = str(text)
     q = str(q or '').strip()
     if not q:
-        return text
-    import re as _re
-    pattern = _re.compile('(' + _re.escape(q) + ')', _re.IGNORECASE)
-    from django.utils.safestring import mark_safe
-    return mark_safe(pattern.sub(
-        lambda m: '<mark>' + m.group(0) + '</mark>', text))
+        return text  # обычная строка — шаблон экранирует сам
+    pattern = _re.compile(_re.escape(q), _re.IGNORECASE)
+    out, pos = [], 0
+    for m in pattern.finditer(text):
+        out.append(escape(text[pos:m.start()]))
+        out.append(format_html('<mark>{}</mark>', m.group(0)))
+        pos = m.end()
+    out.append(escape(text[pos:]))
+    return mark_safe(''.join(out))
 
 
 @register.filter
@@ -80,10 +91,11 @@ def score_color(score):
         return 'text-emerald-400'
     if score >= 50:
         return 'text-indigo-300'
-    return 'text-amber-500'
+    return 'text-warn'
 
 
-import re as _re
+# youtube-nocookie: режим расширенной конфиденциальности (без трекинга до клика)
+_EMBED_YT = 'https://www.youtube-nocookie.com/embed/'
 
 
 @register.filter
@@ -92,7 +104,7 @@ def video_embed(url):
     url = str(url or '')
     m = _re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([\w-]{6,})', url)
     if m:
-        return 'https://www.youtube.com/embed/' + m.group(1)
+        return _EMBED_YT + m.group(1)
     m = _re.search(r'vk\.com/video(-?\d+_\d+)', url)
     if m:
         return 'https://vk.com/video_ext.php?oid=' + m.group(1).replace('_', '&id=') + '&hd=2'
@@ -103,3 +115,16 @@ def video_embed(url):
 def stars(rating):
     n = max(0, min(5, int(rating or 0)))
     return '★' * n + '☆' * (5 - n)
+
+
+@register.simple_tag
+def img_dims(image_field):
+    """width/height у картинки: браузер резервирует место до её загрузки.
+
+    Если файл недоступен, берём пропорцию обложки по умолчанию (16:9).
+    """
+    try:
+        width, height = image_field.width, image_field.height
+    except Exception:
+        width, height = 1200, 675
+    return format_html('width="{}" height="{}"', width, height)

@@ -7,9 +7,10 @@
 
 <form method="post" class="card-warm mt-6 max-w-md space-y-4 p-6">
   {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
 
   {% if form.non_field_errors %}
-  <div class="rounded-lg border border-red-700 bg-red-900/30 px-4 py-3 text-sm text-red-200">
+  <div class="notice error" role="alert">
     {% for error in form.non_field_errors %}
     <p>{% if 'correct' in error|lower or 'valid' in error|lower %}Неверное имя пользователя или пароль. Проверьте раскладку клавиатуры и Caps Lock.{% else %}{{ error }}{% endif %}</p>
     {% endfor %}
@@ -20,15 +21,15 @@
   <div>
     <label for="{{ field.id_for_label }}" class="text-sm text-slate-400">{{ field.label }}</label>
     {{ field }}
-    {% for error in field.errors %}
-    <div class="mt-2 rounded-lg border border-red-700 bg-red-900/30 px-3 py-2 text-sm text-red-200">
-      {{ error }}
-    </div>
-    {% endfor %}
+    {% if field.errors %}
+    <ul class="errorlist" role="alert" id="{{ field.id_for_label }}_error">
+      {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+    </ul>
+    {% endif %}
   </div>
   {% endfor %}
 
-  <button class="btn-warm w-full">Войти</button>
+  <button type="submit" class="btn-warm w-full">Войти</button>
 </form>
 
 <p class="mt-4 text-xs text-slate-500">

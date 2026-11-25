@@ -9,7 +9,7 @@
 <form method="post" class="mt-8 max-w-2xl space-y-3 rounded-xl border border-slate-800 bg-slate-900 p-6">
   {% csrf_token %}
   {{ form.as_p }}
-  <button class="rounded-lg bg-indigo-600 px-5 py-2.5 text-white hover:bg-indigo-500">Отправить на проверку</button>
+  <button class="btn-warm">Отправить на проверку</button>
 </form>
 
 {% if my_posts %}
@@ -20,8 +20,8 @@
         <div class="flex items-center justify-between gap-3">
           <span class="text-white">{{ s.title }}</span>
           <span class="rounded-full px-2.5 py-0.5 text-xs
-                       {% if s.status == 'approved' %}bg-emerald-900/50 text-emerald-300
-                       {% elif s.status == 'rejected' %}bg-red-900/40 text-red-300
+                       {% if s.status == 'approved' %}bg-emerald-900 text-emerald-300
+                       {% elif s.status == 'rejected' %}bg-red-900 text-red-300
                        {% else %}bg-indigo-950 text-indigo-300{% endif %}">
             {{ s.get_status_display }}
           </span>

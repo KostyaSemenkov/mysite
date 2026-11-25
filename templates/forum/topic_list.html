@@ -7,14 +7,14 @@
   <h1 class="text-3xl font-bold text-white">Форум</h1>
   {% if user.is_authenticated %}
     <a href="{% url 'forum:new_topic' %}"
-       class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Новая тема</a>
+       class="btn-warm">Новая тема</a>
   {% endif %}
 </div>
 <p class="mt-2 text-slate-400">Обсуждения открытые: комментировать могут зарегистрированные пользователи
   сразу, гости — после проверки модератором.</p>
 
 {% if not user.is_authenticated %}
-  <div class="mt-5 rounded-xl border border-indigo-800/60 bg-slate-900 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+  <div class="mt-5 rounded-xl border border-indigo-800 bg-slate-900 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
     <div class="flex-1">
       <h3 class="font-semibold text-white">Создайте аккаунт — это открывает всё</h3>
       <ul class="mt-2 grid gap-1 text-sm text-slate-400 sm:grid-cols-2">
@@ -24,7 +24,7 @@
         <li>✓ совместные доски</li>
       </ul>
     </div>
-    <a href="{% url 'register' %}" class="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500 text-center">Зарегистрироваться</a>
+    <a href="{% url 'register' %}" class="btn-warm shrink-0 text-center">Зарегистрироваться</a>
   </div>
 {% endif %}
 
@@ -35,7 +35,7 @@
       <div class="flex flex-wrap items-center gap-2 sm:gap-3">
         {% if topic.is_pinned %}<span class="text-xs text-amber-400">📌</span>{% endif %}
         {% if topic.is_closed %}<span class="text-xs text-slate-500">🔒 закрыта</span>{% endif %}
-        {% if topic.is_resolved %}<span class="rounded-full bg-emerald-900/50 px-2 py-0.5 text-[11px] text-emerald-300">решено</span>{% endif %}
+        {% if topic.is_resolved %}<span class="rounded-full bg-emerald-900 px-2 py-0.5 text-[11px] text-emerald-300">решено</span>{% endif %}
         <h2 class="font-semibold text-white">{{ topic.title }}</h2>
       </div>
       <p class="mt-1 text-xs text-slate-500">

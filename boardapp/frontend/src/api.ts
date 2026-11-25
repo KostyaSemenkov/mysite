@@ -49,7 +49,8 @@ export function clearAuth() {
   localStorage.removeItem(USER_KEY)
 }
 
-export const api = axios.create({ baseURL: '/boards' })
+// таймаут: запрос без ответа не должен висеть вечно
+export const api = axios.create({ baseURL: '/boards', timeout: 15000 })
 
 api.interceptors.request.use((config) => {
   const token = getToken()

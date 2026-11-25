@@ -4,16 +4,18 @@
 {% block meta_description %}{{ course.summary|truncatechars:200 }}{% endblock %}
 
 {% block content %}
-<nav class="text-xs text-slate-500 mb-4">
-  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
-  <a href="{% url 'ainews:courses' %}" class="hover:text-white">ИИ-курсы</a> ·
-  <span class="text-slate-400">{{ course.title|truncatechars:30 }}</span>
+<nav aria-label="Хлебные крошки">
+  <ol class="crumbs">
+    <li><a href="{% url 'home' %}">Главная</a></li>
+    <li><a href="{% url 'ainews:courses' %}">ИИ-курсы</a></li>
+    <li aria-current="page">{{ course.title|truncatechars:30 }}</li>
+  </ol>
 </nav>
 
 <div class="flex flex-wrap items-center gap-3">
   <span class="hero-badge">{{ course.get_level_display }}</span>
   {% if course.price == 0 %}
-  <span class="rounded-full bg-emerald-900/40 px-3 py-1 text-sm text-emerald-300">Бесплатно</span>
+  <span class="rounded-full bg-emerald-900 px-3 py-1 text-sm text-emerald-300">Бесплатно</span>
   {% else %}
   <span class="font-display text-2xl font-bold text-indigo-300">{{ course.price }} ₽</span>
   {% endif %}
@@ -36,7 +38,7 @@
   <ul class="mt-2 space-y-1.5">
     {% for line in course.program_lines %}
     <li class="flex gap-2">
-      <svg class="icon text-indigo-400 mt-0.5" style="width:1em;height:1em"><use href="{% static 'img/icons.svg' %}#check"/></svg>
+      <svg class="icon text-indigo-400 mt-0.5" style="width:1em;height:1em" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#check"/></svg>
       <span>{{ line }}</span>
     </li>
     {% endfor %}

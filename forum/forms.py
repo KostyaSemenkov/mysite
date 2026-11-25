@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
@@ -7,8 +7,12 @@ import re
 
 from .models import Comment, Topic
 
-INPUT_CLASS = ('w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2.5 '
-               'focus:border-indigo-500 focus:outline-none')
+# единый класс полей из tokens.css (классы Tailwind из Python не попадают в сборку)
+INPUT_CLASS = 'input'
+NAME_ATTRS = {'class': INPUT_CLASS, 'autocomplete': 'username',
+              'autocapitalize': 'none', 'spellcheck': 'false'}
+NEW_PASSWORD_ATTRS = {'class': INPUT_CLASS, 'autocomplete': 'new-password',
+                       'autocapitalize': 'none', 'spellcheck': 'false'}
 
 HONEYPOT_HELP = 'Оставьте поле пустым'
 
@@ -55,14 +59,15 @@ class RegisterForm(UserCreationForm):
             'required': 'Введите имя пользователя — это обязательное поле.',
             'max_length': 'Имя не может быть длиннее 150 символов.',
         },
-        widget=forms.TextInput(attrs={
-            'class': INPUT_CLASS, 'placeholder': 'Например: ivan_petrov'}))
+        widget=forms.TextInput(attrs={**NAME_ATTRS, 'placeholder': 'Например: ivan_petrov'}))
 
     password1 = forms.CharField(
         label='Пароль',
         help_text='Минимум 8 символов, не только цифры, не только одинаковые символы',
         error_messages={'required': 'Введите пароль.'},
-        widget=forms.PasswordInput(attrs={'class': INPUT_CLASS}))
+        # strip=False: пробелы в пароле значимы, иначе вход после регистрации не сработает
+        strip=False,
+        widget=forms.PasswordInput(attrs=dict(NEW_PASSWORD_ATTRS)))
 
     def _post_clean(self):
         # пропускаем Django-валидаторы пароля: наш clean_password1 уже
@@ -85,7 +90,8 @@ class RegisterForm(UserCreationForm):
             'required': 'Повторите пароль.',
             'password_mismatch': 'Пароли не совпадают — перепроверьте оба поля.',
         },
-        widget=forms.PasswordInput(attrs={'class': INPUT_CLASS}))
+        strip=False,
+        widget=forms.PasswordInput(attrs={'class': INPUT_CLASS, 'autocomplete': 'new-password'}))
 
     class Meta:
         model = User
@@ -132,14 +138,25 @@ class RegisterForm(UserCreationForm):
         return p2
 
 
+class LoginForm(AuthenticationForm):
+    """Вход: поля в едином стиле и атрибуты для менеджера паролей браузера."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].widget.attrs.update(NAME_ATTRS)
+        self.fields['password'].widget.attrs.update(
+            {'class': INPUT_CLASS, 'autocomplete': 'current-password'})
+
+
 class CommentForm(HoneypotMixin, forms.ModelForm):
     class Meta:
         model = Comment
         fields = ('guest_name', 'body')
         widgets = {
-            'guest_name': forms.TextInput(attrs={'placeholder': 'Ваше имя', 'class': INPUT_CLASS}),
+            'guest_name': forms.TextInput(attrs={'placeholder': 'Ваше имя', **NAME_ATTRS,
+                                                 'autocomplete': 'nickname'}),
             'body': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Ваш комментарий',
-                                          'class': INPUT_CLASS}),
+                                          'class': INPUT_CLASS, 'autocomplete': 'off'}),
         }
 
     def __init__(self, *args, user=None, **kwargs):
@@ -169,9 +186,10 @@ class TopicForm(HoneypotMixin, forms.ModelForm):
         model = Topic
         fields = ('title', 'body')
         widgets = {
-            'title': forms.TextInput(attrs={'placeholder': 'О чём тема?', 'class': INPUT_CLASS}),
+            'title': forms.TextInput(attrs={'placeholder': 'О чём тема?', 'class': INPUT_CLASS,
+                                            'autocomplete': 'off'}),
             'body': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Первое сообщение',
-                                          'class': INPUT_CLASS}),
+                                          'class': INPUT_CLASS, 'autocomplete': 'off'}),
         }
 
     def __init__(self, *args, user=None, **kwargs):

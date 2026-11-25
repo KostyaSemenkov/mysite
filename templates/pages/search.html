@@ -4,23 +4,26 @@
 
 {% block content %}
 <h1 class="font-display text-3xl font-bold text-white">Поиск по сайту</h1>
-<form method="get" action="{% url 'search' %}" class="mt-6 flex max-w-xl gap-3 flex-wrap">
-  <input type="search" name="q" value="{{ q }}" autofocus placeholder="Что ищем? Посты, проекты, выступления, темы…"
-         class="input" style="max-width:420px">
-  <button class="btn-warm">Найти</button>
-</form>
+<search>
+  <form method="get" action="{% url 'search' %}" role="search" class="mt-6 flex max-w-xl gap-3 flex-wrap">
+    <label for="id_q" class="visually-hidden">Что ищем?</label>
+    <input type="search" id="id_q" name="q" value="{{ q }}" placeholder="Что ищем? Посты, проекты, выступления, темы…"
+           class="input" style="max-width:420px">
+    <button type="submit" class="btn-warm">Найти</button>
+  </form>
+</search>
 
 {% if q %}
 <div class="mt-4 flex flex-wrap gap-2 text-sm">
-  <a href="?q={{ q|urlencode }}" class="rounded-full px-3 py-1 border {% if not section %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Везде</a>
-  <a href="?q={{ q|urlencode }}&section=sections" class="rounded-full px-3 py-1 border {% if section == 'sections' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Разделы</a>
-  <a href="?q={{ q|urlencode }}&section=blog" class="rounded-full px-3 py-1 border {% if section == 'blog' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Блог</a>
-  <a href="?q={{ q|urlencode }}&section=projects" class="rounded-full px-3 py-1 border {% if section == 'projects' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Проекты</a>
-  <a href="?q={{ q|urlencode }}&section=talks" class="rounded-full px-3 py-1 border {% if section == 'talks' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Выступления</a>
-  <a href="?q={{ q|urlencode }}&section=forum" class="rounded-full px-3 py-1 border {% if section == 'forum' %}border-indigo-500 text-white{% else %}border-slate-700 text-slate-400{% endif %}">Форум</a>
+  <a href="?q={{ q|urlencode }}" class="chip{% if not section %} active{% endif %}"{% if not section %} aria-current="true"{% endif %}>Везде</a>
+  <a href="?q={{ q|urlencode }}&amp;section=sections" class="chip{% if section == 'sections' %} active{% endif %}"{% if section == 'sections' %} aria-current="true"{% endif %}>Разделы</a>
+  <a href="?q={{ q|urlencode }}&amp;section=blog" class="chip{% if section == 'blog' %} active{% endif %}"{% if section == 'blog' %} aria-current="true"{% endif %}>Блог</a>
+  <a href="?q={{ q|urlencode }}&amp;section=projects" class="chip{% if section == 'projects' %} active{% endif %}"{% if section == 'projects' %} aria-current="true"{% endif %}>Проекты</a>
+  <a href="?q={{ q|urlencode }}&amp;section=talks" class="chip{% if section == 'talks' %} active{% endif %}"{% if section == 'talks' %} aria-current="true"{% endif %}>Выступления</a>
+  <a href="?q={{ q|urlencode }}&amp;section=forum" class="chip{% if section == 'forum' %} active{% endif %}"{% if section == 'forum' %} aria-current="true"{% endif %}>Форум</a>
 </div>
 
-<p class="mt-4 text-sm text-slate-500">Результатов: {{ results|length }} по запросу «{{ q }}»</p>
+<p class="mt-4 text-sm text-slate-500" role="status">Результатов: {{ results|length }} по запросу «{{ q }}»</p>
 <div class="mt-4 space-y-3">
   {% for label, obj in results %}
   <a href="{{ obj.get_absolute_url }}" class="card-warm p-4">

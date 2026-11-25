@@ -7,9 +7,9 @@
 <article>
   <div class="flex items-center gap-2 text-sm text-slate-500">
     {% if talk.status == 'upcoming' %}
-      <span class="rounded-full bg-indigo-600/20 px-2 py-0.5 text-[11px] text-indigo-300">Анонс</span>
+      <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">Анонс</span>
     {% endif %}
-    {% if talk.spoke_at %}<time>{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
+    {% if talk.spoke_at %}<time datetime="{{ talk.spoke_at|date:'c' }}">{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
   </div>
   <h1 class="mt-2 text-3xl font-bold text-white">
     {% is_favorite talk as fav %}{% include 'includes/fav_star.html' with obj=talk is_favorite=fav %}
@@ -18,7 +18,7 @@
 
   {% if talk.status == 'upcoming' and talk.registration_url %}
     <a href="{{ talk.registration_url }}" target="_blank" rel="noopener"
-       class="mt-4 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500">Зарегистрироваться на эфир</a>
+       class="btn-warm mt-4">Зарегистрироваться на эфир</a>
   {% endif %}
 
   <div class="mt-6 overflow-hidden rounded-xl border border-slate-800 bg-black">
@@ -31,7 +31,7 @@
     {% elif talk.video_url %}
       <div class="p-6 text-center">
         <a href="{{ talk.video_url }}" target="_blank" rel="noopener"
-           class="rounded-lg bg-indigo-600 px-5 py-2.5 text-white hover:bg-indigo-500">Смотреть по ссылке →</a>
+           class="btn-warm">Смотреть по ссылке →</a>
       </div>
     {% endif %}
   </div>

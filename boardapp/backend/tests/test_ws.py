@@ -110,11 +110,14 @@ def test_viewer_cannot_mutate(ws_setup):
 
 
 def test_bad_token_rejected(ws_setup):
+    """Токен в адресе (старый клиент) всё равно проверяется: сокет закрывается с 4401."""
+    from starlette.websockets import WebSocketDisconnect
     bid = ws_setup['board_id']
     with TestClient(app) as tc:
-        with pytest.raises(Exception):
-            with tc.websocket_connect(f'/ws/boards/{bid}?token=invalid'):
-                pass
+        with tc.websocket_connect(f'/ws/boards/{bid}?token=invalid') as ws:
+            with pytest.raises(WebSocketDisconnect) as exc:
+                ws.receive_json()
+            assert exc.value.code == 4401
 
 
 def test_batch_is_atomic_and_can_be_retried_after_reconnect(ws_setup):
@@ -169,3 +172,76 @@ def test_batch_is_atomic_and_can_be_retried_after_reconnect(ws_setup):
             init = receive(ws, 'init')['data']
             assert init['lastSequence'] == 1
             assert next(t for t in init['tickets'] if t['id'] == first)['x'] == 10
+
+
+def test_ws_token_in_first_message(ws_setup):
+    """Новый клиент присылает токен первым сообщением: адрес сокета без токена."""
+    owner = ws_setup['owner']
+    bid = ws_setup['board_id']
+    with TestClient(app) as tc:
+        with tc.websocket_connect(f'/ws/boards/{bid}') as ws:
+            ws.send_json({'type': 'auth', 'token': owner['token'],
+                          'clientId': str(uuid.uuid4())})
+            init = ws.receive_json()
+            assert init['type'] == 'init'
+            assert init['data']['role'] == 'owner'
+
+
+def test_ws_rejects_wrong_first_message(ws_setup):
+    from starlette.websockets import WebSocketDisconnect
+    bid = ws_setup['board_id']
+    with TestClient(app) as tc:
+        with tc.websocket_connect(f'/ws/boards/{bid}') as ws:
+            ws.send_json({'type': 'ticket:create', 'data': {}})
+            with pytest.raises(WebSocketDisconnect) as exc:
+                ws.receive_json()
+            assert exc.value.code == 4400
+
+
+def test_ws_rejects_bad_token_in_auth_message(ws_setup):
+    from starlette.websockets import WebSocketDisconnect
+    bid = ws_setup['board_id']
+    with TestClient(app) as tc:
+        with tc.websocket_connect(f'/ws/boards/{bid}') as ws:
+            ws.send_json({'type': 'auth', 'token': 'not-a-jwt', 'clientId': ''})
+            with pytest.raises(WebSocketDisconnect) as exc:
+                ws.receive_json()
+            assert exc.value.code == 4401
+
+
+def test_ws_origin_check():
+    allowed = ws_module._origin_allowed
+    assert allowed({'host': 'lemurqa.ru', 'origin': 'https://lemurqa.ru'})
+    # алиас сайта: Origin совпадает с Host
+    assert allowed({'host': 'www.lemurqa.ru', 'origin': 'https://www.lemurqa.ru'})
+    # dev-сервер Vite — из списка CORS
+    assert allowed({'host': 'api.local', 'origin': 'http://localhost:5173'})
+    # клиент без Origin (не браузер): всё равно потребуется токен
+    assert allowed({'host': 'lemurqa.ru'})
+    assert not allowed({'host': 'lemurqa.ru', 'origin': 'https://evil.example'})
+    # чужой Origin не спасает и поддомен того же имени
+    assert not allowed({'host': 'evil.example', 'origin': 'https://app.evil.example'})
+
+
+def _receive(sock, kind):
+    """Читает сообщения до нужного типа (перед ошибкой приходят presence:join и пр.)."""
+    for _ in range(20):
+        message = sock.receive_json()
+        if message.get('type') == kind:
+            return message
+    pytest.fail(f'{kind} was not received')
+
+
+def test_ws_batch_is_capped(ws_setup):
+    owner = ws_setup['owner']
+    bid = ws_setup['board_id']
+    url = f"/ws/boards/{bid}?token={owner['token']}"
+    with TestClient(app) as tc:
+        with tc.websocket_connect(url) as ws:
+            _receive(ws, 'init')
+            changes = [{'type': 'ticket:create', 'data': {
+                'id': str(uuid.uuid4()), 'x': 1, 'y': 2, 'text': '', 'color': '#CAFFBF'}}
+                for _ in range(ws_module.MAX_BATCH_CHANGES + 1)]
+            ws.send_json({'type': 'board:batch', 'data': {'changes': changes}})
+            result = _receive(ws, 'error')
+            assert 'не больше' in result['data']['message']

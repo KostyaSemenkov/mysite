@@ -12,9 +12,10 @@
   <form action="/" method="post" class="card-warm mt-8 mx-auto flex max-w-md gap-3 p-6">
     {% csrf_token %}
     <input type="hidden" name="next" value="{% url 'waiting_list' %}">
-    <input type="email" name="email" required placeholder="Ваш email"
-           class="input">
-    <button class="btn-warm">В список</button>
+    <label for="id_email" class="visually-hidden">Ваш email</label>
+    <input type="email" id="id_email" name="email" required placeholder="Ваш email"
+           autocomplete="email" inputmode="email" class="input">
+    <button type="submit" class="btn-warm">В список</button>
   </form>
 
   <p class="mt-6 text-xs text-slate-500">Никакого спама — только одно письмо о старте курса.</p>

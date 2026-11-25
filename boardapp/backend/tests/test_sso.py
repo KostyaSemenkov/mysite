@@ -35,24 +35,30 @@ def sso_secret(monkeypatch):
     return 'test-sso-secret'
 
 
+def shim_data(html: str) -> dict:
+    """Данные SSO-страницы — блок <script type="application/json" id="sso-data">."""
+    import json
+    import re
+    m = re.search(r'<script type="application/json" id="sso-data">(.*?)</script>', html, re.S)
+    assert m, 'shim должен отдавать блок данных sso-data'
+    return json.loads(m.group(1))
+
+
 async def test_sso_creates_user_and_returns_shim(client, sso_secret):
     token = make_sso_token(sso_secret, 'django-user-42', 'kotik')
     r = await client.get(f'/api/auth/sso?token={token}&next=/boards/')
     assert r.status_code == 200
     assert 'text/html' in r.headers['content-type']
-    assert 'boardapp_token' in r.text
-    assert '/boards/' in r.text
+    # без inline-скрипта (строгий CSP): блок данных + внешний мост
+    assert '<script src="/boards/sso-bridge.js">' in r.text
+    assert '<script>' not in r.text
 
-    # shim кладёт валидную JSON-строку пользователя (не "[object Object]")
-    import re
-    m = re.search(r"localStorage\.setItem\('boardapp_user', (\".*?\")\)", r.text)
-    assert m, 'shim должен сохранять пользователя строкой'
-    import json as _json
-    stored = _json.loads(_json.loads(m.group(1)))  # JS-литерал → JSON-текст → объект
-    assert stored['username'] == 'kotik'
+    data = shim_data(r.text)
+    assert data['next'] == '/boards/'
+    # пользователь передаётся объектом, а не строкой "[object Object]"
+    assert data['user']['username'] == 'kotik'
 
-    app_token = re.search(r"localStorage\.setItem\('boardapp_token', \"(.*?)\"\)", r.text).group(1)
-    me = await client.get('/api/auth/me', headers=auth(app_token))
+    me = await client.get('/api/auth/me', headers=auth(data['token']))
     assert me.status_code == 200
     assert me.json()['username'] == 'kotik'
 
@@ -63,18 +69,14 @@ async def test_sso_second_login_updates_username(client, sso_secret):
     t2 = make_sso_token(sso_secret, 'django-user-42', 'zhorik')
     r = await client.get(f'/api/auth/sso?token={t2}')
     assert r.status_code == 200
-    import re
-    m = re.search(r"localStorage\.setItem\('boardapp_token', \"(.*?)\"\)", r.text)
-    me = await client.get('/api/auth/me', headers=auth(m.group(1)))
+    me = await client.get('/api/auth/me', headers=auth(shim_data(r.text)['token']))
     assert me.json()['username'] == 'zhorik'
 
 
 async def test_sso_sanitizes_bad_username(client, sso_secret):
     token = make_sso_token(sso_secret, 'django-7', 'Лемур!')  # кириллица и символы
     r = await client.get(f'/api/auth/sso?token={token}')
-    import re
-    m = re.search(r"localStorage\.setItem\('boardapp_token', \"(.*?)\"\)", r.text)
-    me = await client.get('/api/auth/me', headers=auth(m.group(1)))
+    me = await client.get('/api/auth/me', headers=auth(shim_data(r.text)['token']))
     assert me.json()['username'] == 'udjango-7'
 
 

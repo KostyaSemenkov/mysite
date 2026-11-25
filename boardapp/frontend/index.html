@@ -2,20 +2,20 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="stylesheet" href="/static/css/tokens.css" />
-    <script>
-      (function () {
-        var saved = localStorage.getItem('theme');
-        var preferLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-        document.documentElement.dataset.theme = saved === 'light' || (!saved && preferLight) ? 'light' : 'dark';
-      })();
-    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Доски — Лемурзильня тестировщика</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="/static/css/tokens.css" />
+    <!-- Цветовая тема — как на сайте: выбор хранится в localStorage('theme') и
+         применяется через <meta name="color-scheme"> до первой отрисовки.
+         Скрипт вынесен в файл, чтобы на странице не было inline-скрипта (CSP). -->
+    <meta name="color-scheme" content="light dark" />
+    <script src="/boards/theme-init.js"></script>
   </head>
   <body>
     <div id="root"></div>
+    <!-- Общий с сайтом переключатель темы: слушает кнопки [data-theme-toggle] -->
+    <script defer src="/static/js/theme.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

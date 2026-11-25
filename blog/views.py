@@ -14,8 +14,12 @@ def post_list(request):
     paginator = Paginator(posts, 6)
     page = paginator.get_page(request.GET.get('page'))
     if request.headers.get('X-Load-More'):
-        # фрагмент для кнопки «Показать ещё»
-        return render(request, 'blog/includes/posts_page.html', {'page_obj': page})
+        # фрагмент для кнопки «Показать ещё»; номер следующей страницы — в заголовке,
+        # самого блока #posts-list во фрагменте нет
+        resp = render(request, 'blog/includes/posts_page.html', {'page_obj': page})
+        if page.has_next():
+            resp['X-Next-Page'] = str(page.next_page_number())
+        return resp
     return render(request, 'blog/post_list.html', {'page_obj': page})
 
 

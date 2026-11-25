@@ -4,10 +4,12 @@
 {% block meta_description %}Каталог курсов по искусственному интеллекту: от бесплатных вводных до продвинутых программ.{% endblock %}
 
 {% block content %}
-<nav class="text-xs text-slate-500 mb-4">
-  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
-  <a href="{% url 'ainews:index' %}" class="hover:text-white">ИИ-новости</a> ·
-  <span class="text-slate-400">Курсы</span>
+<nav aria-label="Хлебные крошки">
+  <ol class="crumbs">
+    <li><a href="{% url 'home' %}">Главная</a></li>
+    <li><a href="{% url 'ainews:index' %}">ИИ-новости</a></li>
+    <li aria-current="page">Курсы</li>
+  </ol>
 </nav>
 
 <h1 class="font-display text-3xl font-bold text-white">Курсы по ИИ</h1>
@@ -29,7 +31,7 @@
     <div class="flex items-start justify-between gap-2">
       <span class="hero-badge">{{ c.get_level_display }}</span>
       {% if c.price == 0 %}
-      <span class="rounded-full bg-emerald-900/40 px-2.5 py-0.5 text-xs text-emerald-300">Бесплатно</span>
+      <span class="rounded-full bg-emerald-900 px-2.5 py-0.5 text-xs text-emerald-300">Бесплатно</span>
       {% else %}
       <span class="font-display font-bold text-indigo-300">{{ c.price }} ₽</span>
       {% endif %}
@@ -41,7 +43,7 @@
     <p class="text-sm text-slate-400 flex-1">{{ c.summary|truncatechars:140 }}</p>
     {% if c.duration %}
     <div class="text-xs text-slate-500 flex items-center gap-1.5">
-      <svg class="icon"><use href="{% static 'img/icons.svg' %}#clock"/></svg>
+      <svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#clock"/></svg>
       {{ c.duration }}
     </div>
     {% endif %}

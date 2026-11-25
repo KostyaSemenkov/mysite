@@ -4,20 +4,22 @@
 {% block meta_description %}Календарь выступлений и событий: доклады, участие, дедлайны.{% endblock %}
 
 {% block content %}
-<nav class="text-xs text-slate-500 mb-4 flex items-center gap-1.5">
-  <a href="{% url 'home' %}" class="hover:text-white">Главная</a> ·
-  <a href="{% url 'talks:talk_list' %}" class="hover:text-white">Выступления</a> ·
-  <span class="text-slate-400">Календарь</span>
+<nav aria-label="Хлебные крошки">
+  <ol class="crumbs">
+    <li><a href="{% url 'home' %}">Главная</a></li>
+    <li><a href="{% url 'talks:talk_list' %}">Выступления</a></li>
+    <li aria-current="page">Календарь</li>
+  </ol>
 </nav>
 
 <div class="flex flex-wrap items-center justify-between gap-3">
   <h1 class="font-display text-3xl font-bold text-white">{{ month_name }} {{ year }}</h1>
   <div class="flex items-center gap-2">
-    <a href="?y={{ prev.0 }}&m={{ prev.1 }}" class="btn-warm ghost">←</a>
+    <a href="?y={{ prev.0 }}&amp;m={{ prev.1 }}" class="btn-warm ghost" aria-label="Предыдущий месяц">←</a>
     <a href="?y={{ today.year }}&m={{ today.month }}" class="btn-warm ghost">Сегодня</a>
-    <a href="?y={{ next.0 }}&m={{ next.1 }}" class="btn-warm ghost">→</a>
+    <a href="?y={{ next.0 }}&amp;m={{ next.1 }}" class="btn-warm ghost" aria-label="Следующий месяц">→</a>
     <a href="{% url 'talks:ical_feed' %}" class="btn-warm" title="Подписка в Google/Apple календарь">
-      <svg class="icon"><use href="{% static 'img/icons.svg' %}#rss"/></svg> iCal
+      <svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#rss"/></svg> iCal
     </a>
   </div>
 </div>
@@ -34,7 +36,7 @@
           <div class="cal-cell{% if day == today.day and month == today.month and year == today.year %} today{% endif %}{% if by_day|lookup:day %} has-events{% endif %}">
             <span class="cal-day">{{ day }}</span>
             {% for ev in by_day|lookup:day %}
-              <a href="#event-{{ day }}-{{ forloop.counter }}" class="cal-chip kind-{{ ev.kind }}"
+              <a href="#event-{{ ev.pk }}" class="cal-chip kind-{{ ev.kind }}"
                  title="{{ ev.title }}">
                 {% if ev.time %}<span class="cal-time">{{ ev.time|date:'H:i' }}</span>{% endif %}
                 <span class="cal-chip-title">{{ ev.title|truncatechars:18 }}</span>
@@ -53,7 +55,7 @@
   <h2 class="font-display text-xl font-semibold text-white mb-4">События месяца</h2>
   <div class="space-y-4">
     {% for ev in month_events %}
-    <div id="event-{{ ev.date.day }}-{{ forloop.counter }}" class="card-warm p-5">
+    <div id="event-{{ ev.pk }}" class="card-warm p-5" tabindex="-1">
       <div class="flex flex-wrap items-center gap-3">
         <span class="rounded-full px-2.5 py-0.5 text-xs kind-badge kind-{{ ev.kind }}">
           {% if ev.kind == 'talk' %}Доклад{% elif ev.kind == 'attend' %}Участие{% elif ev.kind == 'cfp' %}CFP-дедлайн{% else %}Личное{% endif %}
@@ -69,7 +71,7 @@
         <div class="mt-3 flex flex-wrap gap-2">
           {% for url, label in ev.links %}
             <a href="{{ url }}" target="_blank" rel="noopener" class="btn-warm ghost text-sm">
-              <svg class="icon"><use href="{% static 'img/icons.svg' %}#external"/></svg> {{ label }}</a>
+              <svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#external"/></svg> {{ label }}</a>
           {% endfor %}
         </div>
       {% endif %}

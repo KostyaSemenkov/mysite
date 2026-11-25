@@ -3,12 +3,12 @@
 {% block meta_description %}Все статьи блога по теме: {{ tag }}{% endblock %}
 
 {% block content %}
-<nav class="text-xs text-slate-500 mb-4 flex items-center gap-1.5">
-  <a href="{% url 'home' %}" class="hover:text-white">Главная</a>
-  <svg class="icon" style="width:.8em;height:.8em"><use href="/static/img/icons.svg#chevron-down" transform="rotate(-90 12 12)"/></svg>
-  <a href="{% url 'blog:post_list' %}" class="hover:text-white">Блог</a>
-  <svg class="icon" style="width:.8em;height:.8em"><use href="/static/img/icons.svg#chevron-down" transform="rotate(-90 12 12)"/></svg>
-  <span class="text-slate-400">{{ tag }}</span>
+<nav aria-label="Хлебные крошки">
+  <ol class="crumbs">
+    <li><a href="{% url 'home' %}">Главная</a></li>
+    <li><a href="{% url 'blog:post_list' %}">Блог</a></li>
+    <li aria-current="page">{{ tag }}</li>
+  </ol>
 </nav>
 
 <h1 class="font-display text-3xl font-bold text-white">Рубрика: {{ tag }}</h1>

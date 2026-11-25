@@ -1,5 +1,7 @@
+import asyncio
 import math
 import uuid
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from sqlalchemy import delete, select, update
@@ -8,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..access import get_board_or_404, get_role
 from ..board_manager import manager
+from ..config import settings
 from ..database import SessionLocal
 from ..models import BoardClient, Edge, Ticket, User, Zone
 from ..schemas import ZoneOut
@@ -15,12 +18,30 @@ from ..security import decode_token
 
 router = APIRouter(tags=['ws'])
 
+# сколько ждём сообщение auth после открытия сокета; больше — не подключаем
+AUTH_TIMEOUT_SECONDS = 10
+# потолок изменений в одном board:batch
+MAX_BATCH_CHANGES = 200
+
 
 def _valid_uuid(value) -> str | None:
     try:
         return str(uuid.UUID(value))
     except (ValueError, TypeError, AttributeError):
         return None
+
+
+def _origin_allowed(headers) -> bool:
+    """Страница, открывшая сокет, — с этого же сайта или из списка CORS.
+
+    Браузер всегда присылает Origin; клиенты без него (тесты, консольные
+    утилиты) пропускаются — им всё равно нужен действующий токен.
+    Сравнение с Host покрывает и алиасы вроде www.
+    """
+    origin = headers.get('origin')
+    if not origin or origin in settings.cors_origin_list:
+        return True
+    return urlparse(origin).netloc == headers.get('host', '')
 
 
 def _clamp(value, lo, hi) -> float:
@@ -217,6 +238,28 @@ async def _apply_change(session: AsyncSession, board_id: str, user_id: str,
 async def board_ws(ws: WebSocket, board_id: str, token: str = '', clientId: str = ''):
     import logging
     log = logging.getLogger('ws')
+    if not _origin_allowed(ws.headers):
+        log.warning('ws origin reject: %s', ws.headers.get('origin'))
+        await ws.close(code=4403)
+        return
+    await ws.accept()
+
+    if not token:
+        # Токен приходит первым сообщением: адрес сокета с токеном попадает
+        # в логи прокси и остаётся в истории вкладки.
+        try:
+            first = await asyncio.wait_for(ws.receive_json(), AUTH_TIMEOUT_SECONDS)
+        except Exception:
+            await ws.close(code=4401)
+            return
+        if not isinstance(first, dict) or first.get('type') != 'auth' \
+                or not isinstance(first.get('token'), str):
+            await ws.close(code=4400)
+            return
+        token = first['token']
+        clientId = str(first.get('clientId') or '')
+    # ?token=… ещё принимается для вкладок, открытых до обновления фронтенда.
+
     try:
         user_id = decode_token(token)
     except Exception as e:
@@ -239,7 +282,6 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = '', clientId: str 
         role = await get_role(session, user, board)
         board_title = board.title
 
-    await ws.accept()
     conn = await manager.join(board_id, ws, user.id, user.username)
     client_id = _valid_uuid(clientId)
 
@@ -334,6 +376,9 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = '', clientId: str 
                             changes = data.get('changes')
                             if not isinstance(changes, list) or not changes:
                                 raise ValueError('Пустая пакетная операция')
+                            if len(changes) > MAX_BATCH_CHANGES:
+                                raise ValueError(
+                                    f'В одном пакете не больше {MAX_BATCH_CHANGES} изменений')
                             events = []
                             for change in changes:
                                 events.append(await _apply_change(
