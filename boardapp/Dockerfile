@@ -1,4 +1,7 @@
 FROM node:22-alpine AS frontend
+# В контейнере сборки IPv6 может не маршрутизироваться: Node первым пробует AAAA-адрес
+# реестра и ловит ETIMEDOUT на части пакетов. Сначала IPv4 — сборка стабильна.
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --silent
