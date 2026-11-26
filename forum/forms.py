@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import CommonPasswordValidator
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 from datetime import timedelta
 import re
@@ -127,6 +129,12 @@ class RegisterForm(UserCreationForm):
         if username and username.lower() in password.lower():
             raise forms.ValidationError(
                 'Пароль не должен содержать ваше имя пользователя.')
+        try:
+            # список из 20 000 самых распространённых паролей (входит в Django)
+            CommonPasswordValidator().validate(password, None)
+        except DjangoValidationError:
+            raise forms.ValidationError(
+                'Этот пароль слишком распространён — его легко подобрать. Придумайте другой.')
         return password
 
     def clean_password2(self):

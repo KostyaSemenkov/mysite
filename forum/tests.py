@@ -38,6 +38,12 @@ class RegisterTests(TestCase):
         resp = self.register(password2='Другой пароль 42')
         self.assertContains(resp, 'Пароли не совпадают')
 
+    def test_common_password_is_declined(self):
+        resp = self.register(username='weak_pw_user', password1='password123',
+                             password2='password123')
+        self.assertContains(resp, 'слишком распространён')
+        self.assertFalse(get_user_model().objects.filter(username='weak_pw_user').exists())
+
 
 class LoginTests(TestCase):
     def test_form_attributes_and_return_url(self):
@@ -86,3 +92,26 @@ class CommentTests(TestCase):
         page = self.client.get(self.topic.get_absolute_url())
         self.assertContains(page, 'Проверьте имя и текст комментария.')
         self.assertEqual(Comment.objects.count(), 0)
+
+
+class TopicLimitTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user('author', password=PASSWORD)
+        self.client.login(username='author', password=PASSWORD)
+
+    def test_sixth_topic_in_an_hour_is_declined(self):
+        limit, _ = RATE_LIMITS['topic']
+        Topic.objects.bulk_create(
+            Topic(title=f'Тема {i}', slug=f'tema-{i}', created_by=self.user) for i in range(limit))
+        resp = self.client.post(reverse('forum:new_topic'), {'title': 'Шестая тема', 'body': 'текст'})
+        self.assertFalse(Topic.objects.filter(title='Шестая тема').exists())
+        self.assertContains(resp, 'Слишком много тем за час')
+
+    def test_limit_applies_per_user(self):
+        limit, _ = RATE_LIMITS['topic']
+        Topic.objects.bulk_create(
+            Topic(title=f'Чужая {i}', slug=f'other-{i}', created_by=self.user) for i in range(limit))
+        get_user_model().objects.create_user('fresh', password=PASSWORD)
+        self.client.login(username='fresh', password=PASSWORD)
+        resp = self.client.post(reverse('forum:new_topic'), {'title': 'Своя тема', 'body': 'текст'})
+        self.assertRedirects(resp, Topic.objects.get(title='Своя тема').get_absolute_url())

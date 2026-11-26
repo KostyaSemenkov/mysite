@@ -93,9 +93,8 @@ def add_comment(request, slug):
 @login_required
 def new_topic(request):
     if request.method == 'POST':
-        # без user= лимит «5 тем в час» не применяется (см. RATE_LIMITS) — так
-        # задумано, чтобы не мешать автотестам; темы защищает только honeypot
-        form = TopicForm(request.POST)
+        # user передаётся форме — иначе ограничение «5 тем в час» не работает
+        form = TopicForm(request.POST, user=request.user)
         if form.is_valid():
             if form.honeypot_triggered():
                 # бот: делаем вид, что тема создана, но не сохраняем
