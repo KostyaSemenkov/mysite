@@ -50,8 +50,7 @@ python manage.py runserver
    docker compose exec web python manage.py createsuperuser
    ```
 5. Обновление сайта после правок: `git pull && docker compose up -d --build`
-6. **«Доски», когда сервер не может скачать пакеты npm.** Сборка образа падает на
-   `npm ci`, если реестр недоступен серверу. Тогда фронтенд собирается локально и
+6. **«Доски», когда образы из GHCR недоступны.** Фронтенд собирается локально и
    уезжает готовым (скрипт делает всё сам):
    ```bash
    scripts/deploy_boards_prebuilt.sh            # хост vm-lemurqa, каталог ~/mysite
@@ -75,8 +74,10 @@ python manage.py runserver
 Отчёты о нарушениях CSP сайт пишет в лог (`docker compose logs web | grep CSP`).
 Откатить CSP в режим «только отчёты» — `DJANGO_CSP_ENFORCE=0` и
 `BOARDS_CSP_ENFORCE=0` в `.env`, затем `docker compose up -d web boards`.
-Изменённый `Caddyfile` применяется без простоя:
-`docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile`.
+После правки `Caddyfile` нужен `sudo docker compose restart caddy` (около секунды
+простоя): контейнер Caddy держит копию файла с момента запуска, и `caddy reload`
+внутри него после `git pull` видит прежнюю версию. Адрес с `www` перенаправляется
+на основной домен.
 
 Тесты перед деплоем: `python manage.py test` (сайт) и
 `python -m pytest -q` в `boardapp/backend` (Доски) — CI запускает те же команды.

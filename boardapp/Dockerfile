@@ -1,10 +1,13 @@
 FROM node:22-alpine AS frontend
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/package-lock.json ./
-# Кэш npm живёт между сборками (cache mount BuildKit): реестр периодически отвечает
-# серверу 403 или таймаутом на часть файлов, и тогда очередная попытка догружает
-# только недостающее вместо полной загрузки. Без --silent, чтобы причина падения
-# была видна в логе сборки.
+# Для сборки на самом сервере (Cloud.ru): там первый пакет каждого нового
+# исходящего соединения теряется, и соединение открывается только повторной
+# попыткой через ~1 с. Node ≥ 20 даёт каждому адресу 250 мс, перебирает все
+# адреса реестра и сдаётся с ETIMEDOUT — так падал npm ci. В CI проблемы нет.
+ENV NODE_OPTIONS=--no-network-family-autoselection
+# Кэш npm живёт между сборками (cache mount BuildKit): повторная попытка
+# догружает только недостающее. Без --silent, чтобы причина падения была видна.
 RUN --mount=type=cache,target=/root/.npm \
     npm ci --no-audit --no-fund --loglevel=error \
       --fetch-retries=5 --fetch-retry-mintimeout=2000 --fetch-retry-maxtimeout=30000

@@ -1,10 +1,15 @@
-{$DOMAIN} {
+{$DOMAIN}, www.{$DOMAIN} {
 	encode gzip
 
 	# браузер всегда ходит на сайт по HTTPS и не даёт перейти по http в обход
 	# предупреждений о сертификате. Без includeSubDomains: на поддоменах могут быть
 	# другие сервисы, и если у них нет HTTPS, они станут недоступны.
 	header Strict-Transport-Security "max-age=31536000"
+
+	# www ведёт на основной домен; без www в адресе сайта Caddy не выпускал
+	# сертификат для www, и сайт по адресу с www не открывался
+	@www host www.{$DOMAIN}
+	redir @www https://{$DOMAIN}{uri} permanent
 
 	# приложение «Доски»: всё под /boards уходит в boards-сервис,
 	# префикс срезается (handle_path) — WS, API и статику обслуживает FastAPI.
