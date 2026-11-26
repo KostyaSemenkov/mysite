@@ -5,7 +5,7 @@ from django.db import models
 
 
 class Profile(models.Model):
-    """Singleton-модель: данные о владельце для главной и страницы «Обо мне»."""
+    """Singleton-модель: данные о владельце для главной страницы."""
 
     name = models.CharField('Имя', max_length=120)
     tagline = models.CharField('Кто вы (одной строкой)', max_length=200,

@@ -13,7 +13,7 @@ class StaticViewSitemap(Sitemap):
     changefreq = 'weekly'
 
     def items(self):
-        return ['home', 'about', 'blog:post_list', 'projects:project_list',
+        return ['home', 'blog:post_list', 'projects:project_list',
                 'talks:talk_list', 'forum:topic_list', 'contacts:contact',
                 'waiting_list']
 

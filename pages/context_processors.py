@@ -9,7 +9,6 @@ FAVICON_BY_PREFIX = (
     ('/talks', 'talks'),
     ('/forum', 'forum'),
     ('/contacts', 'contacts'),
-    ('/about', 'about'),
     ('/search', 'search'),
     ('/profile', 'profile'),
     ('/waiting', 'waiting'),
@@ -29,13 +28,12 @@ _NAV = (
     ('useful', 'Полезности', 'useful'),
     ('quiz', 'Тренажёр', 'quiz'),
     ('path', 'Путь', 'path'),
-    ('about', 'Обо мне', 'about'),
 )
 
 # текущий раздел — по пространству имён URL, иначе по имени маршрута
 _SECTION_BY_NS = {'blog': 'blog', 'projects': 'projects', 'talks': 'talks', 'forum': 'forum',
                   'contacts': 'contacts', 'ai': 'ai', 'ainews': 'ai'}
-_SECTION_BY_NAME = {'home': 'home', 'about': 'about', 'search': 'search', 'useful': 'useful',
+_SECTION_BY_NAME = {'home': 'home', 'search': 'search', 'useful': 'useful',
                     'quiz': 'quiz', 'path': 'path', 'profile': 'profile', 'boards_sso': 'boards'}
 
 _nav_items = None

@@ -149,7 +149,6 @@
           <span class="visually-hidden theme-to-dark">Включить тёмную тему</span>
           <span class="visually-hidden theme-to-light">Включить светлую тему</span>
         </button>
-        <a href="{% url 'contacts:contact' %}" class="btn-warm sm">Связаться</a>
       </div>
 
       <div class="flex lg:hidden items-center gap-1.5 order-2">
@@ -169,7 +168,6 @@
          style="background: var(--header-glass)" aria-label="Мобильное меню">
       {% include 'includes/nav_links.html' with mobile=1 %}
       <a href="{% url 'search' %}" class="hover:text-white{% if nav_section == 'search' %} text-white font-semibold{% endif %}"{% if nav_section == 'search' %} aria-current="page"{% endif %}>Поиск</a>
-      <a href="{% url 'contacts:contact' %}" class="btn-warm sm self-start mt-1">Связаться</a>
       {% if user.is_authenticated %}
         <a href="{% url 'profile' %}" class="text-slate-400 hover:text-white">{{ user.username }} · профиль</a>
         <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button type="submit" class="text-slate-400 hover:text-white">выйти</button></form>

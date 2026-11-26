@@ -16,7 +16,6 @@ const NAV = [
   { href: '/useful/', label: 'Полезности' },
   { href: '/quiz/', label: 'Тренажёр' },
   { href: '/path/', label: 'Путь' },
-  { href: '/about/', label: 'Обо мне' },
 ]
 
 /**
@@ -61,7 +60,6 @@ export function SiteHeader() {
             <a href="/accounts/login/?next=/boardapp/sso/" className="site-nav-user">Войти</a>
           )}
           <ThemeToggle className="theme-toggle small" />
-          <a href="/contacts/" className="btn-warm site-nav-cta">Связаться</a>
         </div>
       </div>
     </header>

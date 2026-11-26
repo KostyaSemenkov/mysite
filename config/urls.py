@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.sitemaps.views import sitemap as sitemap_view
 from django.urls import include, path
-from django.views.generic import TemplateView
+from django.views.generic import RedirectView, TemplateView
 
 from contacts import views as contact_views
 from forum import views as forum_views
@@ -19,7 +19,8 @@ from blog.feeds import LatestPostsFeed
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', page_views.home, name='home'),
-    path('about/', page_views.about, name='about'),
+    # раздел «Обо мне» убран: старые ссылки ведут на главную
+    path('about/', RedirectView.as_view(pattern_name='home', permanent=True)),
     path('privacy/', page_views.privacy, name='privacy'),
     path('offer/', page_views.offer, name='offer'),
     path('waiting/', page_views.waiting_list, name='waiting_list'),

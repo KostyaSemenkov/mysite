@@ -69,10 +69,6 @@ def _member_count():
     return get_user_model().objects.count()
 
 
-def about(request):
-    return render(request, 'pages/about.html')
-
-
 def privacy(request):
     return render(request, 'pages/privacy.html')
 
@@ -134,7 +130,6 @@ SITE_SECTIONS = [
     ('Полезности', '/useful/', 'чеклист чек-лист скачать шаблоны файлы репорт баг'),
     ('Тренажёр', '/quiz/', 'квиз тест вопросы проверка знаний обучение'),
     ('Услуги', '/services/', 'консультации аудит менторство ревью автотестов цена заказать'),
-    ('Обо мне', '/about/', 'автор биография манифест таймлайн кто'),
     ('Контакты', '/contacts/', 'связаться написать email письмо заявка'),
     ('Курс по автотестам', '/waiting/', 'курс обучение автотесты ожидание pytest'),
     ('ИИ-новости', '/ai/', 'ии ai нейросети kimi qwen deepseek z.ai китайские новости'),

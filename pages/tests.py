@@ -26,7 +26,7 @@ class HighlightTests(SimpleTestCase):
 
 class BaseTemplateTests(TestCase):
     def test_theme_meta_skip_link_and_external_scripts(self):
-        html = self.client.get(reverse('about')).content.decode()
+        html = self.client.get(reverse('services')).content.decode()
         self.assertIn('<meta name="color-scheme" content="light dark">', html)
         self.assertIn('<a class="skip-link" href="#content">', html)
         self.assertIn('<main id="content"', html)
@@ -60,8 +60,18 @@ class BaseTemplateTests(TestCase):
         html = self.client.get(reverse('home')).content.decode()
         start = html.index('id="mobile-nav"')
         mobile = html[start:html.index('</nav>', start)]
-        for label in ('ИИ-новости', 'Полезности', 'Тренажёр', 'Путь', 'Связаться'):
+        for label in ('ИИ-новости', 'Полезности', 'Тренажёр', 'Путь'):
             self.assertIn(label, mobile)
+
+    def test_removed_about_section_and_contact_button(self):
+        """Раздел «Обо мне» и кнопка «Связаться» убраны из шапки и меню по просьбе владельца."""
+        html = self.client.get(reverse('home')).content.decode()
+        self.assertNotIn('Обо мне', html)
+        self.assertNotIn('Связаться', html)
+        self.assertNotIn('/about/', html)
+        # старые ссылки на раздел ведут на главную, а не на 404
+        self.assertRedirects(self.client.get('/about/'), '/', status_code=301)
+        self.assertNotIn('/about/', self.client.get('/sitemap.xml').content.decode())
 
 
 class SubscribeAndRedirectTests(TestCase):
