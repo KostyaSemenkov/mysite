@@ -29,13 +29,43 @@
   <meta name="color-scheme" content="light dark">
   <script nonce="{{ csp_nonce }}">
     (function () {
-      document.documentElement.classList.add('js');
-      try {
-        var saved = localStorage.getItem('theme');
-        if (saved === 'light' || saved === 'dark') {
-          document.querySelector('meta[name="color-scheme"]').content = saved;
-        }
-      } catch (e) { /* хранение запрещено — следуем системной теме */ }
+      var root = document.documentElement;
+      root.classList.add('js');
+      var meta = document.querySelector('meta[name="color-scheme"]');
+      // Та же логика, что в static/js/theme.js (его загружают «Доски»). Здесь она
+      // встроена в head: переключатель работает с первого кадра, и клик на медленной
+      // сети не теряется, пока грузился бы внешний файл.
+      function stored() {
+        try { return localStorage.getItem('theme'); } catch (e) { return null; }
+      }
+      function systemIsDark() {
+        return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      }
+      function apply(value) {
+        meta.content = (value === 'light' || value === 'dark') ? value : 'light dark';
+      }
+      function toggle() {
+        var saved = stored();
+        var renderedDark = saved ? saved === 'dark' : systemIsDark();
+        var target = renderedDark ? 'light' : 'dark';
+        // цель совпала с системной темой — снимаем выбор и снова следуем системе
+        var backToSystem = (target === 'dark') === systemIsDark();
+        try {
+          if (backToSystem) { localStorage.removeItem('theme'); } else { localStorage.setItem('theme', target); }
+        } catch (e) { /* тема применится, но не сохранится */ }
+        apply(backToSystem ? null : target);
+      }
+      var saved = stored();
+      if (saved === 'light' || saved === 'dark') apply(saved);
+      document.addEventListener('click', function (event) {
+        var button = event.target && event.target.closest ? event.target.closest('[data-theme-toggle]') : null;
+        if (!button) return;
+        event.preventDefault();
+        toggle();
+      });
+      window.addEventListener('storage', function (event) {
+        if (event.key === 'theme' || event.key === null) apply(event.newValue);
+      });
     })();
   </script>
 
@@ -204,7 +234,6 @@
     <button type="button" class="btn-warm sm" data-cookie-accept>Хорошо</button>
   </aside>
 
-  <script defer src="{% static 'js/theme.js' %}" nonce="{{ csp_nonce }}"></script>
   <script defer src="{% static 'js/site.js' %}" nonce="{{ csp_nonce }}"></script>
 {% block extra_js %}{% endblock %}
 </body>
