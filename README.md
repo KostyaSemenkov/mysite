@@ -65,10 +65,18 @@ python manage.py runserver
    собирается:
    ```bash
    docker compose -f docker-compose.yml -f docker-compose.images.yml up -d web boards
+   sudo docker image prune -f   # убрать образы предыдущих выпусков, иначе диск кончится
    ```
-   Пакеты в GHCR по умолчанию приватные: один раз выполните на сервере
-   `docker login ghcr.io` с токеном, у которого есть `read:packages`, либо сделайте
-   пакеты публичными.
+   Пакеты в GHCR открыты для чтения, пока репозиторий публичный: сервер скачивает их
+   без входа. Для приватного репозитория один раз выполните на сервере
+   `docker login ghcr.io` с токеном, у которого есть `read:packages`.
+
+Защита в браузере включена по умолчанию: строгий CSP (сайт и «Доски»), HSTS на год.
+Отчёты о нарушениях CSP сайт пишет в лог (`docker compose logs web | grep CSP`).
+Откатить CSP в режим «только отчёты» — `DJANGO_CSP_ENFORCE=0` и
+`BOARDS_CSP_ENFORCE=0` в `.env`, затем `docker compose up -d web boards`.
+Изменённый `Caddyfile` применяется без простоя:
+`docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile`.
 
 Тесты перед деплоем: `python manage.py test` (сайт) и
 `python -m pytest -q` в `boardapp/backend` (Доски) — CI запускает те же команды.

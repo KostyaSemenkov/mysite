@@ -27,6 +27,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-mysite}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mysite}
       BOARDS_SSO_SECRET: ${BOARDS_SSO_SECRET:-}
       PORT: "8000"
+      # строгий CSP; для отката в режим «только отчёты» задайте DJANGO_CSP_ENFORCE=0 в .env
+      DJANGO_CSP_ENFORCE: ${DJANGO_CSP_ENFORCE:-1}
     volumes:
       - media:/app/media
 
@@ -41,6 +43,8 @@ services:
       JWT_SECRET: ${BOARDS_JWT_SECRET:?set BOARDS_JWT_SECRET in .env}
       SSO_SECRET: ${BOARDS_SSO_SECRET:?set BOARDS_SSO_SECRET in .env}
       CORS_ORIGINS: ${BOARDS_CORS_ORIGINS:-https://lemurqa.ru}
+      # строгий CSP; откат — BOARDS_CSP_ENFORCE=0 в .env
+      CSP_ENFORCE: ${BOARDS_CSP_ENFORCE:-1}
 
   caddy:
     image: caddy:2-alpine
