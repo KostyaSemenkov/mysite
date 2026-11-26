@@ -1,0 +1,18 @@
+# Образы из GitHub Container Registry — их собирает CI (.github/workflows/ci.yml)
+# после зелёных тестов. Выкачивание вместо сборки на сервере:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.images.yml up -d web boards
+#
+# Новые пакеты в GHCR по умолчанию приватные. Один раз на сервере выполните
+# `sudo docker login ghcr.io` с токеном GitHub, у которого есть read:packages,
+# либо сделайте пакеты публичными (Packages → Package settings).
+#
+# Переменные окружения: IMAGE_TAG (по умолчанию latest; можно sha-<коммит>),
+# REGISTRY_IMAGE — путь без суффикса (по умолчанию ghcr.io/<владелец>/mysite).
+services:
+  web:
+    image: ${REGISTRY_IMAGE:-ghcr.io/kostyasemenkov/mysite}-web:${IMAGE_TAG:-latest}
+    pull_policy: always
+  boards:
+    image: ${REGISTRY_IMAGE:-ghcr.io/kostyasemenkov/mysite}-boards:${IMAGE_TAG:-latest}
+    pull_policy: always

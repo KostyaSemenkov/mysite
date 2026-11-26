@@ -1,0 +1,14 @@
+# «Доски» из заранее собранного фронтенда — для сервера, который не может скачать
+# пакеты npm из реестра. Фронтенд собирается локально (npm ci && npm run build
+# в boardapp/frontend), папка dist передаётся в сборку дополнительным контекстом.
+#
+# Всё делает scripts/deploy_boards_prebuilt.sh. Вручную:
+#   1. доставить boardapp/frontend/dist на сервер в ~/mysite/boardapp/frontend/dist
+#   2. docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml build boards
+#   3. docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml up -d --no-build boards
+services:
+  boards:
+    build:
+      target: app-prebuilt
+      additional_contexts:
+        dist: ./boardapp/frontend

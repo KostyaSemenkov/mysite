@@ -50,6 +50,28 @@ python manage.py runserver
    docker compose exec web python manage.py createsuperuser
    ```
 5. Обновление сайта после правок: `git pull && docker compose up -d --build`
+6. **«Доски», когда сервер не может скачать пакеты npm.** Сборка образа падает на
+   `npm ci`, если реестр недоступен серверу. Тогда фронтенд собирается локально и
+   уезжает готовым (скрипт делает всё сам):
+   ```bash
+   scripts/deploy_boards_prebuilt.sh            # хост vm-lemurqa, каталог ~/mysite
+   ```
+   Что внутри: `npm run build` → передача `boardapp/frontend/dist` на сервер →
+   `docker compose -f docker-compose.yml -f docker-compose.prebuilt.yml build boards`
+   и `up -d --no-build boards` (стадия `app-prebuilt` в `boardapp/Dockerfile`).
+7. **Образы из GitHub Container Registry.** CI (`.github/workflows/ci.yml`) прогоняет
+   тесты на каждый push, а с ветки `main` после зелёных тестов публикует образы
+   `ghcr.io/<владелец>/mysite-web` и `mysite-boards`. Тогда на сервере ничего не
+   собирается:
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.images.yml up -d web boards
+   ```
+   Пакеты в GHCR по умолчанию приватные: один раз выполните на сервере
+   `docker login ghcr.io` с токеном, у которого есть `read:packages`, либо сделайте
+   пакеты публичными.
+
+Тесты перед деплоем: `python manage.py test` (сайт) и
+`python -m pytest -q` в `boardapp/backend` (Доски) — CI запускает те же команды.
 
 Caddy сам выпустит и продлевает сертификаты Let's Encrypt для lemurqa.ru.
 База и медиа живут в Docker-томах и переживают пересоздание контейнеров.

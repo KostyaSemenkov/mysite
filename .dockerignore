@@ -6,3 +6,6 @@ media/
 staticfiles/
 .env
 *.log
+.agents/
+.github/
+.zcode/
