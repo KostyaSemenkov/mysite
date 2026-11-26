@@ -6,8 +6,8 @@
 <h1 class="text-3xl font-bold text-white">Проекты</h1>
 <div class="mt-8 grid gap-6 sm:grid-cols-2">
   {% for project in projects %}
-    <a href="{{ project.get_absolute_url }}"
-       class="card-warm overflow-hidden">
+    <article class="card-warm overflow-hidden">
+    <a href="{{ project.get_absolute_url }}" class="block">
       {% if project.image %}
         <img src="{{ project.image.url }}" alt="{{ project.title }}" width="352" height="176" loading="lazy" decoding="async" class="h-44 w-full object-cover">
       {% else %}
@@ -21,12 +21,13 @@
         {% if project.tech_stack %}
           <div class="mt-3 flex flex-wrap gap-1.5">
             {% for tech in project.tech_stack|split:',' %}
-              <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">{{ tech|trim }}</span>
+              <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-xs text-indigo-300">{{ tech|trim }}</span>
             {% endfor %}
           </div>
         {% endif %}
       </div>
     </a>
+    </article>
   {% empty %}
     <p class="text-slate-500">Проектов пока нет — добавьте их через админку.</p>
   {% endfor %}

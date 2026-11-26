@@ -9,14 +9,14 @@
 {% if project.tech_stack %}
   <div class="mt-2 flex flex-wrap gap-1.5">
     {% for tech in project.tech_stack|split:',' %}
-      <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">{{ tech|trim }}</span>
+      <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-xs text-indigo-300">{{ tech|trim }}</span>
     {% endfor %}
   </div>
 {% endif %}
 {% if project.image %}
   <img src="{{ project.image.url }}" alt="{{ project.title }}" {% img_dims project.image %} decoding="async" class="mt-6 w-full rounded-xl">
 {% endif %}
-<div class="mt-8 leading-relaxed text-slate-300">{{ project.description|linebreaksbr }}</div>
+<div class="prose-warm mt-8 leading-relaxed text-slate-300">{{ project.description|linebreaksbr }}</div>
 <div class="mt-8 flex gap-4">
   {% if project.url %}
     <a href="{{ project.url }}" class="btn-warm">Открыть проект</a>

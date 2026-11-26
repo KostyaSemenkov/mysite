@@ -25,16 +25,16 @@
 <p class="mt-2 text-slate-400">{{ course.provider }}{% if course.duration %} · {{ course.duration }}{% endif %}</p>
 
 <div class="prose-warm mt-8 leading-relaxed text-slate-300">
-  <h3 class="text-white font-semibold">Описание</h3>
+  <h2 class="text-white font-semibold">Описание</h2>
   <p>{{ course.summary|linebreaksbr }}</p>
 
   {% if course.audience %}
-  <h3 class="mt-6 text-white font-semibold">Кому подходит</h3>
+  <h2 class="mt-6 text-white font-semibold">Кому подходит</h2>
   <p>{{ course.audience|linebreaksbr }}</p>
   {% endif %}
 
   {% if course.program %}
-  <h3 class="mt-6 text-white font-semibold">Программа</h3>
+  <h2 class="mt-6 text-white font-semibold">Программа</h2>
   <ul class="mt-2 space-y-1.5">
     {% for line in course.program_lines %}
     <li class="flex gap-2">

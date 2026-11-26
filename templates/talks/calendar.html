@@ -55,7 +55,7 @@
   <h2 class="font-display text-xl font-semibold text-white mb-4">События месяца</h2>
   <div class="space-y-4">
     {% for ev in month_events %}
-    <div id="event-{{ ev.pk }}" class="card-warm p-5" tabindex="-1">
+    <article id="event-{{ ev.pk }}" class="card-warm p-5" tabindex="-1">
       <div class="flex flex-wrap items-center gap-3">
         <span class="rounded-full px-2.5 py-0.5 text-xs kind-badge kind-{{ ev.kind }}">
           {% if ev.kind == 'talk' %}Доклад{% elif ev.kind == 'attend' %}Участие{% elif ev.kind == 'cfp' %}CFP-дедлайн{% else %}Личное{% endif %}
@@ -75,7 +75,7 @@
           {% endfor %}
         </div>
       {% endif %}
-    </div>
+    </article>
     {% endfor %}
   </div>
 </section>

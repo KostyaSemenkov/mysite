@@ -44,7 +44,7 @@
 {# ── Два ядра ─────────────────────────────────────── #}
 <section class="grid gap-6 sm:grid-cols-2 py-8">
   <div class="rounded-xl border border-slate-800 bg-slate-900 p-6">
-    <h3 class="font-semibold text-white flex items-center gap-2"><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#book"/></svg> База знаний</h3>
+    <h2 class="font-semibold text-white flex items-center gap-2"><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#book"/></svg> База знаний</h2>
     <p class="mt-2 text-sm text-slate-400">Статьи о тестировании, разборы инструментов
       и записи выступлений — всё, что я узнаю, укладывается сюда.</p>
     <div class="mt-4 flex gap-3 text-sm">
@@ -53,7 +53,7 @@
     </div>
   </div>
   <div class="rounded-xl border border-slate-800 bg-slate-900 p-6">
-    <h3 class="font-semibold text-white flex items-center gap-2"><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#message"/></svg> Комьюнити</h3>
+    <h2 class="font-semibold text-white flex items-center gap-2"><svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#message"/></svg> Комьюнити</h2>
     <p class="mt-2 text-sm text-slate-400">Форум с обсуждениями и совместные доски
       для планирования — можно прийти вопросом, уйти ответом.</p>
     <div class="mt-4 flex gap-3 text-sm">
@@ -111,18 +111,19 @@
     <h2 class="font-display text-2xl font-semibold text-white mb-6">Избранные проекты</h2>
     <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {% for project in featured_projects %}
-        <a href="{{ project.get_absolute_url }}"
-           class="card-warm p-6">
+        <article class="card-warm">
+        <a href="{{ project.get_absolute_url }}" class="p-6">
           <h3 class="font-semibold text-white">{{ project.title }}</h3>
           <p class="mt-2 text-sm text-slate-400">{{ project.description|truncatechars:120 }}</p>
           {% if project.tech_stack %}
             <div class="mt-3 flex flex-wrap gap-1.5">
               {% for tech in project.tech_stack|split:',' %}
-                <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">{{ tech|trim }}</span>
+                <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-xs text-indigo-300">{{ tech|trim }}</span>
               {% endfor %}
             </div>
           {% endif %}
         </a>
+        </article>
       {% endfor %}
     </div>
     <div class="mt-6 flex gap-3">
@@ -140,8 +141,8 @@
     </div>
     <div class="hscroll">
       {% for post in latest_posts %}
-        <a href="{{ post.get_absolute_url }}"
-           class="card-warm p-6">
+        <article class="card-warm">
+        <a href="{{ post.get_absolute_url }}" class="p-6">
           <div class="flex items-center gap-2 text-xs text-slate-500">
             <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:'d.m.Y' }}</time>
             <span>·</span>
@@ -150,6 +151,7 @@
           <h3 class="mt-2 font-semibold text-white">{{ post.title }}</h3>
           {% if post.excerpt %}<p class="mt-2 text-sm text-slate-400">{{ post.excerpt }}</p>{% endif %}
         </a>
+        </article>
       {% endfor %}
     </div>
     <div class="mt-6 flex gap-3">
@@ -184,7 +186,7 @@
     <div id="testimonials-wall" class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {% for t in testimonials %}
         {% with forloop.counter0 as idx %}
-        <div class="testimonial card-warm p-5 text-sm"{% if idx >= 6 %} hidden="until-found"{% endif %}">
+        <article class="testimonial card-warm p-5 text-sm"{% if idx >= 6 %} hidden="until-found"{% endif %}">
           <p class="text-slate-300">«{{ t.quote }}»</p>
           <div class="mt-3 text-xs flex items-center gap-2 flex-wrap">
             <span class="text-indigo-300">{{ t.rating|stars }}</span>
@@ -201,7 +203,7 @@
               <button type="button" data-dialog-close class="btn-warm sm mt-4">Закрыть</button>
             </dialog>
           {% endif %}
-        </div>
+        </article>
         {% endwith %}
       {% endfor %}
     </div>

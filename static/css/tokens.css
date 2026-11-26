@@ -501,6 +501,11 @@ form p input[type="checkbox"], form p input[type="radio"] { width: auto; }
   .card-warm:hover { transform: translateY(-3px); }
 }
 a.card-warm { display: block; }
+/* карточка-ссылка: <article class="card-warm"><a>…</a></article> — кликабельна целиком */
+article.card-warm { display: block; }
+article.card-warm > a { display: block; height: 100%; color: inherit; text-decoration: none; }
+/* длинные списки карточек: браузер откладывает отрисовку того, что вне экрана */
+.post-card, .topic-row { content-visibility: auto; contain-intrinsic-size: auto var(--cv-size, 200px); }
 
 /* обложка-заглушка: тёплый градиент по хэшу + первая буква */
 .cover-fallback {
@@ -663,7 +668,7 @@ input.hp-field { display: none; }
   min-width: 700px;
 }
 .cal-wd {
-  font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em;
+  font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;
   color: var(--muted); text-align: center; padding: 4px 0;
 }
 .cal-cell {
@@ -676,11 +681,11 @@ input.hp-field { display: none; }
 }
 .cal-cell.empty { background: transparent; border-color: transparent; }
 .cal-cell.today { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.cal-day { font-size: 13px; font-weight: 700; color: var(--muted); }
+.cal-day { font-size: 0.8125rem; font-weight: 700; color: var(--muted); }
 .cal-cell.today .cal-day { color: var(--accent-light); }
 .cal-chip {
   display: flex; align-items: center; gap: 4px;
-  font-size: 11px; line-height: 1.2;
+  font-size: 0.6875rem; line-height: 1.2;
   padding: 3px 6px; border-radius: 6px;
   text-decoration: none; overflow: hidden;
 }

@@ -66,10 +66,12 @@
   <h2 class="font-display text-xl font-semibold text-white mb-4">Ещё по {{ pub.get_company_display }}</h2>
   <div class="grid gap-4 sm:grid-cols-3">
     {% for r in related %}
-    <a href="{{ r.get_absolute_url }}" class="card-warm p-4">
+    <article class="card-warm">
+    <a href="{{ r.get_absolute_url }}" class="p-4">
       <time datetime="{{ r.published_at|date:'c' }}" class="text-xs text-slate-500">{{ r.published_at|date:'d.m.Y' }}</time>
       <h3 class="mt-1 font-semibold text-white text-sm">{{ r.title|truncatechars:60 }}</h3>
     </a>
+    </article>
     {% endfor %}
   </div>
 </section>

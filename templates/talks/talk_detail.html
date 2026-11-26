@@ -7,7 +7,7 @@
 <article>
   <div class="flex items-center gap-2 text-sm text-slate-500">
     {% if talk.status == 'upcoming' %}
-      <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">Анонс</span>
+      <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-xs text-indigo-300">Анонс</span>
     {% endif %}
     {% if talk.spoke_at %}<time datetime="{{ talk.spoke_at|date:'c' }}">{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
   </div>
@@ -36,7 +36,7 @@
     {% endif %}
   </div>
 
-  <div class="mt-8 leading-relaxed text-slate-300">{{ talk.description|linebreaksbr }}</div>
+  <div class="prose-warm mt-8 leading-relaxed text-slate-300">{{ talk.description|linebreaksbr }}</div>
 </article>
 <a href="{% url 'talks:talk_list' %}" class="mt-8 inline-block text-sm text-indigo-400 hover:text-indigo-300">← Все выступления</a>
 {% endblock %}

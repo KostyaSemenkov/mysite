@@ -10,13 +10,13 @@
 
 <div class="mt-8 grid gap-5 sm:grid-cols-2">
   {% for f in files %}
-  <div class="card-warm p-6 flex flex-col gap-3">
+  <article class="card-warm p-6 flex flex-col gap-3">
     <div class="flex items-start gap-3">
       <span class="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center" style="background: var(--accent-dim)">
         <svg class="icon text-indigo-300" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#download"/></svg>
       </span>
       <div>
-        <h3 class="font-semibold text-white">{{ f.title }}</h3>
+        <h2 class="font-semibold text-white">{{ f.title }}</h2>
         <p class="mt-1 text-sm text-slate-400">{{ f.description }}</p>
       </div>
     </div>
@@ -24,7 +24,7 @@
       <span class="text-xs text-slate-500">скачиваний: {{ f.downloads }}</span>
       <a href="{% url 'useful_download' f.id %}" class="btn-warm">Скачать</a>
     </div>
-  </div>
+  </article>
   {% empty %}
   <div class="empty-state"><p class="hint">Скоро здесь появятся чек-листы.</p></div>
   {% endfor %}

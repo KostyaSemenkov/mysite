@@ -44,7 +44,7 @@
 
 {# hero-новость #}
 {% if hero %}
-<div class="reveal card-warm mt-8 overflow-hidden">
+<article class="reveal card-warm mt-8 overflow-hidden">
   {% if hero.image_url %}
   <img src="{{ hero.image_url }}" alt="{{ hero.title }}" width="448" height="224" decoding="async" class="h-56 w-full object-cover">
   {% endif %}
@@ -58,13 +58,14 @@
     </h2>
     <p class="mt-2 text-slate-400">{{ hero.summary|truncatechars:200 }}</p>
   </div>
-</div>
+</article>
 {% endif %}
 
 {# сетка публикаций #}
 <div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
   {% for pub in page_obj %}
-  <a href="{{ pub.get_absolute_url }}" class="card-warm overflow-hidden">
+  <article class="card-warm cv-auto" style="--cv-size: 380px">
+  <a href="{{ pub.get_absolute_url }}" class="block">
     {% if pub.image_url %}
     <img src="{{ pub.image_url }}" alt="{{ pub.title }}" width="288" height="144" loading="lazy" decoding="async" class="h-36 w-full object-cover">
     {% else %}
@@ -81,6 +82,7 @@
       {% if pub.summary %}<p class="mt-2 text-sm text-slate-400">{{ pub.summary|truncatechars:120 }}</p>{% endif %}
     </div>
   </a>
+  </article>
   {% empty %}
   <div class="empty-state" style="grid-column:1/-1;text-align:center;padding:34px;border:1px dashed var(--border2);border-radius:14px">
     <p class="hint">Пока нет опубликованных ИИ-новостей — зайдите позже или подпишитесь на RSS.</p>

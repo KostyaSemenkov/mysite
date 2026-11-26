@@ -26,10 +26,12 @@
 <p class="mt-4 text-sm text-slate-500" role="status">Результатов: {{ results|length }} по запросу «{{ q }}»</p>
 <div class="mt-4 space-y-3">
   {% for label, obj in results %}
-  <a href="{{ obj.get_absolute_url }}" class="card-warm p-4">
-    <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">{{ label }}</span>
+  <article class="card-warm">
+  <a href="{{ obj.get_absolute_url }}" class="p-4">
+    <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-xs text-indigo-300">{{ label }}</span>
     <div class="mt-1.5 text-white">{{ obj|highlight:q }}</div>
   </a>
+  </article>
   {% empty %}
   <p class="text-slate-500">Ничего не нашлось. Попробуйте другой запрос.</p>
   {% endfor %}

@@ -14,8 +14,8 @@
 </div>
 <div class="mt-8 grid gap-6 sm:grid-cols-2">
   {% for talk in talks %}
-    <a href="{{ talk.get_absolute_url }}"
-       class="card-warm overflow-hidden">
+    <article class="card-warm overflow-hidden">
+    <a href="{{ talk.get_absolute_url }}" class="block">
       {% if talk.thumbnail %}
         <img src="{{ talk.thumbnail.url }}" alt="{{ talk.title }}" width="352" height="176" loading="lazy" decoding="async" class="h-44 w-full object-cover">
       {% else %}
@@ -26,7 +26,7 @@
       <div class="p-6">
         <div class="flex items-center gap-2">
           {% if talk.status == 'upcoming' %}
-            <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-[11px] text-indigo-300">Анонс</span>
+            <span class="rounded-full bg-indigo-950 px-2 py-0.5 text-xs text-indigo-300">Анонс</span>
           {% endif %}
           {% if talk.spoke_at %}<time datetime="{{ talk.spoke_at|date:'c' }}" class="text-xs text-slate-500">{{ talk.spoke_at|date:'d.m.Y' }}</time>{% endif %}
         </div>
@@ -38,6 +38,7 @@
         {% endif %}
       </div>
     </a>
+    </article>
   {% empty %}
     <p class="text-slate-500">Выступлений пока нет — добавьте первое через админку.</p>
   {% endfor %}
