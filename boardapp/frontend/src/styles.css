@@ -620,3 +620,41 @@ dialog[open] { max-width: 92vw; }
 .site-strip-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .site-strip-user { color: var(--muted); font-size: 14px; }
 .site-strip-site { font-size: 14px; padding: 5px 12px; }
+
+/* Элементы, чьи стили раньше были inline-атрибутами в компонентах */
+.toolbar-back { color: var(--muted); text-decoration: none; }
+.toolbar-home { font-size: 18px; text-decoration: none; }
+.toolbar-title {
+  max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.share-toolbar { left: auto; right: 12px; }
+.rename-input {
+  flex: 1; background: var(--panel2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 10px; color: var(--text);
+}
+.page-error { margin-top: 12px; }
+
+/* Подтверждение опасного действия (удаление доски) */
+.confirm-dialog {
+  width: min(440px, 92vw);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+}
+.confirm-dialog::backdrop { background: rgba(0, 0, 0, 0.55); }
+.confirm-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+}
+.confirm-panel h2 { margin: 0 0 8px; font-size: 24px; color: var(--title); }
+.confirm-panel p { margin: 0; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.btn.danger {
+  background: var(--err-bg);
+  border: 1px solid var(--err);
+  color: var(--err);
+}
+.btn.danger:hover { filter: brightness(0.92); }

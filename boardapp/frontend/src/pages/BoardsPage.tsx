@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api, apiError, clearAuth, ensureUser, type CurrentUser } from '../api'
+import ConfirmDialog from '../components/ConfirmDialog'
 import { useDocumentTitle } from '../useDocumentTitle'
 import type { BoardsList } from './BoardsPageTypes'
 
@@ -12,6 +13,8 @@ export default function BoardsPage() {
   const [renaming, setRenaming] = useState<string | null>(null)
   const [renameTitle, setRenameTitle] = useState('')
   const [error, setError] = useState('')
+  // доска, которую пользователь собирается удалить (ждёт подтверждения в диалоге)
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(null)
   useDocumentTitle('Мои доски — Доски')
 
   async function load() {
@@ -39,8 +42,7 @@ export default function BoardsPage() {
     }
   }
 
-  async function removeBoard(id: string, title: string) {
-    if (!confirm(`Удалить доску «${title}»? Действие необратимо.`)) return
+  async function removeBoard(id: string) {
     try {
       await api.delete(`/api/boards/${id}`)
       await load()
@@ -99,7 +101,7 @@ export default function BoardsPage() {
         <button type="submit" className="btn" disabled={!newTitle.trim()}>Создать</button>
       </form>
 
-      {error && <div className="error" role="alert" style={{ marginTop: 12 }}>{error}</div>}
+      {error && <div className="error page-error" role="alert">{error}</div>}
 
       <div className="boards-section">
         <h2>Мои доски</h2>
@@ -111,6 +113,7 @@ export default function BoardsPage() {
                 <input
                   autoFocus
                   aria-label="Новое название доски"
+                  className="rename-input"
                   value={renameTitle}
                   onChange={(e) => setRenameTitle(e.target.value)}
                   onKeyDown={(e) => {
@@ -122,7 +125,6 @@ export default function BoardsPage() {
                     if (e.key === 'Enter') void renameBoard(b.id)
                     if (e.key === 'Escape') setRenaming(null)
                   }}
-                  style={{ flex: 1, background: 'var(--panel2)', border: '1px solid var(--border)', borderRadius: 6, padding: '6px 10px', color: 'var(--text)' }}
                 />
                 <button type="button" className="btn" onClick={() => void renameBoard(b.id)}>ОК</button>
                 <button type="button" className="btn ghost" onClick={() => setRenaming(null)}>Отмена</button>
@@ -149,7 +151,7 @@ export default function BoardsPage() {
                     className="btn ghost"
                     title="Удалить доску"
                     aria-label={`Удалить доску «${b.title}»`}
-                    onClick={() => void removeBoard(b.id, b.title)}
+                    onClick={() => setPendingDelete({ id: b.id, title: b.title })}
                   >
                     🗑
                   </button>
@@ -184,6 +186,16 @@ export default function BoardsPage() {
         )}
         </div>
       </div>
+
+      {pendingDelete && (
+        <ConfirmDialog
+          title="Удалить доску?"
+          message={`Доска «${pendingDelete.title}» будет удалена безвозвратно вместе со всеми тикетами.`}
+          confirmLabel="Удалить"
+          onConfirm={() => { void removeBoard(pendingDelete.id) }}
+          onClose={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   )
 }

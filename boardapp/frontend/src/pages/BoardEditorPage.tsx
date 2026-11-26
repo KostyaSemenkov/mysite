@@ -14,6 +14,7 @@ import {
   type Connection,
   type Edge,
   type Node,
+  type NodeChange,
   type XYPosition,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
@@ -231,6 +232,24 @@ function BoardEditorInner() {
     commitBatch(changes, inverse)
   }, [])
 
+  // Перемещение стрелками не вызывает событий перетаскивания — оно приходит только
+  // изменением позиции. Сохраняем его тем же путём, что и перетаскивание мышью
+  // (пока идёт перетаскивание, позицию сохранит onNodeDragStop).
+  const onNodesChangePersist = useCallback((changes: NodeChange[]) => {
+    onNodesChange(changes)
+    if (!editable || dragStart.current.size > 0) return
+    const moves = new Map<string, XYPosition>()
+    for (const change of changes) {
+      if (change.type === 'position' && !change.dragging && change.position) {
+        moves.set(change.id, change.position)
+      }
+    }
+    if (moves.size === 0) return
+    const before = nodesRef.current.filter((node) => moves.has(node.id))
+    startDrag(before)
+    stopDrag(before.map((node) => ({ ...node, position: moves.get(node.id) ?? node.position })))
+  }, [editable, onNodesChange, startDrag, stopDrag])
+
   const selectNodes = useCallback((ids: string[]) => {
     const selected = new Set(ids)
     setNodes((all) => all.map((node) =>
@@ -412,7 +431,7 @@ function BoardEditorInner() {
     <div className="editor-wrap" ref={viewportRef} onDoubleClick={onWrapperDoubleClick}>
       <Toolbar onExport={() => { void exportPng() }} />
       {role === 'owner' && (
-        <div className="toolbar" role="toolbar" aria-label="Доступ к доске" style={{ left: 'auto', right: 12 }}>
+        <div className="toolbar share-toolbar" role="toolbar" aria-label="Доступ к доске">
           <button type="button" className="btn" aria-haspopup="dialog" onClick={() => setShareOpen(true)}>Поделиться</button>
         </div>
       )}
@@ -421,7 +440,7 @@ function BoardEditorInner() {
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onNodesChange={onNodesChange}
+        onNodesChange={onNodesChangePersist}
         onEdgesChange={onEdgesChange}
         onBeforeDelete={async ({ nodes: deleted, edges: links }) => {
           if (editable) deleteBoardElements(deleted, links, nodesRef.current, edgesRef.current)
@@ -452,9 +471,9 @@ function BoardEditorInner() {
       </ReactFlow>
       <div className="board-tools">
         {editable && (
-          <div className="toolbar" aria-label="Добавить на доску">
-            <button className="btn" onClick={() => addTicketAt(canvasCenter())}>+ Тикет</button>
-            <button className="btn ghost" onClick={addZoneToCenter}>+ Группа</button>
+          <div className="toolbar" role="toolbar" aria-label="Добавить на доску">
+            <button type="button" className="btn" onClick={() => addTicketAt(canvasCenter())}>+ Тикет</button>
+            <button type="button" className="btn ghost" onClick={addZoneToCenter}>+ Группа</button>
             <select className="btn ghost board-tool-select" aria-label="Вставить шаблон" value=""
               onChange={(event) => {
                 const template = event.target.value as BoardTemplate
@@ -466,17 +485,17 @@ function BoardEditorInner() {
           </div>
         )}
         {selection.length > 0 && (
-          <div className="toolbar selection-toolbar" aria-label="Действия с выделением">
+          <div className="toolbar selection-toolbar" role="toolbar" aria-label="Действия с выделением">
             {editable && (
               <>
-                <button className="btn ghost" title="Ctrl+D" onClick={duplicateSelection}>Дублировать</button>
+                <button type="button" className="btn ghost" title="Ctrl+D" onClick={duplicateSelection}>Дублировать</button>
                 {canLink && (
-                  <button className="btn ghost" title="Ctrl+→" onClick={createLinkedTicket}>+ Связанный тикет</button>
+                  <button type="button" className="btn ghost" title="Ctrl+→" onClick={createLinkedTicket}>+ Связанный тикет</button>
                 )}
                 {selectedTickets.length > 1 && (
                   <>
-                    <button className="btn ghost" onClick={() => alignTickets('x')}>По левому краю</button>
-                    <button className="btn ghost" onClick={() => alignTickets('y')}>По верхнему краю</button>
+                    <button type="button" className="btn ghost" onClick={() => alignTickets('x')}>По левому краю</button>
+                    <button type="button" className="btn ghost" onClick={() => alignTickets('y')}>По верхнему краю</button>
                   </>
                 )}
                 {selectedTickets.length > 0 && (
@@ -491,12 +510,12 @@ function BoardEditorInner() {
                         <option key={name} value={STICKER_COLORS[index]}>{name}</option>,
                       )}
                     </select>
-                    <button className="btn ghost" onClick={createZoneFromSelection}>Создать группу</button>
+                    <button type="button" className="btn ghost" onClick={createZoneFromSelection}>Создать группу</button>
                   </>
                 )}
               </>
             )}
-            <button className="btn ghost" onClick={() => { void exportPng(true) }}>Скачать PNG выделения</button>
+            <button type="button" className="btn ghost" onClick={() => { void exportPng(true) }}>Скачать PNG выделения</button>
           </div>
         )}
         {actionError && <div className="toolbar" role="alert">{actionError}</div>}
