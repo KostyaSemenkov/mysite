@@ -111,7 +111,12 @@ export default function ShareModal({ boardId, onClose }: { boardId: string; onCl
       className="share-dialog"
       aria-labelledby="share-title"
       closedby="any"
-      onCancel={onClose}
+      onCancel={(event) => {
+        // Esc: закрываем сами, а не снимаем окно прямо в обработчике — иначе браузер
+        // не успевает вернуть фокус на кнопку, которая окно открыла
+        event.preventDefault()
+        close()
+      }}
       onClose={onClose}
     >
       <form className="share-panel" onSubmit={(e) => { e.preventDefault(); void invite() }}>

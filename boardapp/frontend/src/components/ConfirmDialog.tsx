@@ -35,7 +35,13 @@ export default function ConfirmDialog({
       aria-labelledby="confirm-title"
       aria-describedby="confirm-message"
       closedby="any"
-      onCancel={onClose}
+      onCancel={(event) => {
+        // Esc: закрываем сами, а не снимаем окно прямо в обработчике — иначе браузер
+        // не успевает вернуть фокус на элемент, который окно открыл
+        event.preventDefault()
+        dialogRef.current?.close()
+        onClose()
+      }}
       onClose={onClose}
     >
       <div className="confirm-panel">
