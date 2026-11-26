@@ -7,7 +7,7 @@ from starlette.testclient import TestClient
 from app.main import app
 from app.routers import ws as ws_module
 
-from .conftest import auth
+from .conftest import auth, ws_connect
 
 pytestmark = pytest.mark.asyncio
 
@@ -51,10 +51,8 @@ def test_two_users_realtime(ws_setup):
     bid = ws_setup['board_id']
 
     with TestClient(app) as tc:
-        with tc.websocket_connect(
-                f"/ws/boards/{bid}?token={owner['token']}") as ws1, \
-             tc.websocket_connect(
-                f"/ws/boards/{bid}?token={editor['token']}") as ws2:
+        with ws_connect(tc, owner['token'], bid) as ws1, \
+                ws_connect(tc, editor['token'], bid) as ws2:
 
             init1 = ws1.receive_json()
             assert init1['type'] == 'init'
@@ -95,8 +93,7 @@ def test_viewer_cannot_mutate(ws_setup):
     viewer, bid = ws_setup['viewer'], ws_setup['board_id']
 
     with TestClient(app) as tc:
-        with tc.websocket_connect(
-                f"/ws/boards/{bid}?token={viewer['token']}") as ws:
+        with ws_connect(tc, viewer['token'], bid) as ws:
             init = ws.receive_json()
             assert init['data']['role'] == 'viewer'
 
@@ -109,12 +106,24 @@ def test_viewer_cannot_mutate(ws_setup):
             assert 'message' in m['data']
 
 
-def test_bad_token_rejected(ws_setup):
-    """Токен в адресе (старый клиент) всё равно проверяется: сокет закрывается с 4401."""
+def test_token_in_url_is_not_accepted(ws_setup):
+    """Токен в адресе сокета больше не работает — даже действующий: сокет закрывается с 4401."""
     from starlette.websockets import WebSocketDisconnect
+    owner, bid = ws_setup['owner'], ws_setup['board_id']
+    with TestClient(app) as tc:
+        with tc.websocket_connect(f'/ws/boards/{bid}?token={owner["token"]}') as ws:
+            with pytest.raises(WebSocketDisconnect) as exc:
+                ws.receive_json()
+            assert exc.value.code == 4401
+
+
+def test_no_auth_message_closes_socket(ws_setup, monkeypatch):
+    """Клиент, который не прислал auth, отключается по таймауту."""
+    from starlette.websockets import WebSocketDisconnect
+    monkeypatch.setattr(ws_module, 'AUTH_TIMEOUT_SECONDS', 0.2)
     bid = ws_setup['board_id']
     with TestClient(app) as tc:
-        with tc.websocket_connect(f'/ws/boards/{bid}?token=invalid') as ws:
+        with tc.websocket_connect(f'/ws/boards/{bid}') as ws:
             with pytest.raises(WebSocketDisconnect) as exc:
                 ws.receive_json()
             assert exc.value.code == 4401
@@ -124,7 +133,6 @@ def test_batch_is_atomic_and_can_be_retried_after_reconnect(ws_setup):
     owner, bid = ws_setup['owner'], ws_setup['board_id']
     client_id = str(uuid.uuid4())
     first, second, edge = (str(uuid.uuid4()) for _ in range(3))
-    url = f'/ws/boards/{bid}?token={owner["token"]}&clientId={client_id}'
     duplicate = {
         'type': 'board:batch',
         'operation': {'clientId': client_id, 'sequence': 1},
@@ -143,14 +151,14 @@ def test_batch_is_atomic_and_can_be_retried_after_reconnect(ws_setup):
         pytest.fail(f'{kind} was not received')
 
     with TestClient(app) as tc:
-        with tc.websocket_connect(url) as ws:
+        with ws_connect(tc, owner['token'], bid, client_id) as ws:
             receive(ws, 'init')
             ws.send_json(duplicate)
             result = receive(ws, 'board:batch')
             assert result['operation'] == duplicate['operation']
             assert len(result['data']['events']) == 3
 
-        with tc.websocket_connect(url) as ws:
+        with ws_connect(tc, owner['token'], bid, client_id) as ws:
             init = receive(ws, 'init')['data']
             assert init['lastSequence'] == 1
             assert {t['id'] for t in init['tickets']} == {first, second}
@@ -168,7 +176,7 @@ def test_batch_is_atomic_and_can_be_retried_after_reconnect(ws_setup):
             })
             assert receive(ws, 'error')['operation'] == operation
 
-        with tc.websocket_connect(url) as ws:
+        with ws_connect(tc, owner['token'], bid, client_id) as ws:
             init = receive(ws, 'init')['data']
             assert init['lastSequence'] == 1
             assert next(t for t in init['tickets'] if t['id'] == first)['x'] == 10
@@ -235,9 +243,8 @@ def _receive(sock, kind):
 def test_ws_batch_is_capped(ws_setup):
     owner = ws_setup['owner']
     bid = ws_setup['board_id']
-    url = f"/ws/boards/{bid}?token={owner['token']}"
     with TestClient(app) as tc:
-        with tc.websocket_connect(url) as ws:
+        with ws_connect(tc, owner['token'], bid) as ws:
             _receive(ws, 'init')
             changes = [{'type': 'ticket:create', 'data': {
                 'id': str(uuid.uuid4()), 'x': 1, 'y': 2, 'text': '', 'color': '#CAFFBF'}}

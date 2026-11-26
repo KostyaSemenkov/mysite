@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import contextmanager
 
 import pytest
 import pytest_asyncio
@@ -61,3 +62,11 @@ async def user(client):
 
 def auth(token: str) -> dict:
     return {'Authorization': f'Bearer {token}'}
+
+
+@contextmanager
+def ws_connect(tc, token: str, board_id: str, client_id: str = ''):
+    """Открывает сокет доски так же, как фронтенд: токен — первым сообщением."""
+    with tc.websocket_connect(f'/ws/boards/{board_id}') as ws:
+        ws.send_json({'type': 'auth', 'token': token, 'clientId': client_id})
+        yield ws

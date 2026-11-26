@@ -235,7 +235,7 @@ async def _apply_change(session: AsyncSession, board_id: str, user_id: str,
 
 
 @router.websocket('/ws/boards/{board_id}')
-async def board_ws(ws: WebSocket, board_id: str, token: str = '', clientId: str = ''):
+async def board_ws(ws: WebSocket, board_id: str):
     import logging
     log = logging.getLogger('ws')
     if not _origin_allowed(ws.headers):
@@ -244,21 +244,24 @@ async def board_ws(ws: WebSocket, board_id: str, token: str = '', clientId: str 
         return
     await ws.accept()
 
-    if not token:
-        # Токен приходит первым сообщением: адрес сокета с токеном попадает
-        # в логи прокси и остаётся в истории вкладки.
-        try:
-            first = await asyncio.wait_for(ws.receive_json(), AUTH_TIMEOUT_SECONDS)
-        except Exception:
-            await ws.close(code=4401)
-            return
-        if not isinstance(first, dict) or first.get('type') != 'auth' \
-                or not isinstance(first.get('token'), str):
-            await ws.close(code=4400)
-            return
-        token = first['token']
-        clientId = str(first.get('clientId') or '')
-    # ?token=… ещё принимается для вкладок, открытых до обновления фронтенда.
+    # Токен приходит первым сообщением, а не в адресе: адрес сокета попадает
+    # в логи прокси и остаётся в истории вкладки. Прежний вход через ?token=
+    # закрыт — клиент, который кладёт токен в адрес, не подключается.
+    if 'token' in ws.query_params:
+        log.warning('ws token in query is not accepted')
+        await ws.close(code=4401)
+        return
+    try:
+        first = await asyncio.wait_for(ws.receive_json(), AUTH_TIMEOUT_SECONDS)
+    except Exception:
+        await ws.close(code=4401)
+        return
+    if not isinstance(first, dict) or first.get('type') != 'auth' \
+            or not isinstance(first.get('token'), str):
+        await ws.close(code=4400)
+        return
+    token = first['token']
+    clientId = str(first.get('clientId') or '')
 
     try:
         user_id = decode_token(token)

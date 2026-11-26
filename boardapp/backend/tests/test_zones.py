@@ -7,7 +7,7 @@ from starlette.testclient import TestClient
 from app.main import app
 from app.routers import ws as ws_module
 
-from .conftest import auth
+from .conftest import auth, ws_connect
 
 pytestmark = pytest.mark.asyncio
 
@@ -39,7 +39,7 @@ def _recv_until(sock, wanted, limit=50):
 def test_zone_crud_and_init(ws_setup):
     owner, bid = ws_setup['owner'], ws_setup['board_id']
     with TestClient(app) as tc:
-        with tc.websocket_connect(f'/ws/boards/{bid}?token={owner["token"]}') as ws:
+        with ws_connect(tc, owner["token"], bid) as ws:
             init = ws.receive_json()
             assert init['type'] == 'init'
             assert init['data']['zones'] == []
@@ -57,14 +57,14 @@ def test_zone_crud_and_init(ws_setup):
             assert m['data']['patch']['title'] == 'Бэклог'
 
         # новый снимок init содержит зону
-        with tc.websocket_connect(f'/ws/boards/{bid}?token={owner["token"]}') as ws2:
+        with ws_connect(tc, owner["token"], bid) as ws2:
             init2 = ws2.receive_json()
             zones = init2['data']['zones']
             assert len(zones) == 1
             assert zones[0]['title'] == 'Бэклог'
             assert zones[0]['width'] == 600
 
-        with tc.websocket_connect(f'/ws/boards/{bid}?token={owner["token"]}') as ws:
+        with ws_connect(tc, owner["token"], bid) as ws:
             ws.receive_json()
             ws.send_json({'type': 'zone:delete', 'data': {'id': zid}})
             _recv_until(ws, 'zone:deleted')
@@ -73,7 +73,7 @@ def test_zone_crud_and_init(ws_setup):
 def test_viewer_cannot_create_zone(ws_setup):
     viewer, bid = ws_setup['viewer'], ws_setup['board_id']
     with TestClient(app) as tc:
-        with tc.websocket_connect(f'/ws/boards/{bid}?token={viewer["token"]}') as ws:
+        with ws_connect(tc, viewer["token"], bid) as ws:
             ws.receive_json()
             ws.send_json({'type': 'zone:create', 'data': {
                 'id': str(uuid.uuid4()), 'x': 0, 'y': 0}})
@@ -86,7 +86,7 @@ def test_viewer_cannot_create_zone(ws_setup):
 def test_ticket_text_autogrows_height(ws_setup):
     owner, bid = ws_setup['owner'], ws_setup['board_id']
     with TestClient(app) as tc:
-        with tc.websocket_connect(f'/ws/boards/{bid}?token={owner["token"]}') as ws:
+        with ws_connect(tc, owner["token"], bid) as ws:
             ws.receive_json()
             tid = str(uuid.uuid4())
             ws.send_json({'type': 'ticket:create', 'data': {
@@ -106,15 +106,14 @@ def test_ticket_text_autogrows_height(ws_setup):
 def test_zone_membership_and_arrow_label_survive_reconnect(ws_setup):
     owner, bid = ws_setup['owner'], ws_setup['board_id']
     headers = auth(owner['token'])
-    url = f'/ws/boards/{bid}?token={owner["token"]}'
     zone, foreign_zone, first, second, edge = (str(uuid.uuid4()) for _ in range(5))
     with TestClient(app) as tc:
         other = tc.post('/api/boards', json={'title': 'Other board'}, headers=headers).json()['id']
-        with tc.websocket_connect(f'/ws/boards/{other}?token={owner["token"]}') as other_ws:
+        with ws_connect(tc, owner["token"], other) as other_ws:
             _recv_until(other_ws, 'init')
             other_ws.send_json({'type': 'zone:create', 'data': {'id': foreign_zone}})
             _recv_until(other_ws, 'zone:created')
-        with tc.websocket_connect(url) as ws:
+        with ws_connect(tc, owner['token'], bid) as ws:
             _recv_until(ws, 'init')
             ws.send_json({'type': 'board:batch', 'data': {'changes': [
                 {'type': 'zone:create', 'data': {'id': zone, 'title': 'В работе'}},
@@ -128,7 +127,7 @@ def test_zone_membership_and_arrow_label_survive_reconnect(ws_setup):
             ws.send_json({'type': 'edge:update', 'data': {'id': edge, 'label': ' блокирует '}})
             assert _recv_until(ws, 'edge:updated')['data']['label'] == 'блокирует'
 
-        with tc.websocket_connect(url) as ws:
+        with ws_connect(tc, owner['token'], bid) as ws:
             init = _recv_until(ws, 'init')['data']
             assert {t['id']: t['zoneId'] for t in init['tickets']} == {first: zone, second: None}
             assert init['edges'][0]['label'] == 'блокирует'
