@@ -75,7 +75,11 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 
 class RedactTokenFilter(logging.Filter):
-    """Токен в query-строке WebSocket-запроса не должен попадать в access-лог."""
+    """Токен в query-строке запроса не должен попадать в лог.
+
+    Токен в адресе больше не принимается, но старая вкладка всё равно
+    присылает его в адресе сокета — в логе он заменяется на token=***.
+    """
 
     _pattern = re.compile(r'token=[^&\s"]+')
 
@@ -84,10 +88,15 @@ class RedactTokenFilter(logging.Filter):
             record.args = tuple(
                 self._pattern.sub('token=***', arg) if isinstance(arg, str) else arg
                 for arg in record.args)
+        elif record.args is None and isinstance(record.msg, str):
+            record.msg = self._pattern.sub('token=***', record.msg)
         return True
 
 
-logging.getLogger('uvicorn.access').addFilter(RedactTokenFilter())
+# HTTP-запросы uvicorn пишет через uvicorn.access, а строки WebSocket
+# («WebSocket /ws/… [accepted]») — через uvicorn.error; маскируем в обоих.
+for _logger_name in ('uvicorn.access', 'uvicorn.error'):
+    logging.getLogger(_logger_name).addFilter(RedactTokenFilter())
 
 
 @app.get('/api/health')
