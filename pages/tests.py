@@ -1,5 +1,6 @@
-"""Гайды modern-web-guidance: тема, CSP, подписка и защита от открытого редиректа."""
+"""Современные практики сайта: тема, CSP, подписка, меню и защита от открытого редиректа."""
 import json
+import re
 
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
@@ -42,6 +43,18 @@ class BaseTemplateTests(TestCase):
         Topic.objects.create(title='Тема', slug='tema')
         html = self.client.get(reverse('forum:topic_list')).content.decode()
         self.assertRegex(html, r'<a href="/forum/" class="[^"]*" aria-current="page">Форум</a>')
+
+    def test_desktop_nav_lists_all_sections_without_hiding(self):
+        """В шапке сайта нет скрытых на узких экранах разделов («Выступления» терялось)."""
+        html = self.client.get(reverse('home')).content.decode()
+        start = html.index('aria-label="Основное меню"')
+        desktop = html[start:html.index('</nav>', start)]
+        links = re.findall(r'<a href="([^"]+)"([^>]*)>([^<]*)</a>', desktop)
+        by_label = {text.strip(): (href, attrs) for href, attrs, text in links}
+        for label in ('Проекты', 'Выступления', 'Путь', 'ИИ-новости', 'Доски'):
+            self.assertIn(label, by_label)
+            self.assertNotRegex(by_label[label][1], r'\bhidden\b', label)
+        self.assertEqual(by_label['Выступления'][0], reverse('talks:talk_list'))
 
     def test_mobile_menu_lists_all_sections(self):
         html = self.client.get(reverse('home')).content.decode()

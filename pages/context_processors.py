@@ -17,19 +17,19 @@ FAVICON_BY_PREFIX = (
     ('/boardapp', 'boards'),
 )
 
-# пункты меню: (адрес или имя URL, подпись, раздел, класс для узких экранов)
+# пункты меню: (адрес или имя URL, подпись, раздел)
 _NAV = (
-    ('home', 'Главная', 'home', ''),
-    ('blog:post_list', 'Блог', 'blog', ''),
-    ('projects:project_list', 'Проекты', 'projects', 'hidden xl:inline'),
-    ('talks:talk_list', 'Выступления', 'talks', 'hidden xl:inline'),
-    ('/ai/', 'ИИ-новости', 'ai', ''),
-    ('/boardapp/sso/', 'Доски', 'boards', ''),
-    ('forum:topic_list', 'Форум', 'forum', ''),
-    ('useful', 'Полезности', 'useful', ''),
-    ('quiz', 'Тренажёр', 'quiz', ''),
-    ('path', 'Путь', 'path', 'hidden xl:inline'),
-    ('about', 'Обо мне', 'about', ''),
+    ('home', 'Главная', 'home'),
+    ('blog:post_list', 'Блог', 'blog'),
+    ('projects:project_list', 'Проекты', 'projects'),
+    ('talks:talk_list', 'Выступления', 'talks'),
+    ('/ai/', 'ИИ-новости', 'ai'),
+    ('/boardapp/sso/', 'Доски', 'boards'),
+    ('forum:topic_list', 'Форум', 'forum'),
+    ('useful', 'Полезности', 'useful'),
+    ('quiz', 'Тренажёр', 'quiz'),
+    ('path', 'Путь', 'path'),
+    ('about', 'Обо мне', 'about'),
 )
 
 # текущий раздел — по пространству имён URL, иначе по имени маршрута
@@ -48,8 +48,7 @@ def _menu():
             'url': url if url.startswith('/') else reverse(url),
             'label': label,
             'section': section,
-            'cls': cls,
-        } for url, label, section, cls in _NAV]
+        } for url, label, section in _NAV]
     return _nav_items
 
 

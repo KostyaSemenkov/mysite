@@ -1,6 +1,7 @@
 {% comment %}
 Ссылки разделов меню — общий список для шапки и мобильного меню.
-cls прячет пункт на узких экранах; с mobile=1 показываем всё.
+Все пункты показываются всегда: на узких экранах шапка переносит меню
+на вторую строку, а не прячет ссылки.
 {% endcomment %}{% for item in nav_items %}{% spaceless %}
-  <a href="{{ item.url }}" class="hover:text-white{% if not mobile and item.cls %} {{ item.cls }}{% endif %}{% if nav_section == item.section %} text-white font-semibold{% endif %}"{% if nav_section == item.section %} aria-current="page"{% endif %}>{{ item.label }}</a>
+  <a href="{{ item.url }}" class="whitespace-nowrap hover:text-white{% if nav_section == item.section %} text-white font-semibold{% endif %}"{% if nav_section == item.section %} aria-current="page"{% endif %}>{{ item.label }}</a>
 {% endspaceless %}{% endfor %}

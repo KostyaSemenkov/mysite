@@ -114,14 +114,22 @@
 {# ── Шапка: sticky-стекло + бургер + тема ── #}
 <header class="sticky top-0 z-40 border-b border-slate-800 backdrop-blur-md"
         style="background: var(--header-glass)">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-      <a href="{% url 'home' %}" class="min-w-0 flex-1 lg:flex-none">
+    {% comment %}В шапке видны все разделы при любой ширине экрана — ни одна ссылка не скрывается.
+       Телефон (уже 1024): название и кнопка-бургер, разделы — в раскрывающемся меню.
+       Планшет и ноутбук (1024–1599): название и кнопки в первой строке, все разделы — второй.
+       Широкий экран (от 1600): всё в одной строке.{% endcomment %}
+    <div class="mx-auto max-w-[1600px] px-4 sm:px-6 py-2 min-[1600px]:py-3 flex flex-wrap items-center justify-between gap-x-4 min-[1600px]:gap-x-6 gap-y-1">
+      <a href="{% url 'home' %}" class="min-w-0 flex-1 lg:flex-none order-1">
         <span class="block font-display text-base sm:text-lg font-bold text-white leading-tight truncate">{{ profile.name|default:'Мой сайт' }}</span>
-        {% if profile.tagline %}<span class="hidden sm:block text-xs text-slate-500">{{ profile.tagline }}</span>{% endif %}
+        {% if profile.tagline %}<span class="hidden sm:block text-xs text-slate-500 lg:hidden min-[1600px]:block">{{ profile.tagline }}</span>{% endif %}
       </a>
 
-      <nav class="hidden lg:flex items-center gap-4 text-sm flex-wrap" aria-label="Основное меню">
+      {# разделы: второй строкой на планшетах и ноутбуках, в общей строке — на широких экранах #}
+      <nav class="hidden lg:flex order-3 min-[1600px]:order-2 items-center gap-x-3 gap-y-1 flex-wrap basis-full min-[1600px]:basis-auto text-sm" aria-label="Основное меню">
         {% include 'includes/nav_links.html' %}
+      </nav>
+
+      <div class="hidden lg:flex order-2 min-[1600px]:order-3 items-center gap-3 text-sm flex-none whitespace-nowrap">
         <a href="{% url 'search' %}" class="hover:text-white{% if nav_section == 'search' %} text-white font-semibold{% endif %}"{% if nav_section == 'search' %} aria-current="page"{% endif %}>
           <svg class="icon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#search"/></svg>
           <span class="visually-hidden">Поиск по сайту</span>
@@ -135,16 +143,16 @@
         {% else %}
           <a href="{% url 'login' %}" class="text-slate-400 hover:text-white">Войти</a>
         {% endif %}
-        <button type="button" class="theme-toggle" data-theme-toggle>
+        <button type="button" class="theme-toggle small" data-theme-toggle>
           <svg class="icon ico-sun" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#sun"/></svg>
           <svg class="icon ico-moon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#moon"/></svg>
           <span class="visually-hidden theme-to-dark">Включить тёмную тему</span>
           <span class="visually-hidden theme-to-light">Включить светлую тему</span>
         </button>
         <a href="{% url 'contacts:contact' %}" class="btn-warm sm">Связаться</a>
-      </nav>
+      </div>
 
-      <div class="flex lg:hidden items-center gap-1.5">
+      <div class="flex lg:hidden items-center gap-1.5 order-2">
         <button type="button" class="theme-toggle" data-theme-toggle>
           <svg class="icon ico-sun" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#sun"/></svg>
           <svg class="icon ico-moon" aria-hidden="true"><use href="{% static 'img/icons.svg' %}#moon"/></svg>
