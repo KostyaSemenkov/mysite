@@ -1,0 +1,80 @@
+{% extends "admin/base_site.html" %}
+{% comment %}
+  Предпросмотр входящей ИИ-новости: оригинал рядом с русской версией
+  и кнопки проверки. Ревизия в скрытом поле не даёт одобрить новость,
+  которая изменилась, пока страница была открыта.
+{% endcomment %}
+
+{% block title %}Предпросмотр: {{ obj.title_ru|default:obj.original_title|truncatechars:60 }} | {{ site_title|default:'Админка' }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+  .preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin: 16px 0 24px; }
+  .preview-box { background: var(--darkened-bg, #f8f8f8); border: 1px solid var(--border-color, #ccc); border-radius: 6px; padding: 12px 16px; }
+  .preview-box h2 { margin: 0 0 8px; font-size: 14px; }
+  .preview-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .preview-actions form { display: inline-block; margin: 0 8px 8px 0; }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Главная</a>
+  &rsaquo; <a href="{% url 'admin:ainews_incomingnews_changelist' %}">ИИ-очередь новостей</a>
+  &rsaquo; Предпросмотр
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+  <h1>Предпросмотр новости</h1>
+  <p>Статус: <strong>{{ obj.get_status_display }}</strong>
+    {% if obj.publication %} · <a href="{% url 'admin:ainews_publication_change' obj.publication.pk %}">публикация</a>{% endif %}
+  </p>
+  <ul class="object-tools">
+    <li><a href="{% url 'admin:ainews_incomingnews_change' obj.pk %}">Редактировать русский текст</a></li>
+    <li><a href="{{ obj.source_url }}" target="_blank" rel="noopener noreferrer">Открыть источник&nearr;</a></li>
+  </ul>
+
+  <div class="preview-grid">
+    <div class="preview-box">
+      <h2>Оригинал · {{ obj.get_event_display }} · {{ obj.source_date|date:"d.m.Y H:i" }}</h2>
+      <p><strong>{{ obj.original_title }}</strong></p>
+      <div class="preview-text">{{ obj.original_text }}</div>
+      {% if obj.previous_text %}
+        <details><summary>Предыдущая версия источника</summary>
+          <div class="preview-text">{{ obj.previous_text }}</div></details>
+      {% endif %}
+    </div>
+    <div class="preview-box">
+      <h2>Русская версия</h2>
+      <p><strong>{{ obj.title_ru|default:"— заголовок не заполнен —" }}</strong></p>
+      <p class="preview-text">{{ obj.summary_ru|default:"— описание не заполнено —" }}</p>
+      <div class="preview-text">{{ obj.body_ru|default:"— изложение не заполнено —" }}</div>
+      {% if obj.editor_note %}<p class="help">Заметка редактора: {{ obj.editor_note }}</p>{% endif %}
+    </div>
+  </div>
+
+  {% if obj.status == 'published' %}
+    <p>Новость уже опубликована — действия недоступны.</p>
+  {% elif obj.status == 'rejected' %}
+    <p>Новость отклонена — действия недоступны.</p>
+  {% else %}
+    <h2>Действия</h2>
+    <div class="preview-actions">
+      <form method="post" action="{% url 'admin:ainews_incomingnews_ready' obj.pk %}">{% csrf_token %}
+        <input type="hidden" name="rev" value="{{ rev }}">
+        <input type="submit" value="Готово к проверке" class="button">
+      </form>
+      <form method="post" action="{% url 'admin:ainews_incomingnews_approve' obj.pk %}">{% csrf_token %}
+        <input type="hidden" name="rev" value="{{ rev }}">
+        <input type="submit" value="Опубликовать" class="default">
+      </form>
+      <form method="post" action="{% url 'admin:ainews_incomingnews_reject' obj.pk %}">{% csrf_token %}
+        <input type="hidden" name="rev" value="{{ rev }}">
+        <input type="submit" value="Отклонить" class="button">
+      </form>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

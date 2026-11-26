@@ -94,9 +94,21 @@ def publish(item,user,expected_revision=None):
     if item.publication_id:
         Publication.objects.filter(pk=item.publication_id).update(**values)
     else:
-        item.publication=Publication.objects.create(slug=f'china-{item.source.company}-{item.pk}',**values)
+        item.publication=Publication.objects.create(slug=free_slug(item),**values)
     item.status='published';item.approved_by=user;item.approved_at=timezone.now();item.save()
     return item.publication
+
+def free_slug(item):
+    """Адрес публикации: china-<компания>-<номер новости>; если занят — с суффиксом.
+
+    Стартовые публикации используют ту же схему адресов, поэтому совпадение —
+    обычный случай, а без подбора публикация падала бы с UNIQUE constraint.
+    """
+    base=f'china-{item.source.company}-{item.pk}'
+    slug,n=base,1
+    while Publication.objects.filter(slug=slug).exists():
+        n+=1; slug=f'{base}-{n}'
+    return slug
 
 @transaction.atomic
 def reject(item,expected_revision=None):
