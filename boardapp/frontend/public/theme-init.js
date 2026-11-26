@@ -3,6 +3,9 @@
  * Значение мета-тега читает tokens.css (color-scheme и light-dark()). */
 (function () {
   'use strict';
+  // Пометка «скрипты работают»: без неё tokens.css прячет переключатель темы
+  // (у сайта класс ставит встроенный скрипт в <head>).
+  document.documentElement.classList.add('js');
   try {
     var saved = localStorage.getItem('theme');
     if (saved !== 'light' && saved !== 'dark') return;

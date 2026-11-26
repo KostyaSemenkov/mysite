@@ -44,21 +44,25 @@ export function SiteHeader() {
           <span className="site-logo-title">Лемурзильня тестировщика</span>
           <span className="site-logo-tag">уголок в меру упитанного тестировщика</span>
         </a>
+        {/* Разделы: на планшетах и ноутбуках — второй строкой под названием (все видны),
+            на широких экранах — в общей строке. Раскладка — в styles.css (.site-nav). */}
         <nav className="site-nav" aria-label="Основное меню">
           {NAV.map((n) => (
             <a key={n.href} href={n.href} className="site-nav-link">{n.label}</a>
           ))}
-          <a href="/search/" className="site-nav-link" aria-label="Поиск по сайту">
+        </nav>
+        <div className="site-controls">
+          <a href="/search/" aria-label="Поиск по сайту">
             <svg className="icon" aria-hidden="true"><use href={`${ICONS}#search`} /></svg>
           </a>
-          <ThemeToggle />
           {me ? (
             <a href="/profile/" className="site-nav-user">{me.username}</a>
           ) : (
             <a href="/accounts/login/?next=/boardapp/sso/" className="site-nav-user">Войти</a>
           )}
+          <ThemeToggle className="theme-toggle small" />
           <a href="/contacts/" className="btn-warm site-nav-cta">Связаться</a>
-        </nav>
+        </div>
       </div>
     </header>
   )

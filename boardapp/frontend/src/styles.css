@@ -546,33 +546,46 @@ dialog[open] { max-width: 92vw; }
   backdrop-filter: blur(10px);
 }
 .site-header-inner {
-  max-width: 1100px; margin: 0 auto; padding: 10px 20px;
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  max-width: 1600px; margin: 0 auto; padding: 6px 20px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  column-gap: 16px; row-gap: 2px;
 }
-.site-logo { text-decoration: none; }
+.site-logo { order: 1; text-decoration: none; flex: 1 1 auto; min-width: 0; }
 .site-logo-title {
   font-family: 'Unbounded', sans-serif;
   font-size: 17px; font-weight: 700; color: var(--title);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.site-logo-tag { display: block; font-size: 11px; color: var(--muted); }
-.site-nav { display: flex; align-items: center; gap: 16px; font-size: 15px; }
-.site-nav a { color: var(--text); text-decoration: none; }
+.site-logo-tag { display: none; font-size: 11px; color: var(--muted); }
+/* Все разделы видны при любой ширине. Планшет и ноутбук (до 1535px): название и
+   кнопки в первой строке, разделы — второй. Широкий экран (от 1600px): всё в одной строке.
+   Телефон: две первые ссылки остаются в общей строке, остальные — в подвале. */
+.site-nav {
+  order: 3; flex: 0 0 100%;
+  display: flex; flex-wrap: wrap; align-items: center;
+  column-gap: 16px; row-gap: 4px; font-size: 15px;
+}
+.site-nav a { color: var(--text); text-decoration: none; white-space: nowrap; }
 .site-nav a:hover { color: var(--title); }
 .site-nav a.active { color: var(--accent-light); }
-.site-nav-user { color: var(--muted); }
+.site-controls { order: 2; display: flex; align-items: center; gap: 12px; flex: none; font-size: 15px; }
+.site-controls a { color: var(--text); text-decoration: none; white-space: nowrap; }
+.site-controls a:hover { color: var(--title); }
+.site-controls .site-nav-user { color: var(--muted); }
 .site-nav a:focus-visible, .site-header a:focus-visible, .btn:focus-visible {
   outline: 2px solid var(--accent-light);
   outline-offset: 2px;
 }
-.site-nav-cta { font-size: 15px; }
-@media (max-width: 1100px) {
-  .site-nav { gap: 10px; font-size: 14px; }
-  /* на узких экранах прячем только лишние разделы: поиск, вход и «Связаться» остаются */
-  .site-nav .site-nav-link:nth-child(n+7) { display: none; }
+@media (min-width: 1600px) {
+  .site-header-inner { padding: 10px 20px; column-gap: 24px; }
+  .site-logo { flex: none; }
+  .site-logo-tag { display: block; }
+  .site-nav { order: 2; flex: 0 1 auto; justify-content: flex-end; }
+  .site-controls { order: 3; }
 }
 @media (max-width: 760px) {
   .site-nav .site-nav-link:nth-child(n+3) { display: none; }
-  .site-logo-tag { display: none; }
+  .site-nav { flex: 0 1 auto; }
 }
 
 
